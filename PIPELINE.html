@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Router — Pipeline Reference</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Pretendard', -apple-system, sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; padding: 40px 20px; }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 26px; margin-bottom: 24px; }
+
+  .pipeline { display: grid; grid-template-columns: 280px 380px 280px 280px; gap: 16px; margin-bottom: 32px; align-items: start; }
+  .pipeline .head { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 8px 0; }
+  .pipeline .head.s1 { color: #64748b; }
+  .pipeline .head.s2 { color: #2563eb; }
+  .pipeline .head.s3 { color: #7c3aed; }
+  .pipeline .head.s4 { color: #0d9488; }
+
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+  .card .hdr { padding: 10px 14px; font-size: 12px; font-weight: 600; border-bottom: 1px solid #f1f5f9; }
+  .card .hdr.b0 { color: #64748b; }
+  .card .hdr.b1 { color: #2563eb; }
+  .card .hdr.b2 { color: #7c3aed; }
+  .card .hdr.b3 { color: #0d9488; }
+  .card .body { padding: 12px 14px; font-size: 12px; }
+  .card .body pre { font-size: 11px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: #475569; }
+
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-right: 4px; }
+  .tg-blue { background: #dbeafe; color: #1e40af; }
+  .tg-purple { background: #ede9fe; color: #6d28d9; }
+  .tg-teal { background: #ccfbf1; color: #0f766e; }
+
+  .target { display: block; color: #94a3b8; font-size: 10px; margin: 2px 0 6px 0; }
+
+  .row-divider { grid-column: 1 / -1; border-top: 1px dashed #e2e8f0; margin: 8px 0; }
+
+  .decision { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 32px; max-width: 700px; }
+  .decision > div { background: #fff; padding: 12px; font-size: 13px; text-align: center; }
+  .decision .hd { background: #f1f5f9; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .badge.allow { background: #dcfce7; color: #16a34a; }
+  .badge.mask { background: #dbeafe; color: #2563eb; }
+  .badge.local { background: #fee2e2; color: #dc2626; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Privacy Router — Pipeline Segmentation</h1>
+
+<div class="pipeline">
+  <div class="head s1">입력</div>
+  <div class="head s2">Extractor → sensitivity + records</div>
+  <div class="head s3">Judge → meaningfulness</div>
+  <div class="head s4">policy_action</div>
+
+  <!-- Row 1: PII context -->
+  <div class="card"><div class="hdr b0">#1 PII — 컨텍스트</div><div class="body">주민등록번호 901212-1234567을 포함한 이메일을 <b>작성해줘</b>.</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <span class="tag tg-blue">RESIDENT_REGISTRATION_NUMBER</span> <span style="color:#94a3b8;font-size:10px">conf 1.00</span>
+      <span class="target">target: "901212-1234567" [8:22]</span>
+      <pre style="margin-top:6px">is_sensitive: true
+"주민등록번호가 포함되어 민감 정보로 분류됩니다."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      is_meaningful_after_masking: <span style="color:#16a34a;font-weight:600">true</span>
+      <pre>"메인 동사 '작성해줘'는 이메일 작성을 향함.
+마스킹 후에도 요청 의미 유지."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge mask">mask_and_send</span>
+      <pre style="margin-top:6px">민감 정보를 마스킹 후 외부 API로 전송</pre>
+    </div>
+  </div>
+
+  <div class="row-divider"></div>
+
+  <!-- Row 2: PII target -->
+  <div class="card"><div class="hdr b0">#2 PII — 직접 질의</div><div class="body">내 주민등록번호가 <b>뭐야</b>?</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <span class="tag tg-blue">RESIDENT_REGISTRATION_NUMBER</span> <span style="color:#94a3b8;font-size:10px">conf 0.95</span>
+      <span class="target">target: "주민등록번호" [2:8]</span>
+      <pre style="margin-top:6px">is_sensitive: true
+"주민등록번호 자체를 묻고 있어 민감 정보에 해당합니다."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      is_meaningful_after_masking: <span style="color:#dc2626;font-weight:600">false</span>
+      <pre>"메인 동사 '뭐야'가 민감 정보 자체를 향함.
+마스킹 시 질문 의미 상실."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge local">process_locally</span>
+      <pre style="margin-top:6px">민감 정보가 질문의 핵심 — 로컬에서 처리</pre>
+    </div>
+  </div>
+
+  <div class="row-divider"></div>
+
+  <!-- Row 3: Business -->
+  <div class="card"><div class="hdr b0">#3 사업비밀 — 의사결정</div><div class="body">TSMC 3nm 공정 채택 결정에 대한 보고서를 <b>작성해줘</b>.</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <span class="tag tg-purple">FABRICATION_PROCESS_DECISION</span> <span style="color:#94a3b8;font-size:10px">conf 0.96</span>
+      <span class="target">target: "TSMC 3nm 공정 채택" [0:15]</span>
+      <span class="tag tg-purple" style="margin-top:8px">INTERNAL_BUSINESS_DECISION</span> <span style="color:#94a3b8;font-size:10px">conf 0.92</span>
+      <span class="target">target: "결정" [20:22]</span>
+      <pre style="margin-top:6px">is_sensitive: true
+"사업 기밀(공정 결정)과 내부 의사결정이 탐지되었습니다."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      is_meaningful_after_masking: <span style="color:#16a34a;font-weight:600">true</span>
+      <pre>"메인 동사 '작성해줘'는 보고서 작성을 향함.
+마스킹 후에도 요청 의미 유지."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge mask">mask_and_send</span>
+      <pre style="margin-top:6px">사업 기밀을 마스킹 후 외부 API로 전송</pre>
+    </div>
+  </div>
+
+  <div class="row-divider"></div>
+
+  <!-- Row 4: Research context -->
+  <div class="card"><div class="hdr b0">#4 연구비밀 — 아이디어 포함</div><div class="body">이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 <b>도와줘</b>.</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <span class="tag tg-teal">NOVEL_RESEARCH_CONCEPT</span> <span style="color:#94a3b8;font-size:10px">conf 0.98</span>
+      <span class="target">target: "새로운 Attention 대체 아이디어" [3:20]</span>
+      <pre style="margin-top:6px">is_sensitive: true
+"미공개 연구 아이디어가 탐지되었습니다."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      is_meaningful_after_masking: <span style="color:#16a34a;font-weight:600">true</span>
+      <pre>"메인 동사 '도와줘'는 실험 설계를 향함.
+마스킹 후에도 요청 의미 유지."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge mask">mask_and_send</span>
+      <pre style="margin-top:6px">연구 아이디어를 마스킹 후 외부 API로 전송</pre>
+    </div>
+  </div>
+
+  <div class="row-divider"></div>
+
+  <!-- Row 5: Research target -->
+  <div class="card"><div class="hdr b0">#5 연구비밀 — 아이디어 질의</div><div class="body">새로운 Attention 대체 아이디어가 <b>뭐야</b>? 자세히 <b>설명해줘</b>.</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <span class="tag tg-teal">NOVEL_RESEARCH_CONCEPT</span> <span style="color:#94a3b8;font-size:10px">conf 0.98</span>
+      <span class="target">target: "새로운 Attention 대체 아이디어" [0:15]</span>
+      <pre style="margin-top:6px">is_sensitive: true
+"미공개 연구 아이디어가 탐지되었습니다."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      is_meaningful_after_masking: <span style="color:#dc2626;font-weight:600">false</span>
+      <pre>"메인 동사 '뭐야'/'설명해줘'가 민감 정보 자체를 향함.
+마스킹 시 질문 의미 상실."</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge local">process_locally</span>
+      <pre style="margin-top:6px">질문의 핵심이 연구 아이디어 — 로컬에서 처리</pre>
+    </div>
+  </div>
+
+  <div class="row-divider"></div>
+
+  <!-- Row 6: No sensitive -->
+  <div class="card"><div class="hdr b0">#6 민감 정보 없음</div><div class="body">오늘 서울 날씨는 맑고 기온은 25도입니다.</div></div>
+  <div class="card">
+    <div class="hdr b1">sensitivity + records</div>
+    <div class="body">
+      <pre>is_sensitive: false
+"민감 정보가 발견되지 않았습니다."
+records: []</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b2">meaningful_after_masking</div>
+    <div class="body">
+      <pre>판단 생략 — is_sensitive=false 이므로</pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr b3">policy_action</div>
+    <div class="body">
+      <span class="badge allow">allow</span>
+      <pre style="margin-top:6px">민감 정보 없음 — 그대로 외부 API</pre>
+    </div>
+  </div>
+</div>
+
+<!-- Decision Table -->
+<div class="decision">
+  <div class="hd">Extractor<br>is_sensitive</div>
+  <div class="hd">Judge<br>is_meaningful_after_masking</div>
+  <div class="hd">policy_action</div>
+  <div class="hd">의미</div>
+  <div style="color:#16a34a">false</div><div>—</div><div style="color:#16a34a">allow</div><div>민감 정보 없음 → 외부 API</div>
+  <div>true</div><div>true</div><div style="color:#2563eb">mask_and_send</div><div>컨텍스트 → 마스킹 후 외부 API</div>
+  <div>true</div><div style="color:#dc2626">false</div><div style="color:#dc2626">process_locally</div><div>핵심 정보 → 로컬 API</div>
+</div>
+
+</div>
+</body>
+</html>
