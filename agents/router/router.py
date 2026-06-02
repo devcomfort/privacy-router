@@ -80,6 +80,12 @@ class Router:
         ------
         ValueError
             If *policy_action* is not recognised.
+
+        Examples
+        --------
+        >>> router = Router()
+        >>> router.resolve("mask_and_send")
+        RouteResult(endpoint='external_api', requires_masking=True, ...)
         """
         if policy_action not in self._ACTIONS:
             raise ValueError(
@@ -107,11 +113,9 @@ class Router:
         records : list of dict
             Extraction records for masking.
         call_external : callable or None
-            External API callable. Receives (possibly masked) text
-            and returns a response string.
+            External API callable.
         call_local : callable or None
-            Local API callable. Receives original text and returns
-            a response string.
+            Local API callable.
 
         Returns
         -------
@@ -122,6 +126,13 @@ class Router:
         ------
         ValueError
             If the required callable is missing.
+
+        Examples
+        --------
+        >>> def fake_llm(text): return f"echo: {text}"
+        >>> router = Router()
+        >>> router.execute("hello", "allow", [], call_external=fake_llm)
+        'echo: hello'
         """
         path = self.resolve(policy_action)
 
@@ -192,6 +203,13 @@ class PrivacyRouter:
         -------
         PipelineResult
             Sensitivity assessment, judgment, and routing decision.
+
+        Examples
+        --------
+        >>> pr = PrivacyRouter()
+        >>> result = pr.process("주민등록번호 901212-1234567")
+        >>> result.sensitivity.is_sensitive
+        True
         """
         from agents.extractor import Extractor
         from agents.judge import Judge
@@ -232,6 +250,14 @@ class PrivacyRouter:
         -------
         ChatResponse
             OpenAI-compatible response with routing metadata.
+
+        Examples
+        --------
+        >>> pr = PrivacyRouter()
+        >>> req = ChatRequest(model="auto", messages=[ChatMessage(role="user", content="hello")])
+        >>> resp = pr.chat(req)
+        >>> resp.model
+        'privacy-router'
         """
         import time
         import uuid
@@ -285,6 +311,13 @@ def process(text: str) -> PipelineResult:
     -------
     PipelineResult
         Complete pipeline result.
+
+    Examples
+    --------
+    >>> from agents.router import process
+    >>> result = process("hello")
+    >>> result.route.endpoint
+    'external_api'
     """
     global _DEFAULT_ROUTER
     if _DEFAULT_ROUTER is None:

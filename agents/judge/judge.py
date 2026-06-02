@@ -94,6 +94,17 @@ class Judge:
         Judgment
             Policy decision including meaningfulness assessment and
             recommended action.
+
+        Examples
+        --------
+        >>> judge = Judge()
+        >>> j = judge.classify(
+        ...     sensitivity={"is_sensitive": True, "rationale": "주민등록번호"},
+        ...     records=[{"category": "RRN", "span": "901212-1234567"}],
+        ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        ... )
+        >>> j.policy_action
+        'mask_and_send'
         """
         is_sensitive = sensitivity.get("is_sensitive", len(records) > 0)
 
@@ -153,6 +164,13 @@ def judge(
     -------
     Judgment
         Policy decision.
+
+    Examples
+    --------
+    >>> from agents.judge import judge
+    >>> j = judge(sensitivity={"is_sensitive": False, "rationale": "none"}, records=[], text="hello")
+    >>> j.policy_action
+    'allow'
     """
     global _DEFAULT_JUDGE
     if _DEFAULT_JUDGE is None:

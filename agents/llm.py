@@ -94,6 +94,15 @@ def call_llm_structured(
     """Call LLM via litellm + instructor (structured Pydantic output).
 
     For Gemini models, falls back to raw text + parsing if structured mode fails.
+
+    Examples
+    --------
+    >>> from pydantic import BaseModel
+    >>> class Answer(BaseModel):
+    ...     result: str
+    >>> response = call_llm_structured([{"role": "user", "content": "Say hello"}], Answer)
+    >>> isinstance(response, Answer)
+    True
     """
     model = model or os.getenv("LLM_MODEL", "openrouter/mistralai/ministral-3b-2512")
     api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")

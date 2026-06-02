@@ -59,8 +59,13 @@ def _validate_record(
     Returns
     -------
     ExtractionRecord or None
-        A validated record, or ``None`` if the item is invalid
-        (bad tag format, low confidence, or span mismatch).
+        A validated record, or ``None`` if the item is invalid.
+
+    Examples
+    --------
+    >>> item = _ExtractedItem(category="RRN", span="901212-1234567", confidence=0.98, start=7, end=21)
+    >>> _validate_record(item, "주민번호 901212-1234567")
+    ExtractionRecord(...)
     """
     if not _SCREAMING_CASE_RE.match(item.category):
         return None
@@ -177,6 +182,13 @@ def extract(text: str) -> ExtractionResult:
     -------
     ExtractionResult
         Sensitivity assessment and validated records.
+
+    Examples
+    --------
+    >>> from agents.extractor import extract
+    >>> result = extract("주민등록번호 901212-1234567")
+    >>> result.sensitivity.is_sensitive
+    True
     """
     global _DEFAULT_EXTRACTOR
     if _DEFAULT_EXTRACTOR is None:

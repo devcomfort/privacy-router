@@ -86,6 +86,13 @@ class Masker:
         ------
         ValueError
             If a record's span cannot be located in *text*.
+
+        Examples
+        --------
+        >>> masker = Masker()
+        >>> result = masker.mask("주민번호 901212-1234567", [{"category": "RRN", "span": "901212-1234567", "start": 5, "end": 19}])
+        >>> result.masked_text
+        '주민번호 [RRN#1]'
         """
         sorted_records = sorted(
             records,
@@ -146,6 +153,14 @@ class Masker:
         ------
         HydrationError
             If *text* contains placeholders not present in the contract.
+
+        Examples
+        --------
+        >>> contract = MaskingContract(placeholder_map={"[RRN#1]": "901212-1234567"}, count=1)
+        >>> masker = Masker()
+        >>> result = masker.hydrate("번호 [RRN#1]입니다.", contract)
+        >>> result.hydrated_text
+        '번호 901212-1234567입니다.'
         """
         unresolved = contract.validate_response(text)
         if unresolved:
