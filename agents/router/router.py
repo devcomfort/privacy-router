@@ -53,6 +53,16 @@ class Router:
             requires_masking=True,
             description="민감 정보 마스킹 후 외부 API로 전송, 응답 재수화",
         ),
+        "prompt_user": RouteResult(
+            endpoint="prompt",
+            requires_masking=False,
+            description="마스킹 시 질문 의미 상실 — 사용자 확인 필요",
+        ),
+        "block": RouteResult(
+            endpoint="blocked",
+            requires_masking=False,
+            description="민감 정보 직접 노출 위험 — 완전 차단",
+        ),
         "process_locally": RouteResult(
             endpoint="local_api",
             requires_masking=False,
