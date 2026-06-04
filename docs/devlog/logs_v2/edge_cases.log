@@ -1,0 +1,12 @@
+  class PromptInputConfig(BaseModel):
+  class PromptOutputConfig(BaseModel):
+Privacy Router — Edge Case Evaluation
+============================================================
+아이디어 서술: is_sensitive=True → UNPUBLISHED_RESEARCH_CONCEPT, UNPUBLISHED_RESEARCH_STATUS
+코드명+예산: is_sensitive=True → INTERNAL_PROJECT_NAME, PROJECT_BUDGET_AMOUNT, PROJECT_LABOR_COST_AMOUNT
+의사결정 회의록: is_sensitive=True → INTERNAL_BUSINESS_DECISION, INTERNAL_STRATEGY_RATIONALE
+아이디어 다이어그램: is_sensitive=False → (none)
+특수문자 +: is_sensitive=True → PROJECT_BUDGET_AMOUNT, PROJECT_BUDGET_AMOUNT
+URL 포함: is_sensitive=True → INTERNAL_PROJECT_CODE_NAME, INTERNAL_SYSTEM_URL
+이메일+전화: is_sensitive=True → EMAIL_ADDRESS, MOBILE_PHONE_NUMBER
+기술 스펙: is_sensitive=True → FABRICATION_PROCESS_SPECIFICATION, INTERNAL_PRODUCT_ROADMAP_SPECIFICATION
