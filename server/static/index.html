@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Router — Interactive Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; }
+
+  /* Sidebar */
+  .sidebar { width: 400px; background: #1e293b; border-right: 1px solid #334155; display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-header { padding: 20px; border-bottom: 1px solid #334155; }
+  .sidebar-header h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+  .sidebar-header p { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  .pipeline-status { padding: 16px 20px; font-size: 13px; border-bottom: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
+  .pipeline-status .row { display: flex; justify-content: space-between; align-items: center; }
+  .pipeline-status .label { color: #94a3b8; }
+  .pipeline-status .value { font-weight: 600; }
+
+  .detections { padding: 16px 20px; flex: 1; overflow-y: auto; }
+  .detections h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 12px; }
+  .record { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 12px; }
+  .record .cat { font-weight: 700; color: #38bdf8; }
+  .record .span-text { color: #fbbf24; margin-top: 2px; }
+  .record .ph { color: #a78bfa; font-size: 11px; margin-top: 2px; }
+
+  /* Masking transparency box */
+  .masking-box { margin: 12px 0; border-radius: 8px; overflow: hidden; border: 1px solid #334155; font-size: 12px; }
+  .masking-box .before { background: #451a03; padding: 10px 14px; color: #fbbf24; word-break: break-all; }
+  .masking-box .before::before { content: 'Original: '; color: #92400e; font-weight: 600; }
+  .masking-box .arrow { background: #1e293b; padding: 4px 14px; color: #64748b; }
+  .masking-box .after { background: #052e16; padding: 10px 14px; color: #4ade80; word-break: break-all; }
+  .masking-box .after::before { content: 'Masked: '; color: #166534; font-weight: 600; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-allow { background: #14532d; color: #4ade80; }
+  .badge-mask { background: #1e3a5f; color: #60a5fa; }
+  .badge-local { background: #7f1d1d; color: #fca5a5; }
+  .badge-none { background: #334155; color: #94a3b8; }
+
+  /* Chat area */
+  .chat { flex: 1; display: flex; flex-direction: column; }
+  .chat-header { padding: 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 12px; }
+  .chat-header .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+  .chat-header h2 { font-size: 15px; font-weight: 600; color: #f1f5f9; }
+  .chat-header select { margin-left: auto; background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+
+  .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.7; }
+  .msg.user { align-self: flex-end; background: #2563eb; color: #fff; }
+  .msg.assistant { align-self: flex-start; background: #1e293b; border: 1px solid #334155; }
+  .msg.system { align-self: flex-start; background: transparent; border: 1px dashed #334155; font-size: 12px; color: #94a3b8; }
+  .msg .meta { font-size: 10px; margin-top: 8px; opacity: 0.6; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Markdown inside messages */
+  .msg.assistant p { margin: 0 0 8px 0; }
+  .msg.assistant p:last-child { margin-bottom: 0; }
+  .msg.assistant pre { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 14px; overflow-x: auto; font-size: 13px; margin: 8px 0; }
+  .msg.assistant code { background: #0f172a; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  .msg.assistant pre code { background: none; padding: 0; }
+  .msg.assistant ul, .msg.assistant ol { margin: 4px 0; padding-left: 20px; }
+
+  .input-area { padding: 16px 20px; border-top: 1px solid #334155; display: flex; gap: 10px; }
+  .input-area textarea { flex: 1; background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 12px; border-radius: 8px; font-size: 14px; resize: none; font-family: inherit; }
+  .input-area textarea::placeholder { color: #64748b; }
+  .input-area button { background: #2563eb; color: #fff; border: none; padding: 0 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .input-area button:hover { background: #1d4ed8; }
+  .input-area button:disabled { opacity: 0.4; cursor: default; }
+
+  .quick-prompts { padding: 12px 20px; border-top: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 6px; }
+  .quick-prompts button { background: #334155; border: none; color: #94a3b8; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+  .quick-prompts button:hover { background: #475569; color: #e2e8f0; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>🛡️ Privacy Router</h1>
+    <p>Extractor → Judge → Router pipeline</p>
+  </div>
+  <div class="pipeline-status" id="pipeline-status">
+    <div class="row"><span class="label">Sensitive</span><span class="value" id="status-sensitive">—</span></div>
+    <div class="row"><span class="label">Tags</span><span class="value" id="status-tags">—</span></div>
+    <div class="row"><span class="label">Policy</span><span class="value" id="status-policy">—</span></div>
+    <div class="row"><span class="label">Route</span><span class="value" id="status-route">—</span></div>
+  </div>
+  <div class="detections" id="detections">
+    <h3>Detected Records</h3>
+    <div id="detection-list"><span style="color:#64748b;font-size:12px;">Send a message to see detections.</span></div>
+    <div id="masking-detail"></div>
+  </div>
+  <div class="quick-prompts">
+    <button onclick="send('주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.')">PII context</button>
+    <button onclick="send('내 주민등록번호가 뭐야?')">PII direct</button>
+    <button onclick="send(\"TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.\")">Business secret</button>
+    <button onclick="send('이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.')">Research</button>
+    <button onclick="send('오늘 서울 날씨는 맑고 기온은 25도입니다.')">No sensitive</button>
+  </div>
+</div>
+
+<!-- Chat -->
+<div class="chat">
+  <div class="chat-header">
+    <div class="dot"></div>
+    <h2>Interactive Demo</h2>
+    <select id="model-select"></select>
+  </div>
+  <div class="messages" id="messages">
+    <div class="msg assistant">
+      <p>안녕하세요! <strong>Privacy Router</strong> 데모입니다.</p>
+      <p>메시지를 보내면 <code>Extractor → Judge → Router</code> 파이프라인이 민감 정보를 탐지하고 적절한 라우팅을 수행합니다.</p>
+      <p>왼쪽 패널에서 실시간 파이프라인 상태를 확인할 수 있습니다.</p>
+    </div>
+  </div>
+  <div class="input-area">
+    <textarea id="input" rows="2" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCurrent();}"></textarea>
+    <button id="send-btn" onclick="sendCurrent()">Send</button>
+  </div>
+</div>
+
+<script>
+const API_BASE = '';
+
+marked.setOptions({ breaks: true, gfm: true });
+
+async function loadModels() {
+  try {
+    const resp = await fetch('/v1/models');
+    const data = await resp.json();
+    const sel = document.getElementById('model-select');
+    data.data.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.id.replace('privacy-router/', '');
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    console.error('Failed to load models:', e);
+  }
+}
+
+function sendCurrent() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  send(text);
+}
+
+async function send(text) {
+  const messages = document.getElementById('messages');
+  const sendBtn = document.getElementById('send-btn');
+
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg user';
+  userMsg.textContent = text;
+  messages.appendChild(userMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'msg assistant';
+  loadingMsg.innerHTML = '<p><em>⟳ 분석 중...</em></p>';
+  loadingMsg.id = 'loading-msg';
+  messages.appendChild(loadingMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  sendBtn.disabled = true;
+
+  try {
+    const model = document.getElementById('model-select').value;
+    const resp = await fetch(API_BASE + '/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'user', content: text }],
+        max_tokens: 512,
+      }),
+    });
+
+    // ── prompt_user: confirmation required ──────────────────────────────
+    if (resp.status === 409) {
+      const data = await resp.json();
+      document.getElementById('loading-msg')?.remove();
+
+      const pr = data.privacy_router || {};
+      updatePipeline(pr);
+
+      // Show confirmation prompt in chat
+      const confirmMsg = document.createElement('div');
+      confirmMsg.className = 'msg assistant';
+      const confirmText = pr.confirm_message || '이 요청에는 민감한 정보가 포함되어 있습니다. 전송하시겠습니까?';
+      confirmMsg.innerHTML = `<p>⚠️ <strong>확인이 필요합니다</strong></p><p style="white-space:pre-line;margin:8px 0;">${confirmText}</p>`;
+
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:12px;';
+
+      const okBtn = document.createElement('button');
+      okBtn.textContent = '전송 허용';
+      okBtn.style.cssText = 'background:#dc2626;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;';
+      okBtn.onclick = () => {
+        confirmMsg.remove();
+        sendConfirmed(text, model);
+      };
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = '취소';
+      cancelBtn.style.cssText = 'background:#334155;color:#e2e8f0;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;';
+      cancelBtn.onclick = () => {
+        confirmMsg.remove();
+        const cancelMsg = document.createElement('div');
+        cancelMsg.className = 'msg system';
+        cancelMsg.textContent = '요청이 취소되었습니다.';
+        messages.appendChild(cancelMsg);
+      };
+
+      btnRow.appendChild(okBtn);
+      btnRow.appendChild(cancelBtn);
+      confirmMsg.appendChild(btnRow);
+      messages.appendChild(confirmMsg);
+      messages.scrollTop = messages.scrollHeight;
+      return;
+    }
+
+    const data = await resp.json();
+    document.getElementById('loading-msg')?.remove();
+
+    const content = data.choices?.[0]?.message?.content || '(empty response)';
+    const assistantMsg = document.createElement('div');
+    assistantMsg.className = 'msg assistant';
+    assistantMsg.innerHTML = marked.parse(content);
+
+    const pr = data.privacy_router || {};
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const badges = [];
+    if (pr.is_sensitive) badges.push('🔴 sensitive');
+    else badges.push('🟢 safe');
+    if (pr.requires_masking) badges.push('🎭 masked → hydrated');
+    if (pr.policy_action === 'process_locally') badges.push('🚫 blocked');
+    badges.push(pr.description || '');
+    meta.textContent = badges.join(' · ');
+    assistantMsg.appendChild(meta);
+
+    messages.appendChild(assistantMsg);
+    messages.scrollTop = messages.scrollHeight;
+
+    updatePipeline(pr);
+
+  } catch(e) {
+    document.getElementById('loading-msg')?.remove();
+    const errMsg = document.createElement('div');
+    errMsg.className = 'msg system';
+    errMsg.textContent = 'Error: ' + e.message;
+    messages.appendChild(errMsg);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+/** Resend with confirmation header (bypasses prompt_user) */
+async function sendConfirmed(text, model) {
+  const messages = document.getElementById('messages');
+  const sendBtn = document.getElementById('send-btn');
+
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg user';
+  userMsg.textContent = text + ' (confirmed)';
+  messages.appendChild(userMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'msg assistant';
+  loadingMsg.innerHTML = '<p><em>⟳ 확인 후 전송 중...</em></p>';
+  loadingMsg.id = 'loading-msg';
+  messages.appendChild(loadingMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  sendBtn.disabled = true;
+
+  try {
+    const resp = await fetch(API_BASE + '/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Privacy-Router-Confirm': 'true',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'user', content: text }],
+        max_tokens: 512,
+      }),
+    });
+    const data = await resp.json();
+    document.getElementById('loading-msg')?.remove();
+
+    const content = data.choices?.[0]?.message?.content || '(empty response)';
+    const assistantMsg = document.createElement('div');
+    assistantMsg.className = 'msg assistant';
+    assistantMsg.innerHTML = marked.parse(content);
+
+    const pr = data.privacy_router || {};
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = '🔴 sent with original sensitive data · user confirmed risk';
+    assistantMsg.appendChild(meta);
+
+    messages.appendChild(assistantMsg);
+    messages.scrollTop = messages.scrollHeight;
+    updatePipeline(pr);
+
+  } catch(e) {
+    document.getElementById('loading-msg')?.remove();
+    const errMsg = document.createElement('div');
+    errMsg.className = 'msg system';
+    errMsg.textContent = 'Error: ' + e.message;
+    messages.appendChild(errMsg);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function updatePipeline(pr) {
+  document.getElementById('status-sensitive').textContent = pr.is_sensitive ? 'Yes' : 'No';
+  document.getElementById('status-sensitive').style.color = pr.is_sensitive ? '#f87171' : '#4ade80';
+
+  const tags = (pr.records || []).map(r => r.category).join(', ') || 'none';
+  document.getElementById('status-tags').textContent = tags;
+
+  document.getElementById('status-policy').textContent = pr.policy_action || '—';
+
+  let routeBadge = '';
+  if (pr.requires_masking) routeBadge = '<span class="badge badge-mask">mask_and_send</span>';
+  else if (pr.policy_action === 'prompt') routeBadge = '<span class="badge badge-mask">prompt_user</span>';
+  else if (pr.policy_action === 'blocked') routeBadge = '<span class="badge badge-local">block</span>';
+  else if (pr.policy_action === 'process_locally') routeBadge = '<span class="badge badge-local">process_locally</span>';
+  else routeBadge = '<span class="badge badge-allow">allow</span>';
+  document.getElementById('status-route').innerHTML = routeBadge;
+
+  // Detection records
+  const list = document.getElementById('detection-list');
+  if (!pr.records || pr.records.length === 0) {
+    list.innerHTML = '<span style="color:#64748b;font-size:12px;">No sensitive records detected.</span>';
+  } else {
+    const placeholders = pr.placeholders || [];
+    list.innerHTML = pr.records.map((r, i) => {
+      const ph = placeholders[i] ? ' → <span class="ph">' + placeholders[i].placeholder + '</span>' : '';
+      return '<div class="record"><div class="cat">' + r.category + ph + '</div><div class="span-text">"' + r.span + '"</div></div>';
+    }).join('');
+  }
+
+  // Masking transparency
+  const detail = document.getElementById('masking-detail');
+  if (pr.requires_masking && pr.original_text && pr.masked_text) {
+    detail.innerHTML =
+      '<div class="masking-box">' +
+        '<div class="before">' + escHtml(pr.original_text) + '</div>' +
+        '<div class="arrow">▼ masked ▼</div>' +
+        '<div class="after">' + escHtml(pr.masked_text) + '</div>' +
+      '</div>';
+  } else if (pr.policy_action === 'process_locally') {
+    detail.innerHTML =
+      '<div class="masking-box">' +
+        '<div class="before" style="background:#450a0a;color:#fca5a5;">' + escHtml(pr.description || 'Blocked — local processing only') + '</div>' +
+      '</div>';
+  } else {
+    detail.innerHTML = '';
+  }
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+loadModels();
+document.getElementById('input').focus();
+</script>
+</body>
+</html>
