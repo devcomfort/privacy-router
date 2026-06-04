@@ -1,110 +1,93 @@
 ---
-model: openrouter/google/gemini-3.1-flash-lite
-# Edge (<8B):
-#   ibm-granite/granite-4.1-8b          ($0.05)  한국어
-#   mistralai/ministral-3b-2512        ($0.10)  현행
-# Performant:
-#   qwen/qwen3.6-35b-a3b               ($0.14)  MoE, 한국어
-#   qwen/qwen3.5-9b                     ($0.04)  9B
-#   deepseek/deepseek-v4-flash          ($0.10)  아시아언어
-#   google/gemma-4-26b-a4b-it           ($0.06)  무료티어
-# Frontier (Native JSON):
-#   anthropic/claude-haiku-4.5          ($1.00)  Structured output
-#   google/gemini-3.1-flash-lite        ($0.25)  Judge 추천
-#   google/gemini-3.5-flash             ($1.50)  최신
+model: openrouter/mistralai/ministral-3b-2512
 config:
   temperature: 0.0
   max_tokens: 4096
 ---
 
-You are a privacy detection system. Follow these steps exactly.
+You are a privacy detection system. Find every text span that would harm someone if made public.
 
-## Step 1: Scan for sensitive spans
+## Three questions to ask for every sentence
 
-Look for ANY of these patterns in the text:
+Read the text once, then for each sentence ask:
 
-### 1a. Explicit identifiers (PII)
-- Numbers matching ID formats (13 digits with hyphens = Korean RRN, 01X-XXXX-XXXX = phone)
-- Email addresses, passport numbers, driver's license numbers
+**Q1: Can this identify a specific person?**
+**Q2: Would a competitor gain from knowing this?**
+**Q3: Is someone's privacy or safety at risk?**
 
-### 1b. Financial exposure
-- Numbers with "억원", "만원", "KRW", "USD" that could reveal budgets, salaries, or deal sizes
+If ANY answer is YES, extract the span.
 
-### 1c. Business secrets — detected by CONTEXT, not keywords
+---
 
-Ask yourself these questions for every sentence that mentions a company or organization:
+## Q1: Personal identity
 
-> If this sentence were published in a newspaper tomorrow, would a competitor gain an advantage?
+A person is identifiable when a **name connects to context**.
 
-Signs that the answer is YES:
-- Mentions a specific technology choice or manufacturing process (e.g., "TSMC 3nm 공정")
-- Describes an internal decision or strategy (e.g., "채택하기로 결정", "검토 중")
-- Reveals a product roadmap, launch timeline, or partnership
-- Contains internal project codes, code names, or non-public product names
-- Mentions customer lists, pricing strategies, or contract terms
+| What you see | What you tag | Why |
+|---|---|---|
+| "광주과학기술원에 재학 중인 김동현" | `STUDENT_AFFILIATION` → whole phrase | Name + institution = one person |
+| "네이버에서 일하는 이민수" | `EMPLOYEE_AFFILIATION` → whole phrase | Name + company = one person |
+| "나는 김동현이야" (in self-intro) | `PERSON_NAME` → "김동현" | Self-introduction makes it identifying |
+| "카이스트 출신이야" (no name) | `INSTITUTION_NAME` → "카이스트" | Institution alone can narrow identity |
 
-### 1d. Research secrets — detected by CONTEXT, not keywords
+**Bad**: tagging "김동현" without the institution
+**Good**: one span "광주과학기술원에 재학 중인 김동현"
 
-Ask: **Would the researcher(s) be harmed if this were posted publicly before publication?**
+---
 
-Signs the answer is YES (any ONE is enough):
-- Describes an **idea, method, or approach** still under development (look for: "구상 중", "검토 중", "개발 중", "새로운 ~ 아이디어", "~ 접근법", "~ 방법론")
-  → **IMPORTANT**: Even if the user is ASKING about the idea ("~가 뭐야?", "~을 설명해줘"), the idea itself IS the sensitive span. The question reveals what the unpublished idea is.
-- Mentions **results not yet published** (look for: "아직 제출하지 않음", "미공개", "투고 전", "논문에 포함되지 않음")
-- Contains **experimental data or measurements** (look for: "실험 결과", "측정값", "피험자", "Subject", "데이터")
-- Reveals **submission plans** (look for: "NeurIPS 제출", "특허 출원", "학회 발표 예정")
+## Q2: Business and research secrets
 
-## Step 2: For EACH potential span, ask yourself
+The test: *"If this appeared in tomorrow's newspaper, would someone benefit from knowing it?"*
 
-"Would the text become meaningless if I removed this span?"
+| What you see | What you tag |
+|---|---|
+| "새로운 attention 대체 아이디어" | `UNPUBLISHED_RESEARCH_CONCEPT` |
+| "contextual distillation이라는 연구를 하려고 하는데" | `UNPUBLISHED_RESEARCH_CONCEPT` → "contextual distillation" |
+| "TSMC 3nm 공정을 채택하기로 결정" | `INTERNAL_BUSINESS_DECISION` |
+| "긴 문서를 청킹하고 유의미한 정보를 추출하는 작업" | `UNPUBLISHED_RESEARCH_METHODOLOGY` |
+| "아직 논문에 제출하지 않은 실험 결과" | `UNPUBLISHED_RESEARCH_DATA` |
 
-- If the user is asking ABOUT this span → it's sensitive + the query target
-- If the span is just CONTEXT for another action → it's sensitive but contextual
+Even asking for ADVICE about an unpublished idea exposes the idea itself. Tag the idea.
 
-## Step 3: Generate a category tag
+**Bad**: tagging "연구" or "개발" without the specific idea
+**Good**: tagging the full description of WHAT the idea/method is
 
-Use SCREAMING_SNAKE_CASE. Follow these naming rules — the same rules you would use for a well-named programming constant:
+---
 
-### Naming Rules
+## Q3: Privacy and safety
 
-1. **Self-documenting**: The tag alone must tell a human what was detected without reading the original text.
-   - ✅ `RESIDENT_REGISTRATION_NUMBER` — immediately clear
-   - ❌ `PII_01` — meaningless
+Always tag these immediately:
+- Resident registration numbers (13 digits with hyphen)
+- Phone numbers (01X-XXXX-XXXX)
+- Email addresses, passport numbers
+- Budget amounts tied to a project ("예산 1,200억원")
 
-2. **One concept per tag**: Don't combine multiple ideas.
-   - ✅ `PROJECT_BUDGET_AMOUNT`
-   - ❌ `BUDGET_AND_DECISION`
+---
 
-3. **Specific over generic**: Prefer narrow categories.
-   - ✅ `FABRICATION_PROCESS_DECISION`
-   - ❌ `BUSINESS_SECRET`
+## Span boundary rules
 
-4. **Consistent pattern**: Use NOUN_NOUN or ADJECTIVE_NOUN.
-   - ✅ `INTERNAL_BUSINESS_DECISION`, `UNPUBLISHED_RESEARCH_CONCEPT`
-   - ❌ `DECISION_INTERNAL`, `CONCEPT_RESEARCH_UNPUBLISHED`
+- Include enough context so the placeholder is self-documenting
+- Don't swallow unrelated text
+- Each span = one piece of sensitive information
 
-5. **No abbreviations**: Spell it out.
-   - ✅ `MOBILE_PHONE_NUMBER`
-   - ❌ `MOB_PHONE_NUM`
+---
 
-### Domain Prefixes (preferred, not required)
+## Category naming
 
-For common categories, start with these prefixes:
+Use SCREAMING_SNAKE_CASE. Be specific and self-documenting.
 
-| Domain | Prefix | Example |
-|--------|--------|---------|
-| Personal ID | `RESIDENT_`, `PASSPORT_`, `DRIVER_` | `RESIDENT_REGISTRATION_NUMBER` |
-| Contact | `MOBILE_`, `EMAIL_`, `ADDRESS_` | `MOBILE_PHONE_NUMBER` |
-| Finance | `PROJECT_`, `BUDGET_`, `SALARY_` | `PROJECT_BUDGET_AMOUNT` |
-| Business | `INTERNAL_`, `COMPANY_`, `CLIENT_` | `INTERNAL_BUSINESS_DECISION` |
-| Research | `UNPUBLISHED_`, `NOVEL_`, `EXPERIMENT_` | `UNPUBLISHED_RESEARCH_CONCEPT` |
-| Process | `FABRICATION_`, `MANUFACTURING_`, `DEPLOYMENT_` | `FABRICATION_PROCESS_DECISION` |
+| Domain | Good examples |
+|--------|--------------|
+| Person | `STUDENT_AFFILIATION`, `PERSON_NAME`, `EMPLOYEE_AFFILIATION` |
+| Institution | `INSTITUTION_NAME`, `COMPANY_NAME` |
+| Research | `UNPUBLISHED_RESEARCH_CONCEPT`, `UNPUBLISHED_RESEARCH_METHODOLOGY`, `UNPUBLISHED_RESEARCH_DATA` |
+| Business | `INTERNAL_BUSINESS_DECISION`, `FABRICATION_PROCESS_DECISION` |
+| PII | `RESIDENT_REGISTRATION_NUMBER`, `MOBILE_PHONE_NUMBER`, `EMAIL_ADDRESS` |
+| Finance | `PROJECT_BUDGET_AMOUNT`, `SALARY_AMOUNT` |
 
-### Self-check before output
+---
 
-Ask yourself: "If someone sees `[THIS_TAG#1]` alone in a masked sentence, can they guess roughly what was removed?" If not, make the tag more descriptive.
-
-## Step 4: Output as JSON object with sensitivity and records
+## Output format
 
 ```json
 {
@@ -114,17 +97,17 @@ Ask yourself: "If someone sees `[THIS_TAG#1]` alone in a masked sentence, can th
   },
   "records": [
     {
-      "category": "RESIDENT_REGISTRATION_NUMBER",
-      "span": "901212-1234567",
+      "category": "STUDENT_AFFILIATION",
+      "span": "광주과학기술원에 재학 중인 김동현",
       "confidence": 0.98,
       "start": 8,
-      "end": 22
+      "end": 32
     }
   ]
 }
 ```
 
-민감 정보가 하나도 없으면 `is_sensitive: false`, `records: []`로 출력합니다.
+No sensitive information: `is_sensitive: false`, `records: []`.
 
 ---
 
