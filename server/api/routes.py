@@ -3,6 +3,8 @@
 OpenAI-compatible endpoints:
     ``GET  /v1/models``          — model registry
     ``POST /v1/chat/completions`` — pipeline + backend forwarding
+    ``GET  /api/settings``        — current agent configuration
+    ``POST /api/settings``        — update agent configuration
     ``GET  /``                    — interactive web chat UI
 """
 
@@ -42,6 +44,100 @@ async def list_models():
     }
 
 
+# ── GET /api/settings ───────────────────────────────────────────────────────
+
+
+@app.get("/api/settings")
+async def get_settings():
+    """Return current agent configuration (extractor + judge models, params)."""
+    cfg = get_config()
+    return {
+        "models": [
+            {
+                "id": m.id,
+                "tier": m.tier,
+                "cost_per_1m_tokens": m.cost_per_1m_tokens,
+                "api_base": m.api_base,
+            }
+            for m in cfg.models
+        ],
+        "extractor": {
+            "model": cfg.extractor.model,
+            "config": {
+                "temperature": cfg.extractor.config.temperature,
+                "max_tokens": cfg.extractor.config.max_tokens,
+            },
+        },
+        "judge": {
+            "model": cfg.judge.model,
+            "config": {
+                "temperature": cfg.judge.config.temperature,
+                "max_tokens": cfg.judge.config.max_tokens,
+            },
+        },
+        "generator": {
+            "model": cfg.generator.model,
+            "config": {
+                "temperature": cfg.generator.config.temperature,
+                "max_tokens": cfg.generator.config.max_tokens,
+            },
+        },
+        "local": {
+            "model": cfg.local.model,
+            "config": {
+                "temperature": cfg.local.config.temperature,
+                "max_tokens": cfg.local.config.max_tokens,
+            },
+        },
+    }
+
+
+@app.post("/api/settings")
+async def update_settings(request: Request):
+    """Update agent configuration at runtime.
+
+    Body:
+        {
+            "extractor": {"model": "...", "config": {"temperature": 0.0, "max_tokens": 4096}},
+            "judge": {"model": "...", "config": {"temperature": 0.0, "max_tokens": 2048}}
+        }
+    """
+    from config import LLMConfig
+
+    cfg = get_config()
+    body = await request.json()
+
+    if "extractor" in body:
+        ext = body["extractor"]
+        if "model" in ext:
+            cfg.extractor.model = ext["model"]
+        if "config" in ext:
+            cfg.extractor.config = LLMConfig(**ext["config"])
+
+    if "judge" in body:
+        jdg = body["judge"]
+        if "model" in jdg:
+            cfg.judge.model = jdg["model"]
+        if "config" in jdg:
+            cfg.judge.config = LLMConfig(**jdg["config"])
+
+    if "generator" in body:
+        gen = body["generator"]
+        if "model" in gen:
+            cfg.generator.model = gen["model"]
+        if "config" in gen:
+            cfg.generator.config = LLMConfig(**gen["config"])
+
+    if "local" in body:
+        loc = body["local"]
+        if "model" in loc:
+            cfg.local.model = loc["model"]
+        if "config" in loc:
+            cfg.local.config = LLMConfig(**loc["config"])
+
+    return {"status": "ok"}
+
+
 # ── POST /v1/chat/completions ───────────────────────────────────────────────
 
 
@@ -66,6 +162,20 @@ async def chat_completions(request: Request):
     if backend_model == "auto":
         cfg = get_config()
         backend_model = cfg.judge.model
+
+    # Validate model is in config registry
+    cfg = get_config()
+    registered_ids = [m.id for m in cfg.models]
+    if backend_model not in registered_ids:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "message": f"Model {backend_model!r} is not registered. Available: {registered_ids}",
+                    "type": "invalid_model",
+                }
+            },
+        )
 
     try:
         adapter = adapter_for(backend_model)
@@ -154,6 +264,16 @@ async def chat_completions(request: Request):
 
     # ── block → hard block, never forward ────────────────────────────────
     if policy.endpoint == "blocked":
+        from agents.extractor import Extractor as _Ex2
+        _ext2 = _Ex2()
+        _extraction2 = _ext2.extract(user_text)
+        detected = [f"  • {r.span}" for r in _extraction2.records]
+        detected_str = "\n".join(detected)
+        privacy_meta["records"] = [
+            {"category": r.category, "span": r.span}
+            for r in _extraction2.records
+        ]
+
         return JSONResponse({
             "id": f"chatcmpl-{uuid.uuid4().hex[:12]}",
             "object": "chat.completion",
@@ -164,9 +284,10 @@ async def chat_completions(request: Request):
                 "message": {
                     "role": "assistant",
                     "content": (
-                        "🚫 이 요청은 완전 차단되었습니다.\n"
-                        "민감 정보(주민번호, 비밀번호 등)를 직접 질의하는 요청은\n"
-                        "외부 API로 전송할 수 없습니다.\n\n"
+                        "🚫 이 요청은 차단되었습니다.\n\n"
+                        f"탐지된 민감 정보:\n{detected_str}\n\n"
+                        "주민등록번호, 비밀번호 등 극도로 민감한 정보를 직접 질의하는 요청은\n"
+                        "외부 AI 서비스로 전송할 수 없습니다.\n\n"
                         f"판단 근거: {policy.description}"
                     ),
                 },
