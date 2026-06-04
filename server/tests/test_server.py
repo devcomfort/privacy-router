@@ -63,7 +63,7 @@ class TestChatCompletions:
         pr = resp.json().get("privacy_router", {})
         assert pr.get("is_sensitive") is True
 
-    def test_invalid_backend_returns_502(self):
+    def test_invalid_backend_returns_400(self):
         resp = client.post(
             "/v1/chat/completions",
             json={
@@ -72,5 +72,5 @@ class TestChatCompletions:
                 "max_tokens": 64,
             },
         )
-        assert resp.status_code == 502
+        assert resp.status_code == 400
         assert "error" in resp.json()
