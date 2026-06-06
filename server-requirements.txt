@@ -1,0 +1,14 @@
+fastapi>=0.136.1
+uvicorn[standard]>=0.47.0
+litellm>=1.85.0
+openai>=2.37.0
+httpx>=0.28.1
+instructor>=1.15.1
+python-dotenv>=1.2.2
+pyyaml>=6.0
+platformdirs>=4.0
+mcp>=1.0
+dotpromptz>=0.1.5
+sqlmodel>=0.0.38
+asyncpg>=0.31.0
+psycopg2-binary>=2.9.9

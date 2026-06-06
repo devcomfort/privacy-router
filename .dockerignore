@@ -1,0 +1,9 @@
+.venv
+.git
+__pycache__
+*.pyc
+node_modules
+.svelte-kit
+privacy_router.db
+logs/
+*.log

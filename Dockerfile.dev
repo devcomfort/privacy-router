@@ -1,0 +1,12 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install server dependencies + watchfiles for fast reload detection
+COPY server-requirements.txt ./
+RUN pip install --no-cache-dir -r server-requirements.txt watchfiles
+
+EXPOSE 8787
+
+# Code is mounted via volume at runtime — no COPY needed
+CMD ["uvicorn", "server.api.main:app", "--host", "0.0.0.0", "--port", "8787", "--reload"]

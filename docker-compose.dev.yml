@@ -1,0 +1,113 @@
+# Development compose — standalone, does NOT extend production.
+# Usage: docker compose -f docker-compose.dev.yml up --watch
+# File changes in agents/, server/, admin/src/ trigger automatic restart.
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: privacy_router
+      POSTGRES_PASSWORD: privacy_router
+      POSTGRES_DB: privacy_router
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U privacy_router"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # ── FastAPI backend (hot-reload via volume mounts + uvicorn --reload) ────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8787:8787"
+    env_file:
+      - .env
+    volumes:
+      - ./agents:/app/agents
+      - ./server:/app/server
+      - ./db:/app/db
+      - ./config:/app/config
+      - ./web:/app/web
+      - ./.privacy-router.config.yaml:/app/.privacy-router.config.yaml
+      - ./.env:/app/.env
+    environment:
+      - WATCHFILES_FORCE_POLLING=true
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./agents
+          target: /app/agents
+        - action: sync+restart
+          path: ./server
+          target: /app/server
+        - action: sync+restart
+          path: ./db
+          target: /app/db
+        - action: sync+restart
+          path: ./config
+          target: /app/config
+        - action: sync+restart
+          path: ./web
+          target: /app/web
+        - action: sync+restart
+          path: ./.env
+          target: /app/.env
+        - action: rebuild
+          path: ./server-requirements.txt
+
+  # ── Admin frontend (Vite dev server with HMR) ───────────────────────────────
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8788:5173"
+    volumes:
+      - ./admin/src:/app/src
+      - ./admin/static:/app/static
+      - ./admin/svelte.config.js:/app/svelte.config.js
+      - ./admin/vite.config.ts:/app/vite.config.ts
+      - ./admin/tsconfig.json:/app/tsconfig.json
+      - ./admin/package.json:/app/package.json
+    networks:
+      - frontend
+    develop:
+      watch:
+        - action: sync
+          path: ./admin/src
+          target: /app/src
+        - action: sync
+          path: ./admin/static
+          target: /app/static
+        - action: sync+restart
+          path: ./admin/svelte.config.js
+          target: /app/svelte.config.js
+        - action: sync+restart
+          path: ./admin/vite.config.ts
+          target: /app/vite.config.ts
+        - action: rebuild
+          path: ./admin/package.json
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+
+volumes:
+  pgdata_dev:

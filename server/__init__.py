@@ -15,7 +15,7 @@ Examples
 >>> main()  # starts uvicorn on :8787
 """
 
-from server.api import app
+from server.api.main import app
 from server.mcp import mcp
 
 __all__ = ["app", "mcp", "main"]
