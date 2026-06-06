@@ -72,19 +72,19 @@ def _validate_record(
     if item.confidence < 0.5:
         return None
 
-    start, end = item.start, item.end
-    if original_text[start:end] != item.span:
-        found = original_text.find(item.span)
-        if found == -1:
-            return None
-        start, end = found, found + len(item.span)
+    found = original_text.find(item.span)
+    if found == -1:
+        return None
 
     return ExtractionRecord(
         category=item.category,
         span=item.span,
         confidence=item.confidence,
-        start=start,
-        end=end,
+        start=found,
+        end=found + len(item.span),
+        detection_type=getattr(item, "detection_type", "contextual"),
+        reasoning=getattr(item, "reasoning", ""),
+        is_load_bearing=getattr(item, "is_load_bearing", False),
     )
 
 
@@ -114,10 +114,10 @@ class Extractor:
     [RESIDENT_REGISTRATION_NUMBER#1]
     """
 
-    def __init__(self, model: str | None = None) -> None:
+    def __init__(self, model: str | None = None, api_base: str | None = None) -> None:
         self._prompt = load_prompt(str(_PROMPT_PATH))
         self._model = model or self._prompt["model"]
-
+        self._api_base = api_base
     # ── Public API ───────────────────────────────────────────────────────────
 
     def extract(self, text: str) -> ExtractionResult:
@@ -148,7 +148,7 @@ class Extractor:
         # Call the SLM for structured extraction
         try:
             output = call_llm_structured(
-                messages, _ExtractedOutput, model=self._model
+                messages, _ExtractedOutput, model=self._model, api_base=self._api_base
             )
         except Exception:
             return ExtractionResult(

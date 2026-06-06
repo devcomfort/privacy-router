@@ -101,6 +101,21 @@ class ExtractionRecord(BaseModel):
         description="End character index in the original text (exclusive, 0-indexed).",
         examples=[21],
     )
+    detection_type: str = Field(
+        default="contextual",
+        description="How this was detected: 'pattern' for fixed formats (RRN, phone), 'contextual' for context-dependent sensitivity.",
+        examples=["pattern", "contextual"],
+    )
+    reasoning: str = Field(
+        default="",
+        description="One sentence explaining WHY this span is sensitive.",
+        examples=["주민등록번호는 개인 식별 정보이므로", "미공개 연구 방법론이므로 경쟁사에게 이점이 됨"],
+    )
+    is_load_bearing: bool = Field(
+        default=False,
+        description="True if masking this record would break the query's meaning.",
+        examples=[False, True],
+    )
 
     def make_placeholder(self, index: int) -> str:
         """Generate a stable placeholder for masking.
@@ -162,19 +177,22 @@ class ExtractionResult(BaseModel):
 class _ExtractedItem(BaseModel):
     """Shape the SLM produces for a single span.
 
+    Offsets are computed in post-processing via ``text.find(span)``
+    — the SLM is NOT asked to produce character offsets.
+
     Examples
     --------
-    >>> item = _ExtractedItem(category="RRN", span="901212-1234567", confidence=0.98, start=7, end=21)
+    >>> item = _ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98)
     """
 
     category: str = Field(
         ...,
-        description="SCREAMING_SNAKE_CASE tag assigned by the SLM.",
+        description="SCREAMING_SNAKE_CASE tag from the closed category list.",
         examples=["RESIDENT_REGISTRATION_NUMBER", "FABRICATION_PROCESS_DECISION"],
     )
     span: str = Field(
         ...,
-        description="Exact substring from the input.",
+        description="Exact substring from the input text.",
         examples=["901212-1234567"],
     )
     confidence: float = Field(
@@ -184,17 +202,20 @@ class _ExtractedItem(BaseModel):
         description="Detection confidence.",
         examples=[0.98],
     )
-    start: int = Field(
-        ...,
-        ge=0,
-        description="Start character index.",
-        examples=[7],
+    detection_type: str = Field(
+        default="contextual",
+        description="How this was detected: 'pattern' for fixed formats (RRN, phone), 'contextual' for context-dependent sensitivity.",
+        examples=["pattern", "contextual"],
     )
-    end: int = Field(
-        ...,
-        ge=0,
-        description="End character index.",
-        examples=[21],
+    reasoning: str = Field(
+        default="",
+        description="One sentence explaining WHY this span is sensitive.",
+        examples=["주민등록번호는 개인 식별 정보이므로", "미공개 연구 방법론이므로 경쟁사에게 이점이 됨"],
+    )
+    is_load_bearing: bool = Field(
+        default=False,
+        description="True if masking this record would break the query's meaning.",
+        examples=[False, True],
     )
 
 
@@ -217,5 +238,23 @@ class _ExtractedOutput(BaseModel):
     records: list[_ExtractedItem] = Field(
         default_factory=list,
         description="Raw extracted items from the SLM.",
-        examples=[[_ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21)]],
+        examples=[[_ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98)]],
     )
+
+
+
+class _CriticItem(BaseModel):
+    """A single missed record from the critic pass."""
+
+    category: str = Field(..., description="SCREAMING_SNAKE_CASE category.")
+    span: str = Field(..., description="Exact substring the first pass missed.")
+    confidence: float = Field(default=0.9, ge=0.0, le=1.0)
+    detection_type: str = Field(default="contextual")
+    reasoning: str = Field(default="", description="Why this was missed and why it's sensitive.")
+
+
+class CriticOutput(BaseModel):
+    """Second-pass critic output — finds what the Extractor missed."""
+
+    found_missed: bool = Field(..., description="True if any sensitive spans were missed.")
+    missed_records: list[_CriticItem] = Field(default_factory=list)

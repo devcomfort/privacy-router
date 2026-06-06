@@ -68,18 +68,23 @@ def call_llm(
     temperature: float = 0.0,
     max_tokens: int = 4096,
     api_key: str | None = None,
+    api_base: str | None = None,
 ) -> str:
     """Call LLM via litellm (unstructured text output)."""
     model = model or os.getenv("LLM_MODEL", "openrouter/mistralai/ministral-3b-2512")
     api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
 
-    response = litellm.completion(
+    kwargs: dict = dict(
         model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
         api_key=api_key if api_key else None,
     )
+    if api_base:
+        kwargs["api_base"] = api_base
+
+    response = litellm.completion(**kwargs)
 
     return response.choices[0].message.content.strip()
 
@@ -90,6 +95,7 @@ def call_llm_structured(
     model: str | None = None,
     max_tokens: int = 4096,
     api_key: str | None = None,
+    api_base: str | None = None,
 ) -> T:
     """Call LLM via litellm + instructor (structured Pydantic output).
 
@@ -110,8 +116,20 @@ def call_llm_structured(
     is_gemini = "gemini" in model.lower()
 
     if is_gemini:
-        # Gemini via OpenRouter: use raw text + manual JSON parse
         return _call_raw_json(messages, response_model, model, max_tokens, api_key)
+
+    client = instructor.from_litellm(litellm.completion)
+
+    kwargs: dict = dict(
+        model=model,
+        response_model=response_model,
+        messages=messages,
+        max_tokens=max_tokens,
+        api_key=api_key if api_key else None,
+    )
+    if api_base:
+        kwargs["api_base"] = api_base
+
 
     client = instructor.from_litellm(litellm.completion)
 
