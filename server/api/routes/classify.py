@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import time
+
 import os
 
 import litellm
@@ -78,6 +81,9 @@ def classify_endpoint(body: ClassifyRequest, _auth: str = Depends(require_auth))
     else:
         recommended_model = generator
 
+
+    # Record usage
+    _log_classify_usage(body.text, bool(records), len(records), getattr(result.judgment, "policy_action", None))
     return ClassifyResponse(
         is_sensitive=(
             result.sensitivity.is_sensitive
@@ -159,6 +165,9 @@ def generate_endpoint(body: GenerateRequest, _auth: str = Depends(require_auth))
         content = "⚠️ 로컬에서 처리해야 합니다."
         model_used = local
 
+
+    # Record usage
+    _log_classify_usage(body.text, is_sensitive, len(records), policy_action)
     return GenerateResponse(
         content=content,
         is_sensitive=is_sensitive,
@@ -166,3 +175,31 @@ def generate_endpoint(body: GenerateRequest, _auth: str = Depends(require_auth))
         model_used=model_used,
         records=records,
     )
+
+
+def _log_classify_usage(
+    text: str,
+    is_sensitive: bool,
+    records_count: int,
+    policy_action: str | None,
+) -> None:
+    """Record a usage log entry (never fails the request)."""
+    try:
+        from db.models import UsageLog
+        from db.session import get_session
+
+        session = get_session()
+        try:
+            log = UsageLog(
+                event="classify",
+                input_hash=hashlib.sha256(text.encode()).hexdigest()[:16],
+                is_sensitive=is_sensitive,
+                records_count=records_count,
+                policy_action=policy_action,
+            )
+            session.add(log)
+            session.commit()
+        finally:
+            session.close()
+    except Exception:
+        pass

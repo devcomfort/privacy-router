@@ -14,9 +14,9 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import yaml
-from fastapi import Request
+from fastapi import Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+
 from agents.extractor import Extractor
 from agents.masker import Masker
 from agents.router import PrivacyRouter
@@ -24,6 +24,9 @@ from server.api import STATIC_DIR
 from server.api.main import app
 from server.api.adapter import adapter_for
 from server.config import get_config
+from server.api.auth import require_auth
+from server.observability import timed_span, pii_detected, pii_masked
+import hashlib
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -48,6 +51,39 @@ def _resolve_api_base(model_id: str) -> str | None:
         return spec.api_base
     except (KeyError, Exception):
         return None
+
+
+def _log_usage(
+    event: str,
+    text: str,
+    is_sensitive: bool,
+    records_count: int,
+    policy_action: str | None,
+    model_used: str | None,
+    latency_ms: float,
+) -> None:
+    """Record a usage log entry (never fails the request)."""
+    try:
+        from db.models import UsageLog
+        from db.session import get_session
+
+        session = get_session()
+        try:
+            log = UsageLog(
+                event=event,
+                input_hash=hashlib.sha256(text.encode()).hexdigest()[:16],
+                is_sensitive=is_sensitive,
+                records_count=records_count,
+                policy_action=policy_action,
+                model_used=model_used,
+                latency_ms=latency_ms,
+            )
+            session.add(log)
+            session.commit()
+        finally:
+            session.close()
+    except Exception:
+        pass
 
 
 def _sensitivity_meta(pipeline: Any) -> dict[str, Any]:
@@ -140,9 +176,8 @@ async def get_settings():
         "local": {"model": cfg.local.model, "config": {"temperature": cfg.local.config.temperature, "max_tokens": cfg.local.config.max_tokens}},
     }
 
-
 @app.post("/api/settings")
-async def update_settings(request: Request):
+async def update_settings(request: Request, _auth: str = Depends(require_auth)):
     """Update agent config for the demo web UI. Persists to YAML."""
     import server.config as server_cfg
     body = await request.json()
@@ -173,7 +208,7 @@ async def update_settings(request: Request):
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request):
+async def chat_completions(request: Request, _auth: str = Depends(require_auth)):
     """OpenAI-compatible chat completions with privacy pipeline."""
     body = await request.json()
     cfg = get_config()
@@ -201,17 +236,39 @@ async def chat_completions(request: Request):
         return _error_response(502, str(exc), "unknown_backend")
 
     backend_model = adapter.resolve_backend_model(backend_model)
-
     # ── Run pipeline ────────────────────────────────────────────────────
-    pipeline = PrivacyRouter().process(user_text)
-    policy = pipeline.route
-    meta = _sensitivity_meta(pipeline)
+    with timed_span("pipeline", {"model": backend_model}) as span:
+        pipeline = PrivacyRouter().process(user_text)
+        policy = pipeline.route
+        meta = _sensitivity_meta(pipeline)
+
+        # Record PII metrics
+        n_records = len(pipeline.records)
+        if n_records:
+            pii_detected.add(n_records)
+        if policy.requires_masking:
+            pii_masked.add(n_records)
+
+        span.set_attribute("policy_action", policy.endpoint)
+        span.set_attribute("pii_count", n_records)
+
+        # Record usage log
+        _log_usage("chat_completions", user_text, bool(n_records), n_records, policy.endpoint, backend_model, 0)
 
     # ── prompt_user ─────────────────────────────────────────────────────
     if policy.endpoint == "prompt":
         confirm = request.headers.get("X-Privacy-Router-Confirm", "").lower()
         if confirm not in ("true", "1"):
-            records = _extract_records(user_text)
+            records = [
+                {
+                    "category": r.category,
+                    "span": r.span,
+                    "confidence": r.confidence,
+                    "is_load_bearing": r.is_load_bearing,
+                    "reasoning": r.reasoning,
+                }
+                for r in pipeline.records
+            ]
             meta["records"] = records
             meta["action_required"] = "confirm"
             meta["confirm_message"] = (
