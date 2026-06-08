@@ -29,89 +29,89 @@ EXAMPLES = [
     {
         "name": "PII 포함(creation)",
         "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["identity", "creation", "explicit_value"],
     },
     {
         "name": "PII 직접(interrogation)",
         "text": "내 주민등록번호가 뭐야?",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["identity", "interrogation", "topic_only"],
     },
     {
         "name": "이름+소속",
         "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["identity", "competitive", "creation"],
     },
     # ── COMPETITIVE harm ─────────────────────────────────────────────────────
     {
         "name": "사업비밀(creation)",
         "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["competitive", "creation", "business_decision"],
     },
     {
         "name": "연구아이디어(consultation)",
         "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["competitive", "consultation", "research_idea"],
     },
     {
         "name": "전략근거(statement)",
         "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["competitive", "statement", "strategy_rationale"],
     },
     {
         "name": "모호한실험결과(creation)",
         "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["competitive", "creation", "vague_reference"],
     },
     {
         "name": "연구방법론(consultation)",
         "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["identity", "competitive", "consultation", "methodology"],
     },
     {
         "name": "미공개상태",
         "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["competitive", "creation", "pre_publication_status"],
     },
     {
         "name": "프로젝트예산(statement)",
         "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["competitive", "statement", "budget"],
     },
     # ── SAFETY harm ──────────────────────────────────────────────────────────
     {
         "name": "내부URL",
         "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["safety", "consultation", "internal_url"],
     },
     # ── 명시적 비밀유지 마커 ──────────────────────────────────────────────────
     {
         "name": "비밀유지마커",
         "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["competitive", "statement", "explicit_confidentiality"],
     },
     # ── 복합 케이스 ──────────────────────────────────────────────────────────
     {
         "name": "다중span+혼합동사",
         "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
-        "action": "block",
+        "action": "prompt_user",
         "tags": ["identity", "competitive", "interrogation", "multi_span"],
     },
     {
         "name": "전화번호포함(creation)",
         "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
-        "action": "selective_mask",
+        "action": "mask_and_send",
         "tags": ["identity", "creation", "multiple_pii"],
     },
     # ── 비민감 ───────────────────────────────────────────────────────────────

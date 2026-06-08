@@ -67,13 +67,12 @@ MODELS = {
     "deepseek-v4-flash": {"model": "openrouter/deepseek/deepseek-v4-flash", "api_base": None, "tier": "performant", "params": "—", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.10, "note": "양호한 성능"},
     "gemma-4-26b-a4b-it": {"model": "openrouter/google/gemma-4-26b-a4b-it", "api_base": None, "tier": "performant", "params": "26B", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.06, "note": "100% 정확도, 가성비 최고"},
     "gemini-3.1-flash-lite": {"model": "openrouter/google/gemini-3.1-flash-lite", "api_base": None, "tier": "frontier", "params": "—", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.25, "note": "100% 정확도, 속도 최고"},
-    # Local models (llama-server)
-    "gemma-4-e2b-q4km": {"model": "openai/unsloth/gemma-4-E2B-it-GGUF:Q4_K_M", "api_base": "http://localhost:8083/v1", "tier": "edge", "params": "2B", "platform": "로컬 CPU", "quantization": "Q4_K_M", "cost_input": 0.0, "note": "초경량 로컬"},
-    "gemma-4-e2b-q8_0": {"model": "openai/unsloth/gemma-4-E2B-it-GGUF:Q8_0", "api_base": "http://localhost:8083/v1", "tier": "edge", "params": "2B", "platform": "로컬 CPU", "quantization": "Q8_0", "cost_input": 0.0, "note": "초경량 로컬 (고정밀)"},
-    "gemma-4-e4b-q4km": {"model": "openai/unsloth/gemma-4-E4B-it-GGUF:Q4_K_M", "api_base": "http://localhost:8084/v1", "tier": "edge", "params": "4B", "platform": "로컬 CPU", "quantization": "Q4_K_M", "cost_input": 0.0, "note": "소형 로컬"},
-    "gemma-4-e4b-q8_0": {"model": "openai/unsloth/gemma-4-E4B-it-GGUF:Q8_0", "api_base": "http://localhost:8084/v1", "tier": "edge", "params": "4B", "platform": "로컬 CPU", "quantization": "Q8_0", "cost_input": 0.0, "note": "소형 로컬 (고정밀)"},
-    "exaone-1.2b-q4km": {"model": "openai/LGAI-EXAONE/EXAONE-4.0-1.2B-GGUF:Q4_K_M", "api_base": "http://localhost:8085/v1", "tier": "edge", "params": "1.2B", "platform": "로컬 CPU", "quantization": "Q4_K_M", "cost_input": 0.0, "note": "EXAONE 초경량"},
-    "exaone-1.2b-q8_0": {"model": "openai/LGAI-EXAONE/EXAONE-4.0-1.2B-GGUF:Q8_0", "api_base": "http://localhost:8085/v1", "tier": "edge", "params": "1.2B", "platform": "로컬 CPU", "quantization": "Q8_0", "cost_input": 0.0, "note": "EXAONE 초경량 (고정밀)"},
+    "gemma-4-26b-a4b-local": {"model": "openai/google/gemma-4-26B-A4B-it", "api_base": "http://localhost:8000/v1", "tier": "frontier", "params": "26B MoE", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "26B MoE 로컬 (OpenRouter와 비교용)"},
+    # Local models (vLLM, GPU) — 한 번에 하나씩 서버 시작 필요
+    "gemma-4-e4b-bf16": {"model": "openai/google/gemma-4-E4B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "4B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E4B 원본"},
+    "gemma-4-e2b-bf16": {"model": "openai/google/gemma-4-E2B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "2B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E2B 원본"},
+    "gemma-4-12b-bf16": {"model": "openai/google/gemma-4-12B-it", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "12B", "platform": "로컬 GPU (vLLM nightly)", "quantization": "BF16", "cost_input": 0.0, "note": "12B Gemma4Unified"},
+    "exaone-4.5-33b-fp8": {"model": "openai//tmp/exaone45-fp8-fixed", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "33B", "platform": "로컬 GPU (vLLM nightly)", "quantization": "FP8", "cost_input": 0.0, "note": "EXAONE 4.5 33B"},
 }
 
 
