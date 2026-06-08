@@ -1,7 +1,7 @@
 [project]
 name = "privacy-router"
 version = "0.1.0"
-description = "Add your description here"
+description = "Privacy Router — AI agent privacy proxy layer"
 authors = [
     { name = "devcomfort", email = "im@devcomfort.me" }
 ]
@@ -32,10 +32,8 @@ dependencies = [
 ]
 requires-python = ">= 3.13"
 
-
-
 [project.scripts]
-privacy-router = "packages.cli:main"
+privacy-router = "server.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -54,4 +52,27 @@ dev-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/privacy_router"]
+packages = ["agents", "server", "db", "config", "web"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "agents/extractor/tests", "agents/masker/tests", "agents/judge/tests", "agents/router/tests", "server/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "core: unit tests (no external dependencies)",
+    "scenario: integration tests (requires running server)",
+    "slow: tests that take >10s",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agents", "server", "db", "config"]
