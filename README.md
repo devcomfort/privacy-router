@@ -31,6 +31,17 @@
 docker compose up
 # → http://localhost:8787 (Chat UI)
 # → http://localhost:8787/docs (Swagger)
+
+# Observability 포함 (Grafana, Prometheus, Loki)
+COMPOSE_PROFILES=observability docker compose up
+# → http://localhost:3000 (Grafana)
+
+# OpenCode Go 중개서버 포함
+COMPOSE_PROFILES=opencode-go docker compose up
+# → http://localhost:8789 (OpenCode Go Relay)
+
+# 모두 포함
+COMPOSE_PROFILES=observability,opencode-go docker compose up
 ```
 
 

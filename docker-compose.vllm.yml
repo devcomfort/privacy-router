@@ -71,7 +71,7 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
 
-  # ── EXAONE 4.5 33B FP8 (~33 GB weights) ──────────────────────────────────
+  # ── EXAONE 4.5 33B FP8 (~39 GB weights) ──────────────────────────────────
   vllm-exaone:
     image: vllm/vllm-openai:nightly
     profiles:
@@ -79,13 +79,12 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ${HF_CACHE:-/home/donghyeon/.cache/huggingface}:/root/.cache/huggingface:ro
+      - ${EXAONE_MODEL:-/home/donghyeon/.cache/huggingface/hub/models--LGAI-EXAONE--EXAONE-4.5-33B-FP8/snapshots/exaone-4.5-33b-fp8}:/models/exaone:ro
     environment:
-      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
       NCCL_P2P_DISABLE: "1"
     command:
       - "--model"
-      - "LGAI-EXAONE/EXAONE-4.5-33B-FP8"
+      - "/models/exaone"
       - "--host"
       - "0.0.0.0"
       - "--port"
