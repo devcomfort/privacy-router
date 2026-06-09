@@ -48,39 +48,67 @@ OpenClaw가 Privacy Router를 LLM 프록시로 사용하도록 설정합니다.
 
 **참조:** [OpenClaw Custom Providers 문서](https://docs.openclaw.ai/gateway/config-tools)
 
-## 2. MCP 서버 등록
+## 2. MCP 서버 연결
 
-Privacy Router의 `process` 도구를 OpenClaw에서 직접 호출할 수 있습니다.
+OpenClaw에서 MCP 서버를 연결하여 도구를 사용할 수 있습니다. Privacy Router 외에도 다양한 MCP 서버를 연결할 수 있습니다.
+
+### MCP 서버 찾기
+
+- [Smithery](https://smithery.ai/) — MCP 서버 레지스트리
+- [mcp.run](https://mcp.run/) — 호스팅 MCP 서버
+- [GitHub: awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) — 커뮤니티 MCP 서버 목록
+
+### stdio 방식 (로컬 실행)
 
 ```json5
 {
   "mcp": {
     "servers": {
-      "privacy-router": {
-        "command": "python",
-        "args": ["-m", "server.mcp"],
-        "env": {
-          "OPENROUTER_API_KEY": "sk-or-v1-..."
-        }
+      "서버이름": {
+        "command": "실행 명령어",
+        "args": ["인자1", "인자2"],
+        "env": { "KEY": "value" }
       }
     }
   }
 }
 ```
 
-**CLI로도 등록 가능:**
-```bash
-openclaw mcp set privacy-router \
-  --command python \
-  --args '["-m", "server.mcp"]' \
-  --env '{"OPENROUTER_API_KEY": "sk-or-v1-..."}'
+### HTTP 방식 (원격 서버)
+
+```json5
+{
+  "mcp": {
+    "servers": {
+      "서버이름": {
+        "url": "http://localhost:3000/mcp",
+        "transport": "streamable-http",
+        "headers": { "Authorization": "Bearer ..." }
+      }
+    }
+  }
+}
 ```
 
-**도구 확인:**
+### CLI로 등록
+
 ```bash
+# 등록
+openclaw mcp set 서버이름 \
+  --command python \
+  --args '["-m", "server.mcp"]'
+
+# 확인
 openclaw mcp list
-openclaw mcp show privacy-router
+openclaw mcp show 서버이름
+
+# 제거
+openclaw mcp unset 서버이름
 ```
+
+### Privacy Router MCP 연결
+
+Privacy Router를 MCP로 사용하는 방법은 [README.md](../../README.md)의 "MCP 서버" 섹션을 참조하세요.
 
 **참조:** [OpenClaw MCP 설정](https://docs.openclaw.ai/gateway/configuration-reference)
 

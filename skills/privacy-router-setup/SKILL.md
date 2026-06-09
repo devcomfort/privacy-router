@@ -1,6 +1,6 @@
 ---
 name: privacy-router-setup
-description: Configure AI agents (OpenClaw, Hermes Agent) to use Privacy Router as their LLM proxy. Covers custom provider setup, MCP server registration, channel integration, and skill creation.
+description: Configure AI agents (OpenClaw, Hermes Agent) to use Privacy Router as their LLM proxy. Covers custom provider setup, MCP server connection, channel integration, and skill creation.
 ---
 
 # Privacy Router Setup Skill
@@ -28,13 +28,12 @@ Privacy Router는 에이전트와 외부 LLM 사이의 프록시 레이어입니
 
 | 스킬 | 파일 | 설명 |
 |---|---|---|
-| OpenClaw Provider | [openclaw/provider.md](openclaw/provider.md) | Custom Provider + MCP 설정 |
+| OpenClaw Provider | [openclaw/provider.md](openclaw/provider.md) | Custom Provider + MCP 연결 |
 | OpenClaw Channels | [openclaw/channels.md](openclaw/channels.md) | Slack, Discord, Telegram, Email 채널 설정 |
 | OpenClaw Skills | [openclaw/skills.md](openclaw/skills.md) | 스킬 생성 및 관리 |
-| Hermes Provider | [hermes/provider.md](hermes/provider.md) | Custom Provider + MCP 설정 |
+| Hermes Provider | [hermes/provider.md](hermes/provider.md) | Custom Provider + MCP 연결 |
 | Hermes Channels | [hermes/channels.md](hermes/channels.md) | Slack, Discord, Telegram, Email 채널 설정 |
 | Hermes Skills | [hermes/skills.md](hermes/skills.md) | 스킬 생성 및 관리 |
-| MCP 통합 | [mcp/setup.md](mcp/setup.md) | MCP 서버 등록 및 `process` 도구 사용법 |
 
 ## 빠른 시작
 
@@ -42,19 +41,22 @@ Privacy Router는 에이전트와 외부 LLM 사이의 프록시 레이어입니
 # 1. Privacy Router 실행
 docker compose up -d
 
-# 2. OpenClaw에 연결 (openclaw/provider.md 참조)
+# 2. OpenClaw에 Custom Provider 연결 (openclaw/provider.md 참조)
 # ~/.openclaw/openclaw.json에 provider 추가
 
-# 3. MCP 등록 (mcp/setup.md 참조)
-# openclaw mcp set privacy-router
+# 3. 채널 연동 (openclaw/channels.md 참조)
+# Slack, Discord, Telegram, Email 설정
 ```
+
+## Privacy Router MCP
+
+Privacy Router를 MCP 서버로 사용하는 방법은 [README.md](../../README.md)를 참조하세요.
 
 ## 참조
 
 - [Privacy Router README](../../README.md)
-- [Privacy Router MCP 문서](../../docs/knowledges/mcp.md)
 - [OpenClaw 설정 문서](https://docs.openclaw.ai/gateway/configuration)
 - [OpenClaw Custom Providers](https://docs.openclaw.ai/gateway/config-tools)
-- [OpenClaw MCP 설정](https://docs.openclaw.ai/gateway/configuration-reference)
 - [OpenClaw Channels](https://docs.openclaw.ai/channels)
+- [OpenClaw Skills](https://docs.openclaw.ai/tools/skills)
 - [OpenClaw Skills](https://docs.openclaw.ai/tools/skills)
