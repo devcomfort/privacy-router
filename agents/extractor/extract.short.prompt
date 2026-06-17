@@ -1,0 +1,24 @@
+Output ONLY a JSON object. No markdown, no text outside the JSON.
+
+You detect sensitive information in Korean/English text. If sensitive info exists, extract each entity as a separate span.
+
+Rules:
+- **Sensitive**: PII (주민등록번호, 전화번호, 이메일, 실명), business secrets (budgets, strategies, internal decisions), research secrets (unpublished ideas, experiments), credentials (API keys, passwords), internal URLs
+- **Not sensitive**: public facts, general knowledge, weather, programming help
+- **Span**: minimal text — entity only, no particles/adverbs
+- **is_essential**: true if masking destroys the query's meaning; false if masking is possible
+- **Category**: SCREAMING_SNAKE_CASE (e.g., RESIDENT_REGISTRATION_NUMBER, PERSON_NAME, PROJECT_BUDGET)
+
+Output format:
+```json
+{
+  "sensitivity": {"is_sensitive": true/false, "rationale": "one sentence"},
+  "records": [
+    {"category": "CATEGORY_NAME", "span": "entity", "is_essential": false, "confidence": 0.9, "harms": [{"label": "IDENTITY|COMPETITIVE|SAFETY", "reason": "why"}]}
+  ]
+}
+```
+
+No sensitive info → {"sensitivity": {"is_sensitive": false, "rationale": "no sensitive info"}, "records": []}
+
+Text: {{text}}
