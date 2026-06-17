@@ -43,6 +43,25 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 # ═══════════════════════════════════════════════════════════════════════════
 
 MODELS = {
+    # OpenRouter models (cloud)
+    "ministral-3b-openrouter": {
+        "model": "openrouter/mistralai/ministral-3b-2512",
+        "api_base": None,
+        "engine": "openrouter",
+        "params": "3B",
+    },
+    "gemma4-e4b-openrouter": {
+        "model": "openrouter/google/gemma-4-e4b-it",
+        "api_base": None,
+        "engine": "openrouter",
+        "params": "4B",
+    },
+    "gemma4-e2b-openrouter": {
+        "model": "openrouter/google/gemma-4-e2b-it",
+        "api_base": None,
+        "engine": "openrouter",
+        "params": "2B",
+    },
     # vLLM models (port 8000)
     "ministral-3b-vllm": {
         "model": "openai/mistralai/Ministral-3-3B-Instruct-2512",
@@ -115,8 +134,7 @@ MODELS = {
 }
 
 # Engine → base model key mapping (for grouping results)
-ENGINE_PORTS = {"vllm": 8000, "llama": 8002, "sglang": 8003}
-
+ENGINE_PORTS = {"vllm": 8000, "llama": 8002, "sglang": 8003, "openrouter": None}
 # ═══════════════════════════════════════════════════════════════════════════
 # Test Cases — Single-Turn
 # ═══════════════════════════════════════════════════════════════════════════
@@ -621,6 +639,10 @@ def load_latest_result(model_key: str) -> dict | None:
 def check_engine(engine: str) -> bool:
     """Check if an engine is running and responsive."""
     import urllib.request
+
+    # OpenRouter is always available (cloud)
+    if engine == "openrouter":
+        return True
 
     port = ENGINE_PORTS.get(engine, 8000)
     url = f"http://localhost:{port}/health"
