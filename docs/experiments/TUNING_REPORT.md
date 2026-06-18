@@ -54,13 +54,24 @@ Gemma4 E4B on vLLM achieves the best overall performance (100% sensitivity, 76.5
 | creation | 80% | 5 | Good verb heuristic |
 | competitive | 60% | 10 | Weakest — business secrets hard |
 | statement | 67% | 3 | Budget/strategy statements challenging |
+
+## Multi-Turn Evaluation (Gemma4 E4B vLLM)
+
+| Conversation | Sensitivity | Action Accuracy | Turns |
+|---|---|---|---|
+| adversarial_rephrase | 100% | 33% | 3 |
+| adversarial_context_switch | 100% | 67% | 3 |
+| adversarial_false_positive | 67% | 33% | 3 |
+| **Average** | **89%** | **44%** | — |
+
+Multi-turn is significantly harder than single-turn (44% vs 76.5%). Adversarial evasion techniques reduce action accuracy but sensitivity detection remains strong (89%).
 | consultation | 33% | 3 | Research consultation weakest |
 | safety | 100% | 1 | Internal URLs detected |
 
 ## Engine-Specific Issues
 
 ### vLLM
-- **Ministral 3B**: Pixtral architecture misidentification crash (multimodal processor issue)
+- **Ministral 3B**: `Mistral3ForConditionalGeneration` architecture maps to `PixtralForConditionalGeneration` in vLLM nightly. Monkey-patching config.json `architectures` to `MistralForCausalLM` doesn't help — vLLM model registry overrides. Use OpenRouter or llama-server instead.
 - **Gemma4 E2B**: Requires gpu-memory-utilization ≥ 0.20 (KV cache memory)
 - **EXAONE 1.2B**: Requires `response_format=json_object` for valid JSON output
 - **Gemma4 E4B**: 14.6GB model weight → 11.7s latency per request
