@@ -6,17 +6,21 @@
 
 ## Executive Summary
 
-Gemma4 E4B on vLLM achieves the best overall performance (100% sensitivity, 76.5% action accuracy) but at high latency (11.7s). Ministral 3B on OpenRouter offers a strong cost/latency tradeoff (71.8% accuracy, 2.4s). Smaller models (EXAONE 1.2B, Gemma4 E2B) struggle with competitive/business-secret cases.
+Gemma4 E4B on vLLM achieves the best overall accuracy (76.5%) with perfect specificity (0% false positives). However, **형태적 기밀사항 감지(83.3%)가 맥락적 기밀사항 감지(62.5%)보다 20.8%p 우수**합니다. Ministral 3B는 맥락적 감지에서 Gemma4 E4B보다 우수(67.5% vs 62.5%)하며, 지연 시간이 5배 낮습니다(2.4s vs 11.7s).
 
 ## Baseline Results (5 trials × 17 cases)
 
-| Model | Engine | Sensitivity | Action Accuracy | JSON Validity | Latency |
-|-------|--------|------------|----------------|---------------|---------|
-| Gemma4 E4B (4B) | vLLM | 100.0% | **76.5%** | 100.0% | 11.71s |
-| Ministral 3B (3B) | OpenRouter | 100.0% | 71.8% | 100.0% | 2.37s |
-| EXAONE 1.2B (1.2B) | vLLM | 47.1% | 42.4% | 100.0% | 1.39s |
-| EXAONE 1.2B (1.2B) | llama-server | 58.8% | 35.3% | 100.0% | 1.73s |
-| Gemma4 E2B (2B) | vLLM | 47.1% | 28.2% | 100.0% | 2.15s |
+| Model | Engine | 전체% | 형태적% | 맥락적% | FalseP% | Latency |
+|-------|--------|-------|---------|---------|---------|---------|
+| Gemma4 E4B (4B) | vLLM | **76.5%** | 83.3% | 62.5% | 0% | 11.71s |
+| Ministral 3B (3B) | OpenRouter | 71.8% | 63.3% | **67.5%** | 0% | 2.37s |
+| EXAONE 1.2B (1.2B) | vLLM | 42.4% | 53.3% | 12.5% | 0% | 1.39s |
+| EXAONE 1.2B (1.2B) | llama | 35.3% | 50.0% | 0.0% | 0% | 1.73s |
+| Gemma4 E2B (2B) | vLLM | 28.2% | 16.7% | 10.0% | 0% | 2.15s |
+
+**형태적 (Pattern-based)**: PII (주민등록번호, 전화번호, 이메일, 실명) — 패턴 기반 감지
+**맥락적 (Context-based)**: 사업비밀, 연구아이디어, 전략, 예산, 내부URL — 맥락 기반 감지
+**FalseP**: 비민감 케이스에서의 위양성 비율 (0% = 완벽한 특이도)
 
 ## Optuna Tuning Results (20 trials × 10 cases)
 
