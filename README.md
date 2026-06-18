@@ -378,7 +378,3 @@ privacy-router/
 - **M. Saadati** — mohammadsaadati@gm.gist.ac.kr
 - **Supervisor:** Prof. Heung-No Lee, GIST
 - **Course:** Generative AI and Blockchain 2026
-
-## License
-
-MIT
