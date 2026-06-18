@@ -584,6 +584,34 @@ def run_trials(
     overall_json = statistics.mean([c["json_validity"] for c in case_stats])
     overall_latency = statistics.mean([c["avg_latency_s"] for c in case_stats])
 
+    # Surface-level metrics (형태적 vs 맥락적)
+    FORMAL_TAGS = {"identity"}
+    CONTEXTUAL_TAGS = {"competitive", "consultation", "statement", "safety"}
+    formal_cases = [c for c in case_stats if set(c.get("tags", [])) & FORMAL_TAGS]
+    contextual_cases = [c for c in case_stats if set(c.get("tags", [])) & CONTEXTUAL_TAGS]
+    none_cases = [c for c in case_stats if "none" in c.get("tags", [])]
+
+    def _avg(lst, key):
+        return round(statistics.mean([c[key] for c in lst]), 4) if lst else 0.0
+
+    surface_metrics = {
+        "formal": {
+            "n_cases": len(formal_cases),
+            "sensitivity_accuracy": _avg(formal_cases, "sensitivity_accuracy"),
+            "action_accuracy": _avg(formal_cases, "action_accuracy"),
+        },
+        "contextual": {
+            "n_cases": len(contextual_cases),
+            "sensitivity_accuracy": _avg(contextual_cases, "sensitivity_accuracy"),
+            "action_accuracy": _avg(contextual_cases, "action_accuracy"),
+        },
+        "none": {
+            "n_cases": len(none_cases),
+            "sensitivity_accuracy": _avg(none_cases, "sensitivity_accuracy"),
+            "action_accuracy": _avg(none_cases, "action_accuracy"),
+        },
+    }
+
     return {
         "model_key": model_key,
         "model_id": model_id,
@@ -598,6 +626,7 @@ def run_trials(
             "json_validity": round(overall_json, 4),
             "avg_latency_s": round(overall_latency, 3),
         },
+        "surface": surface_metrics,
         "per_case": case_stats,
         "raw_trials": all_trials,
     }
@@ -661,7 +690,6 @@ def check_engine(engine: str) -> bool:
 def generate_report(model_keys: list[str] | None = None) -> str:
     """Generate a summary report from saved results."""
     if model_keys is None:
-        # Find all model result dirs
         model_keys = [d.name for d in RESULTS_DIR.iterdir() if d.is_dir()]
 
     rows = []
@@ -670,6 +698,7 @@ def generate_report(model_keys: list[str] | None = None) -> str:
         if not result:
             continue
         o = result["overall"]
+        s = result.get("surface", {})
         rows.append({
             "model": mk,
             "engine": result.get("engine", "?"),
@@ -679,27 +708,31 @@ def generate_report(model_keys: list[str] | None = None) -> str:
             "action_acc": o["action_accuracy"],
             "json_validity": o["json_validity"],
             "avg_latency": o["avg_latency_s"],
+            "formal_act": s.get("formal", {}).get("action_accuracy", 0),
+            "formal_n": s.get("formal", {}).get("n_cases", 0),
+            "contextual_act": s.get("contextual", {}).get("action_accuracy", 0),
+            "contextual_n": s.get("contextual", {}).get("n_cases", 0),
         })
 
     if not rows:
         return "No results found."
 
-    # Sort by action accuracy descending
     rows.sort(key=lambda r: r["action_acc"], reverse=True)
 
     lines = [
-        "═══════════════════════════════════════════════════════════════",
+        "═══════════════════════════════════════════════════════════════════════════════",
         "  Privacy Router — Model Evaluation Report",
         f"  Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        "═══════════════════════════════════════════════════════════════",
+        "═══════════════════════════════════════════════════════════════════════════════",
         "",
-        f"{'Model':<25} {'Engine':<8} {'Params':<8} {'N':>3} {'Sens%':>7} {'Act%':>7} {'JSON%':>7} {'Lat':>7}",
-        "─" * 75,
+        f"{'Model':<25} {'Engine':<8} {'N':>3} {'Sens%':>7} {'Act%':>7} {'형태적%':>8} {'맥락적%':>8} {'JSON%':>7} {'Lat':>7}",
+        "─" * 82,
     ]
     for r in rows:
         lines.append(
-            f"{r['model']:<25} {r['engine']:<8} {r['params'].get('params', '?'):<8} "
-            f"{r['n_trials']:>3} {r['sensitivity_acc']:>6.1%} {r['action_acc']:>6.1%} "
+            f"{r['model']:<25} {r['engine']:<8} {r['n_trials']:>3} "
+            f"{r['sensitivity_acc']:>6.1%} {r['action_acc']:>6.1%} "
+            f"{r['formal_act']:>7.1%} {r['contextual_act']:>7.1%} "
             f"{r['json_validity']:>6.1%} {r['avg_latency']:>6.2f}s"
         )
 
