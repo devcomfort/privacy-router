@@ -50,7 +50,7 @@ class TestClassify:
             assert "is_essential" in r
             assert "reasoning" in r
 
-    def test_classify_prompt_user_for_load_bearing(self):
+    def test_classify_prompt_user_for_essential(self):
         result = classify("주민등록번호 901212-1234567을 확인해주세요")
         assert result["is_sensitive"] is True
         assert result["policy_action"] == "prompt_user"
