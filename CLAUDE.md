@@ -1,0 +1,29 @@
+<!-- gortex:communities:start -->
+<!-- gortex:skills:start -->
+## Community Skills
+
+| Area | Description | Skill |
+|------|-------------|-------|
+| Impeccable Scripts Resumesession Detect Csp Live Browser Dom 246 | 246 symbols | `/gortex-impeccable-scripts-resumesession-detect-csp-live-browser-dom-246` |
+| Impeccable Scripts Resumesession Detect Csp Live Browser Dom 244 | 244 symbols | `/gortex-impeccable-scripts-resumesession-detect-csp-live-browser-dom-244` |
+| Output Server | 142 symbols | `/gortex-output-server` |
+| 1 Dirs Run Trials | 100 symbols | `/gortex-1-dirs-run-trials` |
+| Impeccable Scripts El Live Browser Dom Live Browser 92 2 | 92 symbols | `/gortex-impeccable-scripts-el-live-browser-dom-live-browser-92-2` |
+| Impeccable Scripts El Live Browser Dom Live Browser 92 1 | 92 symbols | `/gortex-impeccable-scripts-el-live-browser-dom-live-browser-92-1` |
+| 3 Dirs Magicmock | 75 symbols | `/gortex-3-dirs-magicmock` |
+| Scenarios 3 Dirs | 57 symbols | `/gortex-scenarios-3-dirs` |
+| 2 Dirs Add Text | 56 symbols | `/gortex-2-dirs-add-text` |
+| Server Chunks Proxy | 56 symbols | `/gortex-server-chunks-proxy` |
+| 5 Dirs | 54 symbols | `/gortex-5-dirs` |
+| Scripts Live Createmanualeditroutes Manual Apply Manual Edit Routes 53 2 | 53 symbols | `/gortex-scripts-live-createmanualeditroutes-manual-apply-manual-edit-routes-53-2` |
+| Scripts Live Createmanualeditroutes Manual Apply Manual Edit Routes 53 1 | 53 symbols | `/gortex-scripts-live-createmanualeditroutes-manual-apply-manual-edit-routes-53-1` |
+| Impeccable Scripts Runhook Hook Before Edit Hook Lib 45 | 45 symbols | `/gortex-impeccable-scripts-runhook-hook-before-edit-hook-lib-45` |
+| Impeccable Scripts Runhook Hook Before Edit Hook Lib 44 | 44 symbols | `/gortex-impeccable-scripts-runhook-hook-before-edit-hook-lib-44` |
+| Scripts 1 Dirs | 41 symbols | `/gortex-scripts-1-dirs` |
+| Impeccable Scripts Commitmanualedits Hook Lib Live Commit Manual Edits 39 1 | 39 symbols | `/gortex-impeccable-scripts-commitmanualedits-hook-lib-live-commit-manual-edits-39-1` |
+| Impeccable Scripts Commitmanualedits Hook Lib Live Commit Manual Edits 39 2 | 39 symbols | `/gortex-impeccable-scripts-commitmanualedits-hook-lib-live-commit-manual-edits-39-2` |
+| 1 Dirs Create Response | 38 symbols | `/gortex-1-dirs-create-response` |
+| Server Chunks Push | 38 symbols | `/gortex-server-chunks-push` |
+<!-- gortex:skills:end -->
+
+<!-- gortex:communities:end -->

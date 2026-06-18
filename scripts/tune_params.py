@@ -79,7 +79,13 @@ def call_with_params(
     else:
         kwargs["api_key"] = os.getenv("OPENROUTER_API_KEY", "")
 
-    if use_json_mode:
+    # EXAONE models require response_format=json_object for valid JSON
+    if "EXAONE" in model_id.upper():
+        kwargs["response_format"] = {"type": "json_object"}
+        # Small models need reduced max_tokens (4096 ctx limit)
+        if "1.2B" in model_id:
+            kwargs["max_tokens"] = min(max_tokens, 512)
+    elif use_json_mode:
         kwargs["response_format"] = {"type": "json_object"}
 
     response = litellm.completion(**kwargs)
@@ -122,14 +128,21 @@ def evaluate_params(
     """Evaluate a parameter configuration. Returns detailed results."""
     import time as _time
 
-    prompt_data = load_prompt(str(Path("agents/extractor/extract.prompt")))
+    # Use short prompt for small models (≤2B) due to context limit
+    is_small = "1.2B" in model_id or "E2B" in model_id
+    if is_small:
+        with open("agents/extractor/extract.short.prompt") as f:
+            template = f.read().strip()
+    else:
+        prompt_data = load_prompt(str(Path("agents/extractor/extract.prompt")))
+        template = prompt_data["template"]
     results = []
     total_latency = 0.0
 
     for case in cases:
         start = _time.time()
         try:
-            rendered = render_prompt(prompt_data["template"], text=case["text"])
+            rendered = template.replace("{{text}}", case["text"]) if is_small else render_prompt(template, text=case["text"])
 
             if params.get("use_system_msg"):
                 messages = [

@@ -116,7 +116,7 @@ services:
       - "--dtype"
       - "bfloat16"
       - "--gpu-memory-utilization"
-      - "0.10"
+      - "0.20"
       - "--max-model-len"
       - "8192"
       - "--trust-remote-code"
