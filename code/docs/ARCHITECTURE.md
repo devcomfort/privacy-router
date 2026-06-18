@@ -32,9 +32,8 @@ User Text → Extractor → Router → Policy Decision
 ### 2.3 현재 문제점
 
 1. **`prompt_user`는 확인만 요청** — 마스킹 범위 조정 불가
-2. **`is_load_bearing` 사용 중** — `is_essential`로 마이그레이션 필요
-3. **캐시 없음** — 매번 추출 재실행
-4. **Middle-Man 로직 분산** — proxy.py에 하드코딩
+2. **캐시 없음** — 매번 추출 재실행
+3. **Middle-Man 로직 분산** — proxy.py에 하드코딩
 
 ## 3. 목표 상태 (To-Be)
 
@@ -46,7 +45,6 @@ User Text → Extractor → Router → Policy Decision
 | 마스킹 범위 | 고정 | 사용자 선택 가능 |
 | 캐시 | 없음 | SQLite 기반 KV 캐시 |
 | Middle-Man | proxy.py 하드코딩 | 별도 모듈화 |
-| 필드명 | `is_load_bearing` | `is_essential` |
 
 ### 3.2 새로운 응답 형식
 

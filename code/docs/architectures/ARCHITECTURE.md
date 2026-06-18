@@ -171,7 +171,7 @@ erDiagram
         str placeholder "플레이스홀더"
         str value_hash "원본 값 해시"
         float confidence "신뢰도"
-        bool is_load_bearing "부하 여부"
+        bool is_essential "핵심 여부"
         datetime created_at "생성 시간"
     }
 
@@ -188,7 +188,7 @@ flowchart TD
     A["사용자 프롬프트"] --> B["Extractor (SLM)"]
     B --> C{"민감 정보?"}
     C -->|No| D["allow<br/>→ 외부 API 직접 전송"]
-    C -->|Yes| E{"load_bearing?"}
+    C -->|Yes| E{"is_essential?"}
     E -->|Yes| F["prompt_user<br/>→ 409 + 확인 요청"]
     E -->|No| G["mask_and_send<br/>→ 마스킹 후 전송"]
     G --> H["Masker: [CATEGORY#N] 치환"]

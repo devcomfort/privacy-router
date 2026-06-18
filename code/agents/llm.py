@@ -1,15 +1,15 @@
 """Shared LLM calling interface using litellm + instructor.
 
 Model candidates:
-  Edge (<8B):
+  Small (<8B):
     ibm-granite/granite-4.1-8b          ($0.05)  한국어
     mistralai/ministral-3b-2512        ($0.10)  현행
-  Performant:
+  Middle (8-30B):
     qwen/qwen3.6-35b-a3b               ($0.14)  MoE, 한국어
     qwen/qwen3.5-9b                     ($0.04)  9B
     deepseek/deepseek-v4-flash          ($0.10)  아시아언어
     google/gemma-4-26b-a4b-it           ($0.06)  무료티어
-  Frontier (Native JSON):
+  Large (>30B, Native JSON):
     anthropic/claude-haiku-latest        ($1.00)  Structured output
     google/gemini-3.1-flash-lite        ($0.25)  Judge 추천
     google/gemini-3.5-flash             ($1.50)  최신
