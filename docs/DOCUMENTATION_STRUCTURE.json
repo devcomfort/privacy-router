@@ -183,7 +183,7 @@
         {
           "id": "pipeline-overview",
           "heading": "Pipeline Overview",
-          "content": "Interactive Mermaid diagram (rendered inline via mermaid.js, not just PNG). Annotated pipeline: User → Extractor (TwoPhase SLM) → Judge (Two-axis) → Router → Masker/Hydrator → Response. Each node clickable to expand."
+          "content": "Interactive Mermaid diagram (rendered inline via mermaid.js, not just PNG). Annotated pipeline: User → Extractor (facade, precision='default'|'high') → Judge (rule-based) → Router → Masker/Hydrator → Response. Each node clickable to expand."
         },
         {
           "id": "two-tier-stack",
@@ -254,7 +254,7 @@
         {
           "id": "recommended-stack",
           "heading": "Recommended Stack",
-          "content": "Table: Extractor (Ministral 3B, $0.10/1M tok), Judge (Gemini Flash Lite, $0.25/1M tok), Router (no LLM), Masker (no LLM). Total per-conversation estimate."
+          "content": "Table: Extractor (Ministral 3B / Gemma4 E4B, $0.10/1M tok), Judge (rule-based, $0), Router (no LLM), Masker (no LLM). Total per-conversation estimate."
         },
         {
           "id": "model-evaluation",
