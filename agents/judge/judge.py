@@ -96,7 +96,7 @@ class Judge:
                     is_meaningful_after_masking=True,
                     rationale="민감 정보가 없습니다.",
                 ),
-                policy_action="allow",
+                policy_action="route_to_external",
                 strategy="민감 정보가 없으므로 외부 API를 사용합니다.",
                 rationale=sensitivity.get("rationale", "탐지된 민감 정보가 없습니다."),
             )

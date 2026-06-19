@@ -19,14 +19,14 @@ class TestJudge:
         judge = Judge()
         sensitivity = {"is_sensitive": False, "rationale": "test"}
         judgment = judge.classify(sensitivity, [], "hello world")
-        assert judgment.policy_action == "allow"
+        assert judgment.policy_action == "route_to_external"
         assert judgment.meaningful_after_masking.is_meaningful_after_masking is True
 
     def test_no_records_default_sensitivity(self):
         """When is_sensitive key missing and no records, defaults to not sensitive."""
         judge = Judge()
         judgment = judge.classify({}, [], "hello")
-        assert judgment.policy_action == "allow"
+        assert judgment.policy_action == "route_to_external"
 
     def test_allow_judgment_has_rationale(self):
         judge = Judge()
@@ -144,4 +144,4 @@ class TestJudgeFallback:
         judgment = judge.classify(
             {"is_sensitive": False, "rationale": "context"}, records, "test"
         )
-        assert judgment.policy_action == "allow"
+        assert judgment.policy_action == "route_to_external"

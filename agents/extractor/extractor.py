@@ -116,6 +116,9 @@ class Extractor:
                         ),
                         records=result.records + validated,
                     )
+                # If Critic found records but all failed validation,
+                # keep the original result (don't set is_sensitive=True
+                # with empty records).
 
         return result
 

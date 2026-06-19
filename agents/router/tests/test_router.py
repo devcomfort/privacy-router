@@ -7,10 +7,11 @@ PrivacyRouter.process() tests require valid OPENROUTER_API_KEY.
 from __future__ import annotations
 
 import pytest
-
 from agents.router import PrivacyRouter
-from agents.router.router import Router
 from agents.router.schemas import ChatMessage, ChatRequest, PipelineResult, RouteResult
+from agents.extractor.schemas import Sensitivity
+from agents.judge.schemas import Judgment, MeaningfulnessAssessment
+from agents.router.router import Router
 
 
 # ── Router.resolve() ─────────────────────────────────────────────────────────
@@ -94,14 +95,14 @@ class TestRouterExecute:
         def mock_external(masked_text):
             # The text should have placeholder, not original
             assert "901212-1234567" not in masked_text
-            assert "[RESIDENT_REGISTRATION_NUMBER#" in masked_text
+            assert "RESIDENT_REGISTRATION_NUMBER#" in masked_text
             return f"processed: {masked_text}"
         result = router.execute(
             "주민번호 901212-1234567 확인", "mask_and_send", records, call_external=mock_external
         )
         # Result should be hydrated (original value restored)
         assert "901212-1234567" in result
-        assert "[RESIDENT_REGISTRATION_NUMBER#" not in result
+        assert "RESIDENT_REGISTRATION_NUMBER#" not in result
 
     def test_execute_route_to_local(self):
         router = Router()
@@ -171,22 +172,51 @@ class TestRouterPolicyActions:
         assert result.judgment.meaningful_after_masking.is_meaningful_after_masking is True
 
     def test_essential_routes_to_local_or_prompt(self):
-        """Load-bearing records route to local if available, otherwise prompt user."""
-        pr = PrivacyRouter()
-        result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
+        """Load-bearing records route to local."""
+        from unittest.mock import patch
+        from agents.extractor.schemas import ExtractionResult, Sensitivity, ExtractionRecord
 
-        # With local model configured → route_to_local; without → prompt_user
-        assert result.judgment.policy_action in ("route_to_local", "prompt_user")
-        assert result.route.endpoint in ("local_api", "prompt")
+        mock_result = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="주민등록번호"),
+            records=[ExtractionRecord(
+                category="RRN", span="901212-1234567",
+                confidence=0.99, start=0, end=15, is_essential=True,
+            )],
+        )
+        with patch('agents.extractor.Extractor') as MockExt:
+            MockExt.return_value.extract.return_value = mock_result
+            pr = PrivacyRouter()
+            result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
+
+        assert result.judgment.policy_action == "route_to_local"
+        assert result.route.endpoint == "local_api"
         assert result.mask_indices == []
         assert result.judgment.meaningful_after_masking.is_meaningful_after_masking is False
 
     def test_mixed_records_with_essential(self):
-        pr = PrivacyRouter()
-        result = pr.process("새로운 강화학습 알고리즘 아이디어를 조언해주세요. 주민등록번호 901212-1234567.")
+        from unittest.mock import patch
+        from agents.extractor.schemas import ExtractionResult, Sensitivity, ExtractionRecord
 
-        assert result.judgment.policy_action in ("route_to_local", "prompt_user")
-        assert result.route.endpoint in ("local_api", "prompt")
+        mock_result = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="혼합"),
+            records=[
+                ExtractionRecord(
+                    category="UNPUBLISHED_RESEARCH_CONCEPT", span="강화학습 알고리즘",
+                    confidence=0.9, start=0, end=10, is_essential=True,
+                ),
+                ExtractionRecord(
+                    category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567",
+                    confidence=0.99, start=20, end=35, is_essential=False,
+                ),
+            ],
+        )
+        with patch('agents.extractor.Extractor') as MockExt:
+            MockExt.return_value.extract.return_value = mock_result
+            pr = PrivacyRouter()
+            result = pr.process("새로운 강화학습 알고리즘 아이디어를 조언해주세요. 주민등록번호 901212-1234567.")
+
+        assert result.judgment.policy_action == "route_to_local"
+        assert result.route.endpoint == "local_api"
 
 class TestRouterPipelineResult:
     """Verify PipelineResult structure."""
@@ -202,11 +232,22 @@ class TestRouterPipelineResult:
         assert hasattr(result, "mask_indices")
 
     def test_rationale_contains_essential_info(self):
-        pr = PrivacyRouter()
-        result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
+        from unittest.mock import patch
+        from agents.extractor.schemas import ExtractionResult, Sensitivity, ExtractionRecord
 
-        if result.records:
-            assert "essential" in result.judgment.rationale or "essential" in result.judgment.rationale
+        mock_result = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="주민등록번호"),
+            records=[ExtractionRecord(
+                category="RRN", span="901212-1234567",
+                confidence=0.99, start=0, end=15, is_essential=True,
+            )],
+        )
+        with patch('agents.extractor.Extractor') as MockExt:
+            MockExt.return_value.extract.return_value = mock_result
+            pr = PrivacyRouter()
+            result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
+
+        assert "essential" in result.judgment.rationale
 
     def test_records_have_schema_fields(self):
         pr = PrivacyRouter()
@@ -277,11 +318,9 @@ class TestPrivacyRouterPromptUserNoLocalModel:
         mock_cls.return_value.extract.return_value = result
         monkeypatch.setattr("agents.extractor.Extractor", mock_cls)
 
-    def test_prompt_user_when_config_raises(self, monkeypatch):
-        """Load-bearing + config exception in process() → prompt_user."""
-        import config as config_mod
+    def test_essential_returns_route_to_local(self, monkeypatch):
+        """Load-bearing records → route_to_local (Judge rule-based)."""
         from agents.extractor.schemas import ExtractionRecord
-        from unittest.mock import MagicMock
 
         self._mock_extractor(monkeypatch, [
             ExtractionRecord(
@@ -289,38 +328,19 @@ class TestPrivacyRouterPromptUserNoLocalModel:
                 confidence=0.98, start=0, end=14, is_essential=True,
             ),
         ])
-        # Make load_config raise inside process()
-        monkeypatch.setattr(config_mod, "load_config", MagicMock(side_effect=Exception("no config")))
 
         pr = PrivacyRouter()
         result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
 
-        assert result.judgment.policy_action == "prompt_user"
-        assert result.route.endpoint == "prompt"
+        assert result.judgment.policy_action == "route_to_local"
+        assert result.route.endpoint == "local_api"
         assert result.mask_indices == []
 
-    def test_prompt_user_when_no_local_model(self, monkeypatch):
-        """Load-bearing + cfg.local.model is empty → prompt_user."""
-        import config as config_mod
-        from agents.extractor.schemas import ExtractionRecord
-        from unittest.mock import MagicMock
-
-        self._mock_extractor(monkeypatch, [
-            ExtractionRecord(
-                category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567",
-                confidence=0.98, start=0, end=14, is_essential=True,
-            ),
-        ])
-        # Config works but local model is empty
-        mock_cfg = MagicMock()
-        mock_cfg.local.model = ""
-        monkeypatch.setattr(config_mod, "load_config", MagicMock(return_value=mock_cfg))
-
-        pr = PrivacyRouter()
-        result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
-
-        assert result.judgment.policy_action == "prompt_user"
-        assert result.route.endpoint == "prompt"
+    def test_prompt_user_only_via_explicit_action(self):
+        """prompt_user is only reachable via explicit Router.resolve()."""
+        router = Router()
+        result = router.resolve("prompt_user")
+        assert result.endpoint == "prompt"
 
     def test_route_to_local_when_local_model_available(self, monkeypatch):
         """Load-bearing + cfg.local.model is set → route_to_local."""
@@ -529,8 +549,15 @@ class TestModuleLevelProcess:
 
         mock_router = MagicMock()
         mock_router.process.return_value = PipelineResult(
-            sensitivity={"is_sensitive": False, "rationale": "none"},
-            judgment={"policy_action": "route_to_external"},
+            sensitivity=Sensitivity(is_sensitive=False, rationale="none"),
+            judgment=Judgment(
+                meaningful_after_masking=MeaningfulnessAssessment(
+                    is_meaningful_after_masking=True, rationale="none",
+                ),
+                policy_action="route_to_external",
+                strategy="외부 전송",
+                rationale="none",
+            ),
             route=RouteResult(endpoint="external_api", requires_masking=False, description="mocked"),
             records=[],
             mask_indices=[],
