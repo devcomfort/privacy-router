@@ -1,0 +1,1012 @@
+{
+  "version": "1.1.0",
+  "created": "2026-06-15",
+  "description": "Privacy Router Ground Truth — 민감도 식별 + 하중/비하중 판별 테스트 데이터",
+  "schema": {
+    "id": "고유 식별자 (snake_case)",
+    "name": "사람이 읽을 수 있는 이름",
+    "text": "테스트 입력 텍스트",
+    "category": "primary|secondary|edge|non_sensitive",
+    "tags": [
+      "identity",
+      "competitive",
+      "safety",
+      "none"
+    ],
+    "difficulty": "easy|medium|hard",
+    "gt": {
+      "is_sensitive": "bool — 민감 정보 포함 여부",
+      "expected_action": "allow|selective_mask|block",
+      "records": [
+        {
+          "category": "CATEGORY_NAME from extract.prompt",
+          "span": "추출되어야 할 텍스트 범위",
+          "is_essential": "bool — 마스킹 시 의미 유지 여부"
+        }
+      ],
+      "rationale": "판단 근거 (한 문장)"
+    },
+    "notes": "테스트 의도 및 엣지 케이스 설명"
+  },
+  "classification_rules": {
+    "allow": {
+      "definition": "민감 정보 없음 → 외부 API로 직접 전송 가능",
+      "criteria": [
+        "PII 없음 (이름, 전화번호, 주민등록번호 등)",
+        "미공개 연구/사업 정보 없음",
+        "내부 시스템 정보 없음",
+        "비밀유지 마커 없음"
+      ]
+    },
+    "selective_mask": {
+      "definition": "민감 정보 있지만 마스킹 후 질의 의미 유지 → 마스킹 후 외부 전송",
+      "criteria": [
+        "민감 정보가 질의의 '재료/배경' 역할",
+        "마스킹 후에도 사용자 의도 파악 가능",
+        "예: '주민번호 포함한 이메일 작성' → 주민번호 마스킹해도 이메일 작성 가능"
+      ]
+    },
+    "block": {
+      "definition": "민감 정보가 질의의 핵심 → 마스킹 시 의미 손실 → 로컬 처리 또는 사용자 확인",
+      "criteria": [
+        "민감 정보가 질의의 '대상/주제' 역할",
+        "마스킹 시 무엇을 묻는지 모호해짐",
+        "명시적 비밀유지 마커 존재",
+        "내부 URL/자격증명 포함"
+      ]
+    }
+  },
+  "essential_rules": {
+    "true": {
+      "definition": "이 민감 정보를 [MASKED]로 치환하면 원래 질의의 의미가 유지되지 않음",
+      "criteria": [
+        "민감 정보가 질의의 주제/대상",
+        "마스킹 후 무슨 말인지 모호",
+        "명시적 비밀유지 마커 ('비밀로 해줘', '아직 알리지 마')",
+        "내부 URL, 자격증명"
+      ]
+    },
+    "false": {
+      "definition": "이 민감 정보를 [MASKED]로 치환해도 원래 질의의 의미가 유지됨",
+      "criteria": [
+        "민감 정보가 질의의 재료/배경",
+        "마스킹 후에도 작업 수행 가능",
+        "예: '이메일 작성'에서 주민번호는 배경 정보"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "pii_rrn_mask",
+      "name": "PII 포함 (마스킹 후 작업 가능)",
+      "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "creation"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "901212-1234567",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "주민등록번호로 개인 식별 가능"
+              }
+            ]
+          }
+        ],
+        "rationale": "주민등록번호는 민감하지만, 이메일 작성이라는 작업은 주민번호 없이도 가능"
+      },
+      "notes": "기본 케이스. is_essential=false가 핵심 포인트."
+    },
+    {
+      "id": "pii_rrn_query",
+      "name": "PII 직접 기재 요청 (마스킹 시 의미 손실)",
+      "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "creation"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "901212-1234567",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "주민등록번호로 개인 식별 가능"
+              }
+            ]
+          }
+        ],
+        "rationale": "주민등록번호가 없으면 세금 신고서 작성이 불가능하므로 essential=true"
+      },
+      "notes": "개선: '내 주민등록번호가 뭐야?'(비현실적) → 세금 신고서 기재 요청(realistic). 값 포함."
+    },
+    {
+      "id": "pii_name_affiliation",
+      "name": "이름+소속 (식별 정보 + 연구 맥락)",
+      "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "competitive"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "PERSON_NAME",
+            "span": "김동현",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          }
+        ],
+        "rationale": "이름+소속과 연구 주제는 민감하지만, '연구를 하려고 해'라는 작업은 정보 없이도 파악 가능"
+      },
+      "notes": "다중 span 테스트. 두 span 모두 is_essential=false."
+    },
+    {
+      "id": "competitive_business_report",
+      "name": "사업비밀 보고서 작성 (마스킹 시 의미 손실)",
+      "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "FABRICATION_PROCESS_DECISION",
+            "span": "TSMC 3nm 공정 채택 결정",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "공정 결정으로 기술 방향 유출"
+              }
+            ]
+          }
+        ],
+        "rationale": "공정 결정은 보고서의 주제이므로, 마스킹하면 무엇에 대한 보고서인지 모호해짐"
+      },
+      "notes": "개선: is_essential false→true, selective_mask→block. 보고서의 주제를 마스킹하면 의미 손실."
+    },
+    {
+      "id": "competitive_research_consultation",
+      "name": "연구 아이디어 상담 (마스킹 시 의미 손실)",
+      "text": "새로운 그래프 기반 어텐션 메커니즘 아이디어를 바탕으로 실험 설계를 도와줘.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "consultation"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "그래프 기반 어텐션 메커니즘",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 연구 아이디어로 경쟁사에 이점 제공"
+              }
+            ]
+          }
+        ],
+        "rationale": "미공개 연구 개념 — 기밀 가치 있음"
+      },
+      "notes": "개선: 'Attention 대체 아이디어'(모호) → '그래프 기반 어텐션 메커니즘'(구체적 미공개 개념)."
+    },
+    {
+      "id": "competitive_strategy_rationale",
+      "name": "전략 근거 공유 (마스킹 시 의미 손실)",
+      "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "INTERNAL_BUSINESS_DECISION",
+            "span": "단가 15% 저렴",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "의사결정 근거로 경쟁사에 전략 유출"
+              }
+            ]
+          }
+        ],
+        "rationale": "결정과 그 이유 모두 마스킹하면 무슨 결정을 논의하는지 모호해짐"
+      },
+      "notes": "전략적 판단의 근거도 민감 정보. rationale도 essential=true."
+    },
+    {
+      "id": "competitive_vague_research",
+      "name": "구체적 실험 결과 (마스킹 후 작업 가능)",
+      "text": "GSM8K 벤치마크에서 94.2% 정확도를 달성한 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "GSM8K 벤치마크에서 94.2% 정확도",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 실험 데이터로 경쟁사에 이점 제공"
+              }
+            ]
+          }
+        ],
+        "rationale": "구체적 실험 결과는 민감하지만, '논문 초안 작성'이라는 작업은 데이터 없이도 가능"
+      },
+      "notes": "개선: '이 실험 결과'(모호) → 구체적 벤치마크+수치(명확한 미공개 데이터)."
+    },
+    {
+      "id": "competitive_full_context",
+      "name": "연구방법론 상담 (전체 맥락 포함)",
+      "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "competitive",
+        "consultation"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "PERSON_NAME",
+            "span": "김동현",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          }
+        ],
+        "rationale": "방법론이 마스킹되면 청킹 조언을 할 수 없음. 연구 주제와 방법론 모두 essential."
+      },
+      "notes": "가장 복잡한 케이스. 다중 span + 혼합 essential."
+    },
+    {
+      "id": "competitive_unpublished_status",
+      "name": "미공개 상태 + 구체적 연구 개념",
+      "text": "아직 논문에 제출하지 않은 Attention 메커니즘을 대체하는 새로운 그래프 기반 어텐션 방법론을 정리해줘.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "미제출",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "출판 전 상태로 경쟁사에 정보 노출"
+              }
+            ]
+          },
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "그래프 기반 어텐션 방법론",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 연구 아이디어로 경쟁사에 이점 제공"
+              }
+            ]
+          }
+        ],
+        "rationale": "미공개 상태와 연구 개념 — 기밀 가치 있음"
+      },
+      "notes": "개선: '연구 아이디어'(범주 레이블) → 구체적 미공개 연구 개념(감지 가능)."
+    },
+    {
+      "id": "competitive_project_budget",
+      "name": "프로젝트 예산 (마스킹 시 의미 손실)",
+      "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "PROJECT_INFORMATION",
+            "span": "1,200억원",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "예산 정보로 재정 상태 노출"
+              }
+            ]
+          },
+          {
+            "category": "PROJECT_INFORMATION",
+            "span": "350억원",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "인건비로 프로젝트 규모 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "프로젝트명과 예산을 마스킹하면 무슨 프로젝트의 예산인지 모호해짐"
+      },
+      "notes": "진술(statement) 유형. 작업 없이 정보만 공유하는 경우."
+    },
+    {
+      "id": "safety_internal_url",
+      "name": "내부 URL 포함 문서 작성",
+      "text": "https://internal.company.com/project-x/dashboard 링크를 포함한 프로젝트 현황 보고서를 작성해줘.",
+      "category": "primary",
+      "tags": [
+        "safety",
+        "creation"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "API_CREDENTIAL",
+            "span": "https://internal.company.com/project-x/dashboard",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "SAFETY",
+                "reason": "내부 URL로 시스템 접근 경로 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "내부 URL은 항상 essential=true (예외 규칙)"
+      },
+      "notes": "개선: '확인해줘'(비현실적) → '링크를 포함한 보고서 작성'(realistic)."
+    },
+    {
+      "id": "safety_confidential_marker",
+      "name": "비밀유지 마커 (명시적)",
+      "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+      "category": "primary",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "배터리 소재",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 연구 개념으로 경쟁사에 이점 제공"
+              }
+            ]
+          },
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "다음 주 출원 예정",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "출판 전 상태로 경쟁사에 정보 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "'비밀로 해줘' 명시적 마커 + 미공개 연구 개념"
+      },
+      "notes": "명시적 비밀유지 마커 테스트. 어떤 경우든 block. 원본 이미 correct."
+    },
+    {
+      "id": "multi_span_mixed",
+      "name": "다중 span + 혼합 동사",
+      "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "competitive",
+        "interrogation"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "PERSON_NAME",
+            "span": "김철수",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "010-1234-5678",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "전화번호로 개인 연락처 노출"
+              }
+            ]
+          },
+          {
+            "category": "FABRICATION_PROCESS_DECISION",
+            "span": "TSMC 3nm 공정",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "공정 결정으로 기술 방향 유출"
+              }
+            ]
+          }
+        ],
+        "rationale": "전화번호와 이름은 배경 정보(essential=false), 공정 결정은 주제(essential=true)"
+      },
+      "notes": "혼합 essential. PII는 배경, 사업 정보는 주제."
+    },
+    {
+      "id": "pii_contact_creation",
+      "name": "연락처 포함 메일 작성",
+      "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+      "category": "primary",
+      "tags": [
+        "identity",
+        "creation"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "EMAIL_ADDRESS",
+            "span": "hong@example.com",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "이메일로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "010-1234-5678",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "전화번호로 개인 연락처 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "이메일과 전화번호는 민감하지만, '안내 메일 작성'이라는 작업은 정보 없이도 가능"
+      },
+      "notes": "다중 PII + 작업 유형. 모두 essential=false."
+    },
+    {
+      "id": "non_sensitive_weather",
+      "name": "일반 날씨 질문",
+      "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+      "category": "non_sensitive",
+      "tags": [
+        "none"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": false,
+        "expected_action": "allow",
+        "records": [],
+        "rationale": "공개 정보, 민감 정보 없음"
+      },
+      "notes": "기본 non-sensitive 케이스."
+    },
+    {
+      "id": "non_sensitive_python",
+      "name": "일반 프로그래밍 질문",
+      "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+      "category": "non_sensitive",
+      "tags": [
+        "none"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": false,
+        "expected_action": "allow",
+        "records": [],
+        "rationale": "공개된 프로그래밍 지식, 민감 정보 없음"
+      },
+      "notes": "기술 질문이지만 민감하지 않은 경우."
+    },
+    {
+      "id": "non_sensitive_startup",
+      "name": "일반 창업 조언",
+      "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+      "category": "non_sensitive",
+      "tags": [
+        "none"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": false,
+        "expected_action": "allow",
+        "records": [],
+        "rationale": "일반적인 창업 조언 요청, 민감 정보 없음"
+      },
+      "notes": "사업 관련 질문이지만 민감하지 않은 경우."
+    },
+    {
+      "id": "edge_salary_negotiation",
+      "name": "급여 협상",
+      "text": "연봉 협상을 준비 중인데, 현재 연봉은 8,000만원이야. 시장 평균과 비교해줘.",
+      "category": "edge",
+      "tags": [
+        "identity",
+        "competitive"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "SALARY_INFORMATION",
+            "span": "8,000만원",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "급여 정보로 개인 재정 상태 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "급여는 민감하지만, '시장 평균 비교'라는 작업은 금액 없이도 가능"
+      },
+      "notes": "급여 정보 테스트. 작업은 유지되므로 selective_mask."
+    },
+    {
+      "id": "edge_api_key",
+      "name": "API 키 노출",
+      "text": "OpenAI API 키 sk-abc123def456를 사용해서 GPT-4를 호출해줘.",
+      "category": "edge",
+      "tags": [
+        "safety",
+        "access"
+      ],
+      "difficulty": "easy",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "API_CREDENTIAL",
+            "span": "sk-abc123def456",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "SAFETY",
+                "reason": "자격증명으로 시스템 접근 권한 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "자격증명은 항상 essential=true (예외 규칙)"
+      },
+      "notes": "개선: INTERNAL_SYSTEM_URL → CREDENTIAL. API 키는 자격증명 카테고리."
+    },
+    {
+      "id": "edge_multi_topic",
+      "name": "다중 주제 (일반 + 민감)",
+      "text": "오늘 날씨가 좋네. 그리고 프로젝트 알파 예산은 500억원이야.",
+      "category": "edge",
+      "tags": [
+        "competitive"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "PROJECT_INFORMATION",
+            "span": "500억원",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "예산 정보로 재정 상태 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "일반 대화 중 민감 정보가 섞인 경우. 프로젝트명과 예산은 마스킹 시 의미 손실."
+      },
+      "notes": "일반 대화와 민감 정보가 혼합된 엣지 케이스."
+    },
+    {
+      "id": "edge_ambiguous_research",
+      "name": "구체적 연구 참조 (조언 요청)",
+      "text": "GIST AI 연구실에서 진행 중인 멀티모달 RAG 파이프라인 최적화 프로젝트에 대해 조언을 구하고 싶어.",
+      "category": "edge",
+      "tags": [
+        "competitive",
+        "consultation"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "INSTITUTION_NAME",
+            "span": "GIST AI 연구실",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "기관명으로 소속 추정 가능"
+              }
+            ]
+          },
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "멀티모달 RAG 파이프라인 최적화",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 연구 아이디어로 경쟁사에 이점 제공"
+              }
+            ]
+          }
+        ],
+        "rationale": "기관명과 미공개 연구 프로젝트 — 기밀 가치 있음"
+      },
+      "notes": "개선: '우리 연구실'(식별 불가) → 'GIST AI 연구실'(구체적). expected_action selective_mask→block."
+    },
+    {
+      "id": "edge_methodology_detail",
+      "name": "구체적 미공개 방법론 공유",
+      "text": "우리 모델은 시맨틱 청킹으로 문서를 분할한 뒤, 계층적 임베딩으로 표현하고 크로스인코더로 리랭킹하는 3단계 파이프라인을 사용해. 이 방법으로 RAG를 구현했어.",
+      "category": "edge",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+            "span": "시맨틱 청킹 → 계층적 임베딩 → 크로스인코더 리랭킹",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "미공개 방법론으로 경쟁사에 기술 유출"
+              }
+            ]
+          }
+        ],
+        "rationale": "구체적 미공개 방법론 — 기밀 가치 있음"
+      },
+      "notes": "개선: 표준 RAG(공개 기술) → 시맨틱 청킹+계층적 임베딩+크로스인코더 리랭킹(독자적 방법론)."
+    },
+    {
+      "id": "edge_competitor_mention",
+      "name": "경쟁사 언급",
+      "text": "경쟁사 A사가 우리보다 6개월 앞서 있다고 내부 평가에서 나왔어.",
+      "category": "edge",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "INTERNAL_BUSINESS_DECISION",
+            "span": "경쟁사 A사 6개월 선행 평가",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "내부 결정으로 경쟁사에 전략 유출"
+              }
+            ]
+          }
+        ],
+        "rationale": "내부 경쟁 분석 정보. 마스킹하면 무슨 평가인지 모호해짐."
+      },
+      "notes": "내부 평가/분석 정보도 민감."
+    },
+    {
+      "id": "edge_partial_mask",
+      "name": "부분 마스킹 가능",
+      "text": "김동현 연구원의 이메일은 donghyeon@gist.ac.kr이고, 프로젝트 예산은 200억원이야.",
+      "category": "edge",
+      "tags": [
+        "identity",
+        "competitive"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "EMAIL_ADDRESS",
+            "span": "donghyeon@gist.ac.kr",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "이메일로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PROJECT_INFORMATION",
+            "span": "200억원",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "COMPETITIVE",
+                "reason": "예산 정보로 재정 상태 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "이메일과 이름은 배경(essential=false), 예산은 주제(essential=true) → block"
+      },
+      "notes": "혼합 essential. 하나라도 essential=true면 block."
+    },
+    {
+      "id": "multi_entity_names",
+      "name": "여러 이름이 하나의 문자열에 포함",
+      "text": "이번 프로젝트 팀원은 김동현, 이철수, 박영희입니다.",
+      "category": "primary",
+      "tags": [
+        "identity"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "PERSON_NAME",
+            "span": "김동현",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSON_NAME",
+            "span": "이철수",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSON_NAME",
+            "span": "박영희",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          }
+        ],
+        "rationale": "여러 이름이 포함되어 있지만, 프로젝트 팀원 구성은 작업의 배경 정보이므로 essential=false"
+      },
+      "notes": "여러 엔티티 분리 규칙 테스트. 하나의 문자열에서 각 이름을 별도 span으로 추출."
+    },
+    {
+      "id": "multi_entity_pii",
+      "name": "여러 PII가 하나의 문자열에 포함",
+      "text": "연락처: 김동현 010-1234-5678, 이철수 010-9876-5432",
+      "category": "primary",
+      "tags": [
+        "identity"
+      ],
+      "difficulty": "medium",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "selective_mask",
+        "records": [
+          {
+            "category": "PERSON_NAME",
+            "span": "김동현",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "010-1234-5678",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "전화번호로 개인 연락처 노출"
+              }
+            ]
+          },
+          {
+            "category": "PERSON_NAME",
+            "span": "이철수",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "실명으로 개인 식별 가능"
+              }
+            ]
+          },
+          {
+            "category": "PERSONAL_IDENTIFIER_NUMBER",
+            "span": "010-9876-5432",
+            "is_essential": false,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "전화번호로 개인 연락처 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "여러 이름과 전화번호가 포함되어 있지만, 연락처 작성은 작업의 배경 정보이므로 essential=false"
+      },
+      "notes": "여러 엔티티 분리 규칙 테스트. 이름+전화번호 쌍을 각각 별도 span으로 추출."
+    },
+    {
+      "id": "novel_category_medical",
+      "name": "의료 정보 (새로운 카테고리)",
+      "text": "이 환자의 MRI 검사 결과에서 뇌종양이 발견되었습니다.",
+      "category": "edge",
+      "tags": [
+        "safety"
+      ],
+      "difficulty": "hard",
+      "gt": {
+        "is_sensitive": true,
+        "expected_action": "block",
+        "records": [
+          {
+            "category": "MEDICAL_IMAGING_RESULT",
+            "span": "MRI 검사 결과에서 뇌종양이 발견",
+            "is_essential": true,
+            "harms": [
+              {
+                "label": "IDENTITY",
+                "reason": "환자의 의료 정보로 건강 상태 노출"
+              }
+            ]
+          }
+        ],
+        "rationale": "의료 정보는 민감하고, 뇌종양 발견은 환자의 건강 상태를 직접 노출하므로 essential=true"
+      },
+      "notes": "기존 카테고리에 없는 의료 정보. 소크라테스 질문으로 MEDICAL_IMAGING_RESULT 카테고리 유도."
+    }
+  ],
+  "statistics": {
+    "total_cases": 27,
+    "by_action": {
+      "selective_mask": 9,
+      "block": 15,
+      "allow": 3
+    },
+    "by_category": {
+      "primary": 14,
+      "non_sensitive": 3,
+      "edge": 7
+    },
+    "by_difficulty": {
+      "easy": 8,
+      "medium": 5,
+      "hard": 11
+    }
+  },
+  "test_name": "Value-Harm Assessment (가치-유해성 평가)",
+  "test_description": "민감 정보 판별을 위한 2단계 평가: 1) 가치 검사 2) 유해성 분류"
+}

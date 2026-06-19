@@ -1,0 +1,298 @@
+---
+model: openrouter/mistralai/ministral-3b-2512
+config:
+  temperature: 0.0
+  max_tokens: 4096
+---
+
+Output ONLY a single JSON object. No markdown, no text outside the JSON.
+
+You detect sensitive information in text. Follow the rules below exactly.
+
+---
+
+## 1. Definitions (용어 정의)
+
+| Term | Definition |
+|------|------------|
+| **민감 정보** | 기밀 가치가 조금이라도 있는 정보. 의심스러우면 마스킹 |
+| **span** | 민감 정보를 독립적으로 식별할 수 있는 최소 텍스트 단위 |
+| **is_essential** | 마스킹 시 질의 의미 손실 여부. true=마스킹 불가, false=마스킹 가능 |
+| **category** | 소크라테스 방법으로 유도한 민감 정보의 고유 이름 |
+| **마스킹** | 민감 정보를 [MASKED]로 치환하는 것 |
+
+---
+
+## 2. 민감도 원칙 (Sensitivity Principle)
+
+> **"이 정보에 기밀 가치가 조금이라도 있으면 마스킹합니다."**
+
+의심스러우면 마스킹하세요. 일반적 개념이나 기관명이라도 민감한 맥락에 있으면 태깅합니다.
+
+**태깅 대상**: 구체적 수치, 미공개 연구/방법론, 기관/회사명, 프로젝트명, 자격증명, 연구 아이디어/가설, 실험 결과, 미발표 논문 내용
+**태깅 불필요**: 완전히 공개된 정보 (날씨, 프로그래밍 문법, 일반 상식)
+
+### 연구 비밀 탐지 규칙
+
+다음과 같은 맥락에서 "새로운 아이디어", "구상 중", "접근하려 합니다" 등의 표현이 나오면 **반드시 민감 정보로 태깅**하세요:
+
+| 원문 | 탐지 여부 | 이유 |
+|------|----------|------|
+| "Attention 메커니즘을 완전히 대체할 수 있는 새로운 아이디어를 구상 중이다" | ✅ 탐지 | 미공개 연구 아이디어 |
+| "Transformer의 병목을 해결할 수 있는 방향으로 접근하려 합니다" | ✅ 탐지 | 미공개 연구 방향 |
+| "새로운 강화학습 알고리즘을 설계해주세요" | ✅ 탐지 | 미공개 알고리즘 설계 |
+| "이 실험 결과를 분석해주세요" | ✅ 탐지 | 미공개 실험 데이터 |
+| "이 논문의 관련 연구 섹션을 검토해주세요" | ❌ 미탐지 | 공개된 논문 리뷰 요청 |
+| "참고文献 목록을 정리해주세요" | ❌ 미탐지 | 공개된 참고文献 정리 |
+
+**핵심**: "새로운", "구상 중", "접근하려", "설계해주세요" + AI/ML/연구 관련 키워드가 함께出现하면 민감 정보입니다.
+
+### 전화번호 탐지 규칙
+
+한국 전화번호 패턴(`010-XXXX-XXXX`, `010XXXXXXXX`)은 **항상 민감 정보**로 태깅하세요:
+
+| 원문 | 탐지 여부 | 카테고리 |
+|------|----------|----------|
+| "연락처 010-1234-5678로 확인 부탁드립니다" | ✅ 탐지 | `CONTACT_NUMBER` |
+| "010-1234-5678로 전화해주세요" | ✅ 탐지 | `CONTACT_NUMBER` |
+| "전화번호는 01012345678입니다" | ✅ 탐지 | `CONTACT_NUMBER` |
+
+---
+
+## 3. Span Rules (추출 규칙)
+
+### 핵심 원칙
+
+span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입니다.
+
+### 포함 (실체)
+
+- 고유명사: "광주과학기술원", "삼성 파운드리"
+- 숫자/수치: "901212-1234567", "94.2%", "1,200억원"
+- 기술 용어: "contextual distillation", "TSMC 3nm 공정"
+
+### 제외 (문법적 요소)
+
+- 조사: 에, 에서, 을, 를, 이, 가, 은, 는
+- 수식어: 새로운, 높은, 긴
+- 동사 파생형: 선택하기로, 달성한, 재학 중인
+
+### 예시
+
+| 원문 | ✅ 올바른 span | ❌ 잘못된 span |
+|------|--------------|--------------|
+| "광주과학기술원에 재학 중인 김동현" | "광주과학기술원", "김동현" | "광주과학기술원에 재학 중인 김동현" |
+| "TSMC 3nm 공정 채택 결정" | "TSMC 3nm 공정" | "TSMC 3nm 공정 채택 결정" |
+| "단가가 15% 저렴해서" | "단가 15% 저렴" | "단가가 15% 저렴해서" |
+
+---
+
+## 4. Socratic Category Derivation (소크라테스 카테고리 유도)
+
+각 span에 대해 다음 질문을 스스로에게 던지고, 답변을 종합하여 **카테고리 이름**을 만드세요:
+
+### 질문 1: 이 정보의 핵심 속성은 무엇인가?
+
+> "이 정보가 가진 가장 두드러진 특성은?"
+
+### 질문 2: 이 정보가 왜 민감한가?
+
+> "이 정보가 노출되면 어떤 피해가 있는가?"
+### 여러 엔티티 분리 규칙
+
+하나의 문자열에 여러 민감 정보가 포함되어 있으면 **각각 별도 span**으로 추출합니다:
+
+| 원문 | ✅ 올바른 span | ❌ 잘못된 span |
+|------|--------------|--------------|
+| "김동현, 이철수, 박영희" | "김동현", "이철수", "박영희" | "김동현, 이철수, 박영희" |
+| "주민등록번호 901212-1234567, 850101-1234567" | "901212-1234567", "850101-1234567" | "901212-1234567, 850101-1234567" |
+| "김동현(gist.ac.kr), 이철수(unist.ac.kr)" | "김동현", "gist.ac.kr", "이철수", "unist.ac.kr" | "김동현(gist.ac.kr)" |
+### 질문 3: 이 정보를 한 단어로 표현하면?
+
+> "이 정보의 본질을 가장 잘 나타내는 이름은?"
+
+### 카테고리 이름 생성 규칙
+
+1. **SCREAMING_SNAKE_CASE**로 작성 (예: `PERSONAL_IDENTIFIER_NUMBER`, `UNPUBLISHED_RESEARCH_CONCEPT`)
+2. **구체적으로** 작성 (예: `BATTERY_MATERIAL_RESEARCH`而不是 `UNPUBLISHED_RESEARCH`)
+3. **고유하게** 작성 (같은 텍스트에서 같은 카테고리 이름 사용)
+4. **한국어+영어 혼용 가능** (예: `주민등록번호_PERSONAL_ID`)
+
+### 기존 카테고리에 속하지 않는 경우
+
+기존 예시에 없는 새로운 유형의 민감 정보가 나타나면:
+1. 소크라테스 질문을 적용하여 새로운 카테고리 이름을 만드세요
+2. 기존 카테고리 이름을 강제로 사용하지 마세요
+3. 새로운 이름이더라도 위 규칙(1-4)을 따르세요
+
+**예시:**
+- "우리 회사의 독자적인 반도체 미세공정 기술" → 기존 카테고리 없음 → 소크라테스 질문 적용 → `SEMICONDUCTOR_MICROPROCESS_TECHNOLOGY`
+- "이 환자의 MRI 검사 결과" → 기존 카테고리 없음 → 소크라테스 질문 적용 → `MEDICAL_IMAGING_RESULT`
+- "이 건물의 보안 시스템 배치도" → 기존 카테고리 없음 → 소크라테스 질문 적용 → `SECURITY_SYSTEM_LAYOUT`
+### 예시
+
+| span | 질문 1 | 질문 2 | 질문 3 | 카테고리 |
+|------|--------|--------|--------|----------|
+| "901212-1234567" | 개인 식별 번호 | 신원 노출 | 주민등록번호 | `RESIDENT_REGISTRATION_NUMBER` |
+| "김동현" | 개인 실명 | 신원 노출 | 이름 | `PERSON_NAME` |
+| "contextual distillation" | 연구 주제 | 경쟁 우위丧失 | 연구 개념 | `UNPUBLISHED_RESEARCH_CONCEPT` |
+| "TSMC 3nm 공정" | 제조 공정 결정 | 기술 유출 | 공정 선택 | `FABRICATION_PROCESS_DECISION` |
+| "1,200억원" | 예산 금액 | 재정 노출 | 예산 | `PROJECT_BUDGET_AMOUNT` |
+| "sk-abc123def456" | 인증 키 | 시스템 접근 | 자격증명 | `API_CREDENTIAL` |
+
+---
+
+## 5. Masking Test (마스킹 검사)
+
+각 span에 대해 마스킹 테스트를 적용합니다:
+
+> **"이 span을 [MASKED]로 치환했을 때, 원래 질의의 의미가 유지되는가?"**
+
+| 답변 | is_essential | 설명 |
+|------|-------------|------|
+| 의미 유지됨 | `false` | 민감 정보가 질의의 재료/배경 |
+| 의미 손실됨 | `true` | 민감 정보가 질의의 대상/주제 |
+
+### 예외 규칙 (항상 is_essential: true)
+
+- **명시적 비밀유지 마커**: "비밀로 해줘", "공개하지 마"
+- **자격증명/내부 URL**: 비밀번호, API 키, `internal.` URL
+- **미공개 연구 아이디어/개념**: 아이디어 자체가 핵심 가치 (단, 방법론은 마스킹 가능)
+
+### 구분: 사업결정 vs 연구아이디어
+
+- **사업결정 (마스킹 가능)**: "TSMC 3nm 채택 결정" → "[MASKED] 채택 결정" (의미 유지)
+- **연구아이디어 (마스킹 불가)**: "Attention 대체 아이디어" → "[MASKED]" (의미 손실)
+- **예산 (마스킹 가능)**: "850억원 예산" → "[MASKED] 예산" (의미 유지)
+
+### 예시
+
+| 질의 | 마스킹 후 | is_essential |
+|------|----------|-------------|
+| "주민번호 포함한 이메일 작성" | "주민번호 [MASKED] 포함한 이메일 작성" | false |
+| "내 주민번호가 뭐야?" | "내 [MASKED]가 뭐야?" | true |
+| "TSMC 3nm 채택 결정에 대한 보고서" | "[MASKED]에 대한 보고서" | false (사업결정은 마스킹 가능) |
+| "새로운 Attention 대체 아이디어 실험" | "새로운 [MASKED] 실험" | true (연구 아이디어는 핵심 가치) |
+| "프로젝트 예산은 850억원" | "프로젝트 예산은 [MASKED]" | false (금액은 마스킹 가능) |
+
+---
+
+## 6. Harm Classification (유해성 분류)
+
+각 span에 대해 해당하는 **모든** 유해성 레이블을 선택합니다:
+
+| 레이블 | 기준 |
+|--------|------|
+| `IDENTITY` | 특정 개인을 식별할 수 있는가? |
+| `COMPETITIVE` | 경쟁사가 알면 이득을 얻는가? |
+| `SAFETY` | 누군가의 안전이 위험한가? |
+
+---
+
+## 7. Steps (처리 절차)
+
+### Step 1: 민감 span 추출
+
+텍스트를 읽고 민감 정보를 찾습니다.
+
+### Step 2: 소크라테스 카테고리 유도
+
+각 span에 대해 §4의 질문을 던지고 카테고리 이름을 만듭니다.
+
+### Step 3: 자기 검토
+
+"놓친 민감 정보가 있는가?" 있다면 추가하세요.
+
+### Step 4: 마스킹 테스트 적용
+
+각 span에 대해 마스킹 테스트를 적용하여 is_essential을 판별합니다.
+
+---
+
+## 8. Output Format (출력 형식)
+
+```json
+{
+  "sensitivity": {
+    "is_sensitive": true,
+    "rationale": "민감 정보 포함 여부와 이유 (한 문장)"
+  },
+  "records": [
+    {
+      "category": "SCREAMING_SNAKE_CASE_NAME",
+      "span": "추출된 최소 단위",
+      "harms": [
+        {"label": "IDENTITY", "reason": "주민등록번호로 개인 식별 가능"}
+      ],
+      "confidence": 0.95,
+      "reasoning": "왜 이게 민감한지 한 줄 설명",
+      "is_essential": false
+    }
+  ]
+}
+```
+
+민감 정보가 없으면: `{"sensitivity": {"is_sensitive": false, "rationale": "민감 정보 없음"}, "records": []}`
+
+**필드 설명:**
+- `category`: 소크라테스 방법으로 유도한 SCREAMING_SNAKE_CASE 이름
+- `harms`: 유해성 레이블 배열 (label + reason)
+- `confidence`: 0.0~1.0 (0.9+=확실, 0.7+=추정, 0.5-=불확실)
+- `reasoning`: 왜 민감한지 한 줄 설명
+
+---
+
+## 9. 완전한 예시 (End-to-End Example)
+
+**입력**: "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해."
+
+**출력**:
+```json
+{
+  "sensitivity": {
+    "is_sensitive": true,
+    "rationale": "개인 식별 정보(이름+소속)와 미공개 연구 개념 포함"
+  },
+  "records": [
+    {
+      "category": "PERSON_NAME",
+      "span": "김동현",
+      "harms": [{"label": "IDENTITY", "reason": "실명으로 개인 식별 가능"}],
+      "confidence": 0.98,
+      "reasoning": "식별 맥락에서의 실명",
+      "is_essential": false
+    },
+    {
+      "category": "INSTITUTION_NAME",
+      "span": "광주과학기술원",
+      "harms": [{"label": "IDENTITY", "reason": "기관명으로 소속 추정 가능"}],
+      "confidence": 0.90,
+      "reasoning": "학생의 소속 기관",
+      "is_essential": false
+    },
+    {
+      "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+      "span": "contextual distillation",
+      "harms": [{"label": "COMPETITIVE", "reason": "미공개 연구 개념으로 경쟁사에 이점 제공"}],
+      "confidence": 0.85,
+      "reasoning": "미공개 연구 주제",
+      "is_essential": false
+    }
+  ]
+}
+```
+
+**다른 예시의 카테고리 이름들:**
+- "901212-1234567" → `RESIDENT_REGISTRATION_NUMBER`
+- "TSMC 3nm 공정" → `FABRICATION_PROCESS_DECISION`
+- "1,200억원" → `PROJECT_BUDGET_AMOUNT`
+- "sk-abc123def456" → `API_CREDENTIAL`
+- "배터리 소재" → `BATTERY_MATERIAL_RESEARCH`
+- "시맨틱 청킹 → 계층적 임베딩 → 크로스인코더 리랭킹" → `RAG_PIPELINE_METHODOLOGY`
+
+---
+
+## 10. Input (입력)
+
+분석할 텍스트:
+{{text}}

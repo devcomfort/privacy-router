@@ -1,0 +1,337 @@
+{
+  "model_key": "ministral-3b-2512",
+  "model_id": "openrouter/mistralai/ministral-3b-2512",
+  "tuning": {
+    "n_trials": 21,
+    "best_params": {
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "top_p": 1.0,
+      "use_json_mode": false,
+      "use_system_msg": false
+    },
+    "best_score": 0.8,
+    "all_profiles": [
+      {
+        "trial": 0,
+        "params": {
+          "temperature": 0.0,
+          "max_tokens": 4096,
+          "top_p": 1.0,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.42
+      },
+      {
+        "trial": 1,
+        "params": {
+          "temperature": 0.25,
+          "max_tokens": 2048,
+          "top_p": 0.75,
+          "use_json_mode": true,
+          "use_system_msg": true
+        },
+        "score": 0.7,
+        "correct": 7,
+        "total": 10,
+        "avg_latency_s": 1.68
+      },
+      {
+        "trial": 2,
+        "params": {
+          "temperature": 0.5,
+          "max_tokens": 4096,
+          "top_p": 0.75,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.23
+      },
+      {
+        "trial": 3,
+        "params": {
+          "temperature": 0.30000000000000004,
+          "max_tokens": 4096,
+          "top_p": 0.7999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": true
+        },
+        "score": 0.7,
+        "correct": 7,
+        "total": 10,
+        "avg_latency_s": 1.28
+      },
+      {
+        "trial": 4,
+        "params": {
+          "temperature": 0.35000000000000003,
+          "max_tokens": 8192,
+          "top_p": 0.75,
+          "use_json_mode": false,
+          "use_system_msg": true
+        },
+        "score": 0.7,
+        "correct": 7,
+        "total": 10,
+        "avg_latency_s": 1.49
+      },
+      {
+        "trial": 5,
+        "params": {
+          "temperature": 0.2,
+          "max_tokens": 4096,
+          "top_p": 0.7,
+          "use_json_mode": true,
+          "use_system_msg": true
+        },
+        "score": 0.7,
+        "correct": 7,
+        "total": 10,
+        "avg_latency_s": 1.56
+      },
+      {
+        "trial": 6,
+        "params": {
+          "temperature": 0.45,
+          "max_tokens": 8192,
+          "top_p": 0.75,
+          "use_json_mode": true,
+          "use_system_msg": true
+        },
+        "score": 0.7,
+        "correct": 7,
+        "total": 10,
+        "avg_latency_s": 1.66
+      },
+      {
+        "trial": 7,
+        "params": {
+          "temperature": 0.4,
+          "max_tokens": 2048,
+          "top_p": 0.7,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.49
+      },
+      {
+        "trial": 8,
+        "params": {
+          "temperature": 0.25,
+          "max_tokens": 4096,
+          "top_p": 0.95,
+          "use_json_mode": false,
+          "use_system_msg": true
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.63
+      },
+      {
+        "trial": 9,
+        "params": {
+          "temperature": 0.0,
+          "max_tokens": 2048,
+          "top_p": 0.95,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.25
+      },
+      {
+        "trial": 10,
+        "params": {
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 1.0,
+          "use_json_mode": true,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.29
+      },
+      {
+        "trial": 11,
+        "params": {
+          "temperature": 0.65,
+          "max_tokens": 4096,
+          "top_p": 0.8999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.53
+      },
+      {
+        "trial": 12,
+        "params": {
+          "temperature": 0.0,
+          "max_tokens": 4096,
+          "top_p": 0.85,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.23
+      },
+      {
+        "trial": 13,
+        "params": {
+          "temperature": 0.55,
+          "max_tokens": 4096,
+          "top_p": 0.85,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.55
+      },
+      {
+        "trial": 14,
+        "params": {
+          "temperature": 0.1,
+          "max_tokens": 4096,
+          "top_p": 1.0,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 2.3
+      },
+      {
+        "trial": 15,
+        "params": {
+          "temperature": 0.5,
+          "max_tokens": 8192,
+          "top_p": 0.85,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.6
+      },
+      {
+        "trial": 16,
+        "params": {
+          "temperature": 0.6000000000000001,
+          "max_tokens": 4096,
+          "top_p": 0.8999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.53
+      },
+      {
+        "trial": 17,
+        "params": {
+          "temperature": 0.15000000000000002,
+          "max_tokens": 4096,
+          "top_p": 0.7999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.24
+      },
+      {
+        "trial": 18,
+        "params": {
+          "temperature": 0.1,
+          "max_tokens": 2048,
+          "top_p": 0.95,
+          "use_json_mode": true,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.89
+      },
+      {
+        "trial": 19,
+        "params": {
+          "temperature": 0.45,
+          "max_tokens": 8192,
+          "top_p": 0.7999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.54
+      },
+      {
+        "trial": 20,
+        "params": {
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.8999999999999999,
+          "use_json_mode": false,
+          "use_system_msg": false
+        },
+        "score": 0.8,
+        "correct": 8,
+        "total": 10,
+        "avg_latency_s": 1.45
+      }
+    ],
+    "early_stopped": true,
+    "patience": 20,
+    "target_score": 1.0
+  },
+  "best": {
+    "params": {
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "top_p": 1.0,
+      "use_json_mode": false,
+      "use_system_msg": false
+    },
+    "validation": {
+      "mean_score": 0.8,
+      "stdev": 0.0,
+      "runs": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    }
+  },
+  "improvement": {
+    "baseline_score": 0.8,
+    "tuned_score": 0.8,
+    "delta": 0.0
+  }
+}

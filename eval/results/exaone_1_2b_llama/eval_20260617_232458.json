@@ -1,0 +1,3726 @@
+{
+  "model_key": "exaone-1.2b-llama",
+  "model_id": "openai/EXAONE-4.0-1.2B-Q4_K_M.gguf",
+  "engine": "llama",
+  "params": {},
+  "n_trials": 5,
+  "n_cases": 17,
+  "timestamp": "2026-06-17T23:24:58.566204",
+  "overall": {
+    "sensitivity_accuracy": 0.5882,
+    "action_accuracy": 0.3529,
+    "json_validity": 1,
+    "avg_latency_s": 1.729
+  },
+  "per_case": [
+    {
+      "case_id": "pii_mask",
+      "case_name": "PII 포함 (마스킹 후 작업 가능)",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "identity",
+        "creation"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 2.9465999999999997,
+      "std_latency_s": 0.8576090601200524,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 4.467,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.449,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.522,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.756,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.539,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "pii_essential",
+      "case_name": "PII 직접 기재 요청",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "identity",
+        "interrogation"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 2.5334,
+      "std_latency_s": 0.1829407007748686,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.571,
+          "detected_sensitive": true,
+          "detected_action": "block"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.339,
+          "detected_sensitive": true,
+          "detected_action": "block"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.348,
+          "detected_sensitive": true,
+          "detected_action": "block"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.734,
+          "detected_sensitive": true,
+          "detected_action": "block"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 2.675,
+          "detected_sensitive": true,
+          "detected_action": "block"
+        }
+      ]
+    },
+    {
+      "case_id": "name_affiliation",
+      "case_name": "이름+소속",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "identity",
+        "competitive"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.8214,
+      "std_latency_s": 0.10393411374519922,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.717,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.726,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.807,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.923,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.934,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "biz_decision",
+      "case_name": "사업비밀 (creation)",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.8066,
+      "std_latency_s": 0.09598593646988086,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.719,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.718,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.781,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.92,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.895,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "research_idea",
+      "case_name": "연구아이디어 (consultation)",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "competitive",
+        "consultation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.802,
+      "std_latency_s": 0.09092029476415045,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.723,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.714,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.778,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.886,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.909,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "strategy_rationale",
+      "case_name": "전략근거 (statement)",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 2.4276,
+      "std_latency_s": 0.3163309975326476,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.115,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.138,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.373,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.756,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.756,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "vague_experiment",
+      "case_name": "모호한실험결과 (creation)",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.8104,
+      "std_latency_s": 0.10950251138672575,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.686,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.695,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.889,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.891,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.891,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "methodology",
+      "case_name": "연구방법론 (consultation)",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "identity",
+        "competitive",
+        "consultation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.9044,
+      "std_latency_s": 0.10341324866766342,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.806,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.812,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.877,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 1.014,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 1.013,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "pre_publication",
+      "case_name": "미공개상태",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "competitive",
+        "creation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.793,
+      "std_latency_s": 0.10212737145349429,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.71,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.687,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.768,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.906,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.894,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "budget",
+      "case_name": "프로젝트예산 (statement)",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 2.4290000000000003,
+      "std_latency_s": 0.2258993138546464,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.402,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.153,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.279,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.623,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.688,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "internal_url",
+      "case_name": "내부URL",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "safety",
+        "consultation"
+      ],
+      "sensitivity_accuracy": 0,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.8582,
+      "std_latency_s": 0.06730304599347639,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.94,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.811,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.803,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.814,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": false,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 0.923,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "confidentiality_marker",
+      "case_name": "비밀유지마커",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "competitive",
+        "statement"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 2.4942,
+      "std_latency_s": 0.1864207606464474,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.505,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.377,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.366,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.41,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 2.813,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_span",
+      "case_name": "다중span+혼합동사",
+      "expected_sensitive": true,
+      "expected_action": "block",
+      "tags": [
+        "identity",
+        "competitive",
+        "interrogation"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 0,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 4.3586,
+      "std_latency_s": 0.36702084409471913,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 4.275,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 4.263,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 3.98,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 4.303,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": false,
+          "json_valid": true,
+          "latency_s": 4.972,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "multiple_pii",
+      "case_name": "전화번호포함 (creation)",
+      "expected_sensitive": true,
+      "expected_action": "selective_mask",
+      "tags": [
+        "identity",
+        "creation"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 4.0152,
+      "std_latency_s": 0.11333225489682976,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 4.023,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 4.031,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 3.825,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 4.076,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 4.121,
+          "detected_sensitive": true,
+          "detected_action": "selective_mask"
+        }
+      ]
+    },
+    {
+      "case_id": "weather",
+      "case_name": "일반날씨",
+      "expected_sensitive": false,
+      "expected_action": "allow",
+      "tags": [
+        "none"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.793,
+      "std_latency_s": 0.06048140210014977,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.774,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.748,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.899,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.78,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.764,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "python_syntax",
+      "case_name": "일반지식",
+      "expected_sensitive": false,
+      "expected_action": "allow",
+      "tags": [
+        "none"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.792,
+      "std_latency_s": 0.05739773514695506,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.773,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.766,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.894,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.756,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.771,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    },
+    {
+      "case_id": "startup_advice",
+      "case_name": "일반창업조언",
+      "expected_sensitive": false,
+      "expected_action": "allow",
+      "tags": [
+        "none"
+      ],
+      "sensitivity_accuracy": 1,
+      "sensitivity_std": 0.0,
+      "action_accuracy": 1,
+      "action_std": 0.0,
+      "json_validity": 1,
+      "avg_latency_s": 0.81,
+      "std_latency_s": 0.062181186865482074,
+      "per_trial": [
+        {
+          "trial": 0,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.769,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 1,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.795,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 2,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.92,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 3,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.784,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        },
+        {
+          "trial": 4,
+          "sensitivity_correct": true,
+          "action_correct": true,
+          "json_valid": true,
+          "latency_s": 0.782,
+          "detected_sensitive": false,
+          "detected_action": "allow"
+        }
+      ]
+    }
+  ],
+  "raw_trials": [
+    [
+      {
+        "case_id": "pii_mask",
+        "case_name": "PII 포함 (마스킹 후 작업 가능)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 4.467,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호 (resident registration number)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal identification number, posing identity theft risks\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호 (resident registration number)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal identification number, posing identity theft risks"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "pii_essential",
+        "case_name": "PII 직접 기재 요청",
+        "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "block",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.571,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": true,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Masking destroys query meaning\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": true,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Masking destroys query meaning"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "name_affiliation",
+        "case_name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.717,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "biz_decision",
+        "case_name": "사업비밀 (creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.719,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "research_idea",
+        "case_name": "연구아이디어 (consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.723,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "strategy_rationale",
+        "case_name": "전략근거 (statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "단가가 15% 저렴해서야"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.115,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"business secrets: decision details and pricing information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"단가가 15% 저렴해서야\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing pricing advantage could impact market strategy\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "business secrets: decision details and pricing information"
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "단가가 15% 저렴해서야",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing pricing advantage could impact market strategy"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "vague_experiment",
+        "case_name": "모호한실험결과 (creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.686,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "methodology",
+        "case_name": "연구방법론 (consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 ",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.806,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "pre_publication",
+        "case_name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.71,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "budget",
+        "case_name": "프로젝트예산 (statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "프로젝트 블루스카이 예산"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.402,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Project budget and labor costs are business secrets.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"프로젝트 블루스카이 예산\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing budget details could impact competitive positioning.\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Project budget and labor costs are business secrets."
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "프로젝트 블루스카이 예산",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing budget details could impact competitive positioning."
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "internal_url",
+        "case_name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.94,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "confidentiality_marker",
+        "case_name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "비밀로 해줘"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.505,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"mentions confidential battery material and upcoming patent application\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"비밀로 해줘\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"reveals confidential material and upcoming business activity\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "mentions confidential battery material and upcoming patent application"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "비밀로 해줘",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "reveals confidential material and upcoming business activity"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "multi_span",
+        "case_name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "010-1234-5678",
+          "TSMC 3nm 공정 결정"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 4.275,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal contact information and business secret\"\n        }\n      ]",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal contact information and business secret"
+                }
+              ]
+            },
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "TSMC 3nm 공정 결정",
+              "is_essential": false,
+              "confidence": 0.9,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains proprietary business decision"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "multiple_pii",
+        "case_name": "전화번호포함 (creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "hong@example.com",
+          "010-1234-5678"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 4.023,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (email and phone number) and business information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PERSON_NAME\",\n      \"span\": \"hong@example.com\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal email and phone number\"\n        }\n      ]\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (email and phone number) and business information"
+          },
+          "records": [
+            {
+              "category": "PERSON_NAME",
+              "span": "hong@example.com",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal email and phone number"
+                }
+              ]
+            },
+            {
+              "category": "PHONE_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains personal phone number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "weather",
+        "case_name": "일반날씨",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.774,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "python_syntax",
+        "case_name": "일반지식",
+        "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.773,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      },
+      {
+        "case_id": "startup_advice",
+        "case_name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.769,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 0
+      }
+    ],
+    [
+      {
+        "case_id": "pii_mask",
+        "case_name": "PII 포함 (마스킹 후 작업 가능)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.449,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (주민등록번호)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal identification number\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (주민등록번호)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal identification number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "pii_essential",
+        "case_name": "PII 직접 기재 요청",
+        "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "block",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.339,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": true,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Masking destroys query meaning\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": true,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Masking destroys query meaning"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "name_affiliation",
+        "case_name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.726,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "biz_decision",
+        "case_name": "사업비밀 (creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.718,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "research_idea",
+        "case_name": "연구아이디어 (consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.714,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "strategy_rationale",
+        "case_name": "전략근거 (statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "단가가 15% 저렴해서야"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.138,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"business secrets: decision details and pricing information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"단가가 15% 저렴해서야\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing pricing advantage could impact market strategy\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "business secrets: decision details and pricing information"
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "단가가 15% 저렴해서야",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing pricing advantage could impact market strategy"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "vague_experiment",
+        "case_name": "모호한실험결과 (creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.695,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "methodology",
+        "case_name": "연구방법론 (consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 ",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.812,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "pre_publication",
+        "case_name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.687,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "budget",
+        "case_name": "프로젝트예산 (statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "프로젝트 블루스카이 예산"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.153,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Project budget and labor costs are business secrets.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"프로젝트 블루스카이 예산\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing budget details could impact competitive positioning.\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Project budget and labor costs are business secrets."
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "프로젝트 블루스카이 예산",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing budget details could impact competitive positioning."
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "internal_url",
+        "case_name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.811,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "confidentiality_marker",
+        "case_name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "비밀로 해줘"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.377,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"mentions confidential battery material and upcoming patent application\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"비밀로 해줘\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"reveals confidential material and upcoming business activity\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "mentions confidential battery material and upcoming patent application"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "비밀로 해줘",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "reveals confidential material and upcoming business activity"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "multi_span",
+        "case_name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "010-1234-5678",
+          "TSMC 3nm 공정 결정"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 4.263,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal contact information and business secret\"\n        }\n      ]",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal contact information and business secret"
+                }
+              ]
+            },
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "TSMC 3nm 공정 결정",
+              "is_essential": false,
+              "confidence": 0.9,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains proprietary business decision"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "multiple_pii",
+        "case_name": "전화번호포함 (creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "hong@example.com",
+          "010-1234-5678"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 4.031,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (email and phone number) and business information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PERSON_NAME\",\n      \"span\": \"hong@example.com\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal email and phone number\"\n        }\n      ]\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (email and phone number) and business information"
+          },
+          "records": [
+            {
+              "category": "PERSON_NAME",
+              "span": "hong@example.com",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal email and phone number"
+                }
+              ]
+            },
+            {
+              "category": "PHONE_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains personal phone number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "weather",
+        "case_name": "일반날씨",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.748,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "python_syntax",
+        "case_name": "일반지식",
+        "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.766,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      },
+      {
+        "case_id": "startup_advice",
+        "case_name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.795,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 1
+      }
+    ],
+    [
+      {
+        "case_id": "pii_mask",
+        "case_name": "PII 포함 (마스킹 후 작업 가능)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.522,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (주민등록번호)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal identification number\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (주민등록번호)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal identification number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "pii_essential",
+        "case_name": "PII 직접 기재 요청",
+        "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "block",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.348,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": true,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Masking destroys query meaning\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": true,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Masking destroys query meaning"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "name_affiliation",
+        "case_name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.807,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "biz_decision",
+        "case_name": "사업비밀 (creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.781,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "research_idea",
+        "case_name": "연구아이디어 (consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.778,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "strategy_rationale",
+        "case_name": "전략근거 (statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "단가가 15% 저렴해서야"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.373,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"business secrets: decision details and pricing information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"단가가 15% 저렴해서야\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing pricing advantage could impact market strategy\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "business secrets: decision details and pricing information"
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "단가가 15% 저렴해서야",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing pricing advantage could impact market strategy"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "vague_experiment",
+        "case_name": "모호한실험결과 (creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.889,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "methodology",
+        "case_name": "연구방법론 (consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 ",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.877,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "pre_publication",
+        "case_name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.768,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "budget",
+        "case_name": "프로젝트예산 (statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "프로젝트 블루스카이 예산"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.279,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Project budget and labor costs are business secrets.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"프로젝트 블루스카이 예산\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing budget details could impact competitive positioning.\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Project budget and labor costs are business secrets."
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "프로젝트 블루스카이 예산",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing budget details could impact competitive positioning."
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "internal_url",
+        "case_name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.803,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "confidentiality_marker",
+        "case_name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "비밀로 해줘"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.366,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"mentions confidential battery material and upcoming patent application\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"비밀로 해줘\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"reveals confidential material and upcoming business activity\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "mentions confidential battery material and upcoming patent application"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "비밀로 해줘",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "reveals confidential material and upcoming business activity"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "multi_span",
+        "case_name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "010-1234-5678",
+          "TSMC 3nm 공정 결정"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 3.98,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal contact information and business secret\"\n        }\n      ]",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal contact information and business secret"
+                }
+              ]
+            },
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "TSMC 3nm 공정 결정",
+              "is_essential": false,
+              "confidence": 0.9,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains proprietary business decision"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "multiple_pii",
+        "case_name": "전화번호포함 (creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "hong@example.com",
+          "010-1234-5678"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 3.825,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (email and phone number) and business information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PERSON_NAME\",\n      \"span\": \"hong@example.com\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal email and phone number\"\n        }\n      ]\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (email and phone number) and business information"
+          },
+          "records": [
+            {
+              "category": "PERSON_NAME",
+              "span": "hong@example.com",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal email and phone number"
+                }
+              ]
+            },
+            {
+              "category": "PHONE_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains personal phone number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "weather",
+        "case_name": "일반날씨",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.899,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "python_syntax",
+        "case_name": "일반지식",
+        "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.894,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      },
+      {
+        "case_id": "startup_advice",
+        "case_name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.92,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 2
+      }
+    ],
+    [
+      {
+        "case_id": "pii_mask",
+        "case_name": "PII 포함 (마스킹 후 작업 가능)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.756,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (주민등록번호)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal identification number\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (주민등록번호)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal identification number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "pii_essential",
+        "case_name": "PII 직접 기재 요청",
+        "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "block",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.734,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": true,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Masking destroys query meaning\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": true,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Masking destroys query meaning"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "name_affiliation",
+        "case_name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.923,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "biz_decision",
+        "case_name": "사업비밀 (creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.92,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "research_idea",
+        "case_name": "연구아이디어 (consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.886,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "strategy_rationale",
+        "case_name": "전략근거 (statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "단가가 15% 저렴해서야"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.756,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"business secrets: decision details and pricing information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"단가가 15% 저렴해서야\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing pricing advantage could impact market strategy\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "business secrets: decision details and pricing information"
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "단가가 15% 저렴해서야",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing pricing advantage could impact market strategy"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "vague_experiment",
+        "case_name": "모호한실험결과 (creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.891,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "methodology",
+        "case_name": "연구방법론 (consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 ",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 1.014,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "pre_publication",
+        "case_name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.906,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "budget",
+        "case_name": "프로젝트예산 (statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "프로젝트 블루스카이 예산"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.623,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Project budget and labor costs are business secrets.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"프로젝트 블루스카이 예산\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing budget details could impact competitive positioning.\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Project budget and labor costs are business secrets."
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "프로젝트 블루스카이 예산",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing budget details could impact competitive positioning."
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "internal_url",
+        "case_name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.814,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "confidentiality_marker",
+        "case_name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "비밀로 해줘"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.41,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"mentions confidential battery material and upcoming patent application\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"비밀로 해줘\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"reveals confidential material and upcoming business activity\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "mentions confidential battery material and upcoming patent application"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "비밀로 해줘",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "reveals confidential material and upcoming business activity"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "multi_span",
+        "case_name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "010-1234-5678",
+          "TSMC 3nm 공정 결정"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 4.303,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal contact information and business secret\"\n        }\n      ]",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal contact information and business secret"
+                }
+              ]
+            },
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "TSMC 3nm 공정 결정",
+              "is_essential": false,
+              "confidence": 0.9,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains proprietary business decision"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "multiple_pii",
+        "case_name": "전화번호포함 (creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "hong@example.com",
+          "010-1234-5678"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 4.076,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (email and phone number) and business information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PERSON_NAME\",\n      \"span\": \"hong@example.com\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal email and phone number\"\n        }\n      ]\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (email and phone number) and business information"
+          },
+          "records": [
+            {
+              "category": "PERSON_NAME",
+              "span": "hong@example.com",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal email and phone number"
+                }
+              ]
+            },
+            {
+              "category": "PHONE_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains personal phone number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "weather",
+        "case_name": "일반날씨",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.78,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "python_syntax",
+        "case_name": "일반지식",
+        "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.756,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      },
+      {
+        "case_id": "startup_advice",
+        "case_name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.784,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 3
+      }
+    ],
+    [
+      {
+        "case_id": "pii_mask",
+        "case_name": "PII 포함 (마스킹 후 작업 가능)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.539,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (주민등록번호)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal identification number\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (주민등록번호)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal identification number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "pii_essential",
+        "case_name": "PII 직접 기재 요청",
+        "text": "세금 신고서를 작성해야 하는데, 내 주민등록번호 901212-1234567을 기재해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "block",
+        "detected_spans": [
+          "901212-1234567"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 2.675,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII: 주민등록번호\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"901212-1234567\",\n      \"is_essential\": true,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Masking destroys query meaning\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII: 주민등록번호"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "901212-1234567",
+              "is_essential": true,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Masking destroys query meaning"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "name_affiliation",
+        "case_name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.934,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "biz_decision",
+        "case_name": "사업비밀 (creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.895,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "research_idea",
+        "case_name": "연구아이디어 (consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.909,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "strategy_rationale",
+        "case_name": "전략근거 (statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "단가가 15% 저렴해서야"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.756,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"business secrets: decision details and pricing information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"단가가 15% 저렴해서야\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing pricing advantage could impact market strategy\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "business secrets: decision details and pricing information"
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "단가가 15% 저렴해서야",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing pricing advantage could impact market strategy"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "vague_experiment",
+        "case_name": "모호한실험결과 (creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.891,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "methodology",
+        "case_name": "연구방법론 (consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 ",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 1.013,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "pre_publication",
+        "case_name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.894,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "budget",
+        "case_name": "프로젝트예산 (statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "프로젝트 블루스카이 예산"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.688,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Project budget and labor costs are business secrets.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PROJECT_BUDGET\",\n      \"span\": \"프로젝트 블루스카이 예산\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"COMPETITIVE\",\n          \"reason\": \"revealing budget details could impact competitive positioning.\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Project budget and labor costs are business secrets."
+          },
+          "records": [
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "프로젝트 블루스카이 예산",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "COMPETITIVE",
+                  "reason": "revealing budget details could impact competitive positioning."
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "internal_url",
+        "case_name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": false,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 0.923,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info detected\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info detected"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "confidentiality_marker",
+        "case_name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "비밀로 해줘"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 2.813,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"mentions confidential battery material and upcoming patent application\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"비밀로 해줘\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"reveals confidential material and upcoming business activity\"\n        }\n      ]\n    }\n  ]\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "mentions confidential battery material and upcoming patent application"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "비밀로 해줘",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "reveals confidential material and upcoming business activity"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "multi_span",
+        "case_name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "expected_sensitive": true,
+        "expected_action": "block",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "010-1234-5678",
+          "TSMC 3nm 공정 결정"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": false,
+        "json_valid": true,
+        "latency_s": 4.972,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)\"\n  },\n  \"records\": [\n    {\n      \"category\": \"RESIDENT_REGISTRATION_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal contact information and business secret\"\n        }\n      ]",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains sensitive information including phone number and business secret (TSMC 3nm 공정 결정)"
+          },
+          "records": [
+            {
+              "category": "RESIDENT_REGISTRATION_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal contact information and business secret"
+                }
+              ]
+            },
+            {
+              "category": "PROJECT_BUDGET",
+              "span": "TSMC 3nm 공정 결정",
+              "is_essential": false,
+              "confidence": 0.9,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains proprietary business decision"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "multiple_pii",
+        "case_name": "전화번호포함 (creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "expected_sensitive": true,
+        "expected_action": "selective_mask",
+        "detected_sensitive": true,
+        "detected_action": "selective_mask",
+        "detected_spans": [
+          "hong@example.com",
+          "010-1234-5678"
+        ],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 4.121,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"Contains PII (email and phone number) and business information\"\n  },\n  \"records\": [\n    {\n      \"category\": \"PERSON_NAME\",\n      \"span\": \"hong@example.com\",\n      \"is_essential\": false,\n      \"confidence\": 0.95,\n      \"harms\": [\n        {\n          \"label\": \"IDENTITY|COMPETITIVE|SAFETY\",\n          \"reason\": \"Exposes personal email and phone number\"\n        }\n      ]\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": true,
+            "rationale": "Contains PII (email and phone number) and business information"
+          },
+          "records": [
+            {
+              "category": "PERSON_NAME",
+              "span": "hong@example.com",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Exposes personal email and phone number"
+                }
+              ]
+            },
+            {
+              "category": "PHONE_NUMBER",
+              "span": "010-1234-5678",
+              "is_essential": false,
+              "confidence": 0.95,
+              "harms": [
+                {
+                  "label": "IDENTITY|COMPETITIVE|SAFETY",
+                  "reason": "Contains personal phone number"
+                }
+              ]
+            }
+          ]
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "weather",
+        "case_name": "일반날씨",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.764,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "python_syntax",
+        "case_name": "일반지식",
+        "text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.771,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      },
+      {
+        "case_id": "startup_advice",
+        "case_name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "expected_sensitive": false,
+        "expected_action": "allow",
+        "detected_sensitive": false,
+        "detected_action": "allow",
+        "detected_spans": [],
+        "sensitivity_correct": true,
+        "action_correct": true,
+        "json_valid": true,
+        "latency_s": 0.782,
+        "raw_response": "```json\n{\n  \"sensitivity\": {\n    \"is_sensitive\": false,\n    \"rationale\": \"no sensitive info\"\n  },\n  \"records\": []\n}\n```",
+        "parsed": {
+          "sensitivity": {
+            "is_sensitive": false,
+            "rationale": "no sensitive info"
+          },
+          "records": []
+        },
+        "trial": 4
+      }
+    ]
+  ]
+}
