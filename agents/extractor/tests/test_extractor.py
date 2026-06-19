@@ -1,11 +1,50 @@
-"""Tests for agents.extractor core functionality."""
+"""Tests for agents.extractor — Extractor facade, ExtractorCore, Critic."""
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
 
 from agents.extractor import ExtractionRecord
-from agents.extractor.extractor import _validate_record
-from agents.extractor.schemas import _ExtractedItem
+from agents.extractor.extractor import Extractor, _validate_critic_records
+from agents.extractor.extractor_core import _validate_record
+from agents.extractor.schemas import (
+    CriticOutput,
+    ExtractionResult,
+    Sensitivity,
+    _CriticItem,
+    _ExtractedItem,
+)
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def _make_result(records=None, is_sensitive=True, rationale="탐지됨") -> ExtractionResult:
+    return ExtractionResult(
+        sensitivity=Sensitivity(is_sensitive=is_sensitive, rationale=rationale),
+        records=records or [],
+    )
+
+
+_RECORD = ExtractionRecord(
+    category="RESIDENT_REGISTRATION_NUMBER",
+    span="901212-1234567",
+    confidence=0.98,
+    reasoning="주민등록번호",
+    is_essential=False,
+    start=5,
+    end=20,
+)
+
+_CRITIC_PROMPT_DICT = {
+    "model": "test/model",
+    "template": "Review: {{text}}\nTagged: {{tagged_spans}}",
+}
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# _validate_record (ExtractorCore)
+# ═════════════════════════════════════════════════════════════════════════════
 
 
 class TestValidateRecord:
@@ -15,251 +54,178 @@ class TestValidateRecord:
             category="RESIDENT_REGISTRATION_NUMBER",
             span="901212-1234567",
             confidence=0.98,
-            start=text.find("901212-1234567"),
-            end=text.find("901212-1234567") + len("901212-1234567"),
         )
         record = _validate_record(item, text)
         assert record is not None
         assert record.category == "RESIDENT_REGISTRATION_NUMBER"
 
     def test_invalid_tag_format(self):
-        item = _ExtractedItem(category="camelCase", span="text", confidence=0.9, start=0, end=4)
-        assert _validate_record(item, "some text") is None
+        """Category with spaces is invalid even after .upper()."""
+        item = _ExtractedItem(category="has space", span="text", confidence=0.9)
+        assert _validate_record(item, "some text here") is None
 
     def test_low_confidence(self):
-        item = _ExtractedItem(category="VALID_TAG", span="text", confidence=0.3, start=0, end=4)
+        item = _ExtractedItem(category="VALID_TAG", span="text", confidence=0.3)
         assert _validate_record(item, "some text") is None
 
     def test_span_not_found(self):
-        item = _ExtractedItem(category="VALID_TAG", span="nonexistent", confidence=0.9, start=0, end=11)
+        item = _ExtractedItem(category="VALID_TAG", span="nonexistent", confidence=0.9)
         assert _validate_record(item, "some text") is None
+
+    def test_valid_screaming_case(self):
+        """Valid SCREAMING_SNAKE_CASE passes and is preserved."""
+        item = _ExtractedItem(category="MY_TAG", span="text", confidence=0.9)
+        record = _validate_record(item, "some text")
+        assert record is not None
+        assert record.category == "MY_TAG"
+
+    def test_lowercase_rejected(self):
+        """Lowercase category is rejected (not SCREAMING_SNAKE_CASE)."""
+        item = _ExtractedItem(category="my_tag", span="text", confidence=0.9)
+        assert _validate_record(item, "some text") is None
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ExtractionRecord
+# ═════════════════════════════════════════════════════════════════════════════
 
 
 class TestExtractionRecord:
     def test_make_placeholder(self):
         record = ExtractionRecord(
-            category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567",
-            confidence=0.98, start=6, end=20,
+            category="RESIDENT_REGISTRATION_NUMBER",
+            span="901212-1234567",
+            confidence=0.9,
+            start=0,
+            end=15,
         )
         assert record.make_placeholder(1) == "[RESIDENT_REGISTRATION_NUMBER#1]"
 
 
-from unittest.mock import MagicMock, patch
-
-from agents.extractor.schemas import ExtractionResult, Sensitivity, CriticOutput, _CriticItem
-from agents.extractor.two_phase import TwoPhaseExtractor
-
-
-def _make_phase1_result(
-    records=None, is_sensitive=True, rationale="탐지됨"
-) -> ExtractionResult:
-    """Build a minimal Phase-1 ExtractionResult."""
-    return ExtractionResult(
-        sensitivity=Sensitivity(is_sensitive=is_sensitive, rationale=rationale),
-        records=records or [],
-    )
+# ═════════════════════════════════════════════════════════════════════════════
+# _validate_critic_records
+# ═════════════════════════════════════════════════════════════════════════════
 
 
-_PHASE1_RECORD = ExtractionRecord(
-    category="RESIDENT_REGISTRATION_NUMBER",
-    span="901212-1234567",
-    confidence=0.98,
-    start=6,
-    end=20,
-)
+class TestValidateCriticRecords:
+    def test_valid_critic_item(self):
+        item = _CriticItem(category="PERSON_NAME", span="김동현", confidence=0.9)
+        result = _validate_critic_records([item], "김동현은 학생입니다.", [])
+        assert len(result) == 1
+        assert result[0].category == "PERSON_NAME"
+        assert result[0].start == 0
+        assert result[0].detection_type == "contextual"
 
-_CRITIC_PROMPT_DICT = {
-    "model": "openrouter/mistralai/ministral-3b-2512",
-    "template": "test template {{text}} {{tagged_spans}}",
-}
+    def test_dedup_against_existing(self):
+        existing = [ExtractionRecord(
+            category="PERSON_NAME", span="김동현",
+            confidence=0.9, start=0, end=3,
+        )]
+        item = _CriticItem(category="PERSON_NAME", span="김동현", confidence=0.9)
+        result = _validate_critic_records([item], "김동현은 학생입니다.", existing)
+        assert len(result) == 0
+
+    def test_invalid_category_filtered(self):
+        """Category with spaces is invalid."""
+        item = _CriticItem(category="has space", span="text", confidence=0.9)
+        result = _validate_critic_records([item], "some text here", [])
+        assert len(result) == 0
+
+    def test_low_confidence_filtered(self):
+        item = _CriticItem(category="VALID_TAG", span="text", confidence=0.3)
+        result = _validate_critic_records([item], "some text", [])
+        assert len(result) == 0
+
+    def test_span_not_in_text(self):
+        item = _CriticItem(category="VALID_TAG", span="nonexistent", confidence=0.9)
+        result = _validate_critic_records([item], "some text", [])
+        assert len(result) == 0
 
 
-class TestTwoPhaseExtractorInit:
-    """TwoPhaseExtractor construction."""
-
-    @patch("agents.extractor.two_phase.load_prompt", return_value=_CRITIC_PROMPT_DICT)
-    @patch("agents.extractor.two_phase.Extractor")
-    def test_default_model(self, mock_extractor_cls, mock_load_prompt):
-        ext = TwoPhaseExtractor()
-        mock_extractor_cls.assert_called_once_with(model=None)
-        assert ext._critic_model == "openrouter/mistralai/ministral-3b-2512"
-        assert ext._critic_template == "test template {{text}} {{tagged_spans}}"
-
-    @patch("agents.extractor.two_phase.load_prompt", return_value=_CRITIC_PROMPT_DICT)
-    @patch("agents.extractor.two_phase.Extractor")
-    def test_custom_model(self, mock_extractor_cls, mock_load_prompt):
-        ext = TwoPhaseExtractor(model="custom/model")
-        mock_extractor_cls.assert_called_once_with(model="custom/model")
-        assert ext._critic_model == "custom/model"
+# ═════════════════════════════════════════════════════════════════════════════
+# Extractor facade
+# ═════════════════════════════════════════════════════════════════════════════
 
 
-class TestTwoPhaseExtractorExtract:
-    """TwoPhaseExtractor.extract() behaviour."""
+class TestExtractorFacade:
+    def test_default_precision(self):
+        ext = Extractor()
+        assert ext.precision == "default"
+        assert ext._critic is None
 
-    @staticmethod
-    def _make_ext(phase1_result):
-        """Build a TwoPhaseExtractor whose Phase-1 returns *phase1_result*."""
-        mock_extractor = MagicMock()
-        mock_extractor.extract.return_value = phase1_result
-        with (
-            patch("agents.extractor.two_phase.load_prompt", return_value=_CRITIC_PROMPT_DICT),
-            patch("agents.extractor.two_phase.Extractor", return_value=mock_extractor),
-        ):
-            return TwoPhaseExtractor()
+    def test_high_precision(self):
+        ext = Extractor(precision="high")
+        assert ext.precision == "high"
+        assert ext._critic is not None
 
-    def test_empty_text_returns_phase1(self):
-        """Empty / whitespace-only text bypasses Phase 2."""
-        phase1 = _make_phase1_result(records=[], is_sensitive=False, rationale="빈 텍스트입니다.")
-        ext = self._make_ext(phase1)
-        result = ext.extract("")
-        assert result is phase1
+    def test_inject_core_and_critic(self):
+        core = MagicMock()
+        critic = MagicMock()
+        ext = Extractor(core=core, critic=critic)
+        assert ext._core is core
+        assert ext._critic is critic
 
-    def test_blank_text_returns_phase1(self):
-        phase1 = _make_phase1_result(records=[], is_sensitive=False, rationale="빈 텍스트입니다.")
-        ext = self._make_ext(phase1)
-        result = ext.extract("   \n  ")
-        assert result is phase1
 
-    def test_critic_exception_returns_phase1(self):
-        """When the critic LLM call raises, fall back to Phase 1."""
-        phase1 = _make_phase1_result(records=[_PHASE1_RECORD])
-        ext = self._make_ext(phase1)
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", side_effect=RuntimeError("LLM down")),
-        ):
-            result = ext.extract("주민등록번호 901212-1234567 기재")
-        assert result is phase1
-        assert len(result.records) == 1
+class TestExtractorCriticPath:
+    """Test that Critic runs correctly in the Extractor facade."""
 
-    def test_critic_finds_nothing(self):
-        """found_missed=False → return Phase 1 as-is."""
-        phase1 = _make_phase1_result(records=[_PHASE1_RECORD])
-        ext = self._make_ext(phase1)
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=CriticOutput(found_missed=False, missed_records=[])),
-        ):
-            result = ext.extract("주민등록번호 901212-1234567 기재")
-        assert result is phase1
-        assert len(result.records) == 1
+    @patch("agents.extractor.extractor_core.load_prompt")
+    @patch("agents.extractor.extractor_core.call_llm_structured")
+    def test_critic_runs_when_phase1_finds_nothing(self, mock_llm, mock_load):
+        """Critic must run even when Phase 1 returns zero records."""
+        mock_load.return_value = _CRITIC_PROMPT_DICT
+        mock_llm.return_value = _make_result(records=[], is_sensitive=False)
 
-    def test_critic_finds_new_record(self):
-        """Critic finds a span Phase 1 missed → merged result."""
-        text = "주민등록번호 901212-1234567 기재, 연락처 010-1234-5678"
-        phase1 = _make_phase1_result(records=[_PHASE1_RECORD])
-        ext = self._make_ext(phase1)
-        critic = CriticOutput(
-            found_missed=True,
-            missed_records=[
-                _CriticItem(
-                    category="MOBILE_PHONE_NUMBER",
-                    span="010-1234-5678",
-                    confidence=0.95,
-                    detection_type="pattern",
-                    reasoning="핸드폰 번호",
-                ),
-            ],
-        )
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=critic),
-        ):
-            result = ext.extract(text)
-        assert len(result.records) == 2
-        categories = {r.category for r in result.records}
-        assert "RESIDENT_REGISTRATION_NUMBER" in categories
-        assert "MOBILE_PHONE_NUMBER" in categories
-        assert result.sensitivity.is_sensitive is True
+        core = MagicMock()
+        core.extract.return_value = _make_result(records=[], is_sensitive=False)
+        critic = MagicMock()
+        critic.review.return_value = CriticOutput(found_missed=False, missed_records=[])
 
-    def test_critic_duplicate_span_skipped(self):
-        """Critic reports a span already in Phase 1 → deduplicated."""
-        text = "주민등록번호 901212-1234567 기재"
-        phase1 = _make_phase1_result(records=[_PHASE1_RECORD])
-        ext = self._make_ext(phase1)
-        critic = CriticOutput(
-            found_missed=True,
-            missed_records=[
-                _CriticItem(
-                    category="RESIDENT_REGISTRATION_NUMBER",
-                    span="901212-1234567",
-                    confidence=0.99,
-                ),
-            ],
-        )
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=critic),
-        ):
-            result = ext.extract(text)
-        assert len(result.records) == 1
+        ext = Extractor(core=core, critic=critic)
+        ext.extract("주민등록번호 901212-1234567 기재")
 
-    def test_critic_hallucinated_span_skipped(self):
-        """Critic reports a span not in the original text → skipped."""
-        text = "주민등록번호 901212-1234567 기재"
-        phase1 = _make_phase1_result(records=[_PHASE1_RECORD])
-        ext = self._make_ext(phase1)
-        critic = CriticOutput(
+        critic.review.assert_called_once()
+
+    @patch("agents.extractor.extractor_core.load_prompt")
+    @patch("agents.extractor.extractor_core.call_llm_structured")
+    def test_critic_skipped_on_empty_text(self, mock_llm, mock_load):
+        """Critic must NOT run on empty/whitespace text."""
+        mock_load.return_value = _CRITIC_PROMPT_DICT
+
+        core = MagicMock()
+        core.extract.return_value = _make_result(records=[], is_sensitive=False)
+        critic = MagicMock()
+
+        ext = Extractor(core=core, critic=critic)
+        ext.extract("")
+
+        critic.review.assert_not_called()
+
+    @patch("agents.extractor.extractor_core.load_prompt")
+    @patch("agents.extractor.extractor_core.call_llm_structured")
+    def test_critic_merges_records(self, mock_llm, mock_load):
+        """Critic-found records should be merged into the result."""
+        mock_load.return_value = _CRITIC_PROMPT_DICT
+        mock_llm.return_value = _make_result(records=[_RECORD], is_sensitive=True)
+
+        core = MagicMock()
+        core.extract.return_value = _make_result(records=[_RECORD], is_sensitive=True)
+        critic = MagicMock()
+        critic.review.return_value = CriticOutput(
             found_missed=True,
             missed_records=[
                 _CriticItem(
                     category="EMAIL_ADDRESS",
-                    span="ghost@example.com",
+                    span="test@co.kr",
                     confidence=0.9,
-                ),
+                    reasoning="이메일 주소",
+                )
             ],
         )
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=critic),
-        ):
-            result = ext.extract(text)
-        assert len(result.records) == 1
-        assert result.records[0].category == "RESIDENT_REGISTRATION_NUMBER"
 
-    def test_critic_adds_to_empty_phase1(self):
-        """Phase 1 found nothing, critic finds something."""
-        text = "이메일 test@example.com 입니다"
-        phase1 = _make_phase1_result(records=[], is_sensitive=False, rationale="민감 정보 없음")
-        ext = self._make_ext(phase1)
-        critic = CriticOutput(
-            found_missed=True,
-            missed_records=[
-                _CriticItem(
-                    category="EMAIL_ADDRESS",
-                    span="test@example.com",
-                    confidence=0.92,
-                    detection_type="pattern",
-                ),
-            ],
-        )
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=critic),
-        ):
-            result = ext.extract(text)
-        assert len(result.records) == 1
-        assert result.records[0].category == "EMAIL_ADDRESS"
-        assert result.sensitivity.is_sensitive is True
+        ext = Extractor(core=core, critic=critic)
+        result = ext.extract("주민등록번호 901212-1234567 기재, 연락처 test@co.kr")
 
-    def test_critic_multiple_missed_records(self):
-        """Critic returns multiple new spans — all merged."""
-        text = "김철수 010-1234-5678, email test@co.kr"
-        phase1 = _make_phase1_result(records=[], is_sensitive=False, rationale="없음")
-        ext = self._make_ext(phase1)
-        critic = CriticOutput(
-            found_missed=True,
-            missed_records=[
-                _CriticItem(category="MOBILE_PHONE_NUMBER", span="010-1234-5678", confidence=0.95),
-                _CriticItem(category="EMAIL_ADDRESS", span="test@co.kr", confidence=0.9),
-            ],
-        )
-        with (
-            patch("agents.extractor.two_phase.render_prompt", return_value="rendered"),
-            patch("agents.extractor.two_phase.call_llm_structured", return_value=critic),
-        ):
-            result = ext.extract(text)
         assert len(result.records) == 2
         spans = {r.span for r in result.records}
-        assert "010-1234-5678" in spans
+        assert "901212-1234567" in spans
         assert "test@co.kr" in spans

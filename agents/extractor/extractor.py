@@ -99,8 +99,6 @@ class Extractor:
         result = self._core.extract(text)
 
         # Phase 2: Critic review (high precision only)
-        # Runs even when Phase 1 found nothing — Critic's job is to catch
-        # Phase 2: Critic review (high precision only)
         # Runs on any non-empty text, regardless of Phase 1 results.
         # Critic's job: catch what Phase 1 missed, including when it missed EVERYTHING.
         if self._critic and text and text.strip():
@@ -148,9 +146,10 @@ def _validate_critic_records(
             continue
 
         # Same validation as ExtractorCore._validate_record
-        cat = item.category.strip().upper()
-        if not _SCREAMING_CASE_RE.match(cat):
+        cat_raw = item.category.strip()
+        if not _SCREAMING_CASE_RE.match(cat_raw):
             continue
+        cat = cat_raw.upper()
 
         span = item.span.strip()
         if not span:
