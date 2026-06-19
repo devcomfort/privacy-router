@@ -100,8 +100,10 @@ class Extractor:
 
         # Phase 2: Critic review (high precision only)
         # Runs even when Phase 1 found nothing — Critic's job is to catch
-        # what Phase 1 missed, including when Phase 1 missed EVERYTHING.
-        if self._critic:
+        # Phase 2: Critic review (high precision only)
+        # Runs on any non-empty text, regardless of Phase 1 results.
+        # Critic's job: catch what Phase 1 missed, including when it missed EVERYTHING.
+        if self._critic and text and text.strip():
             review = self._critic.review(text, result.records)
             if review.found_missed:
                 validated = _validate_critic_records(
