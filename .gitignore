@@ -396,3 +396,8 @@ slides/node_modules/
 # Misc
 privacy_router.db
 presentation_ko.*
+
+# Model weights (too large for git)
+models/*.gguf
+models/*.safetensors
+models/*.bin
