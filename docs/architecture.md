@@ -117,3 +117,29 @@ PII, 전화번호, 이메일, 실명 등 — 패턴으로 감지 가능
 | Frontend | SvelteKit (SSG) |
 | Encryption | Fernet (AES-128-CBC + HMAC-SHA256) |
 | Integration | OpenAI Compatible API + MCP Server |
+
+## Testing
+
+이 프로젝트는 **2개의 test suite**로 구성됩니다:
+
+### Unit Tests (mock 기반)
+
+- **위치**: `agents/*/tests/`
+- **목적**: 코드 구조와 로직 검증
+- **방식**: `@patch`로 LLM 호출을 모킹
+- **검증 대상**: 파이프라인 경로, 검증 로직, 마스킹/수화, 정책 결정, 에러 처리
+- **실행**: `python3 -m pytest agents/extractor/tests/ agents/judge/tests/ agents/router/tests/ -v`
+- **소요 시간**: ~30초
+
+### Eval Suite (실제 LLM 호출)
+
+- **위치**: `scripts/eval_runner.py`, `eval/`
+- **목적**: LLM 출력 품질 검증
+- **방식**: N≥5 trials로 실제 LLM 호출
+- **검증 대상**: 민감도 탐지율, 정책 결정 정확도, 형태적/맥락적 기밀사항, JSON 출력
+- **실행**: `python3 scripts/eval_runner.py --model gemma4-e4b-vllm --trials 5`
+- **소요 시간**: 수 분 ~ 수십 분
+
+### 왜 분리?
+
+mock 없이 LLM에 의존하면 테스트 실패 시 "코드 버그 vs LLM 변동"을 구분할 수 없습니다.

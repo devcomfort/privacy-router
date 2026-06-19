@@ -2,6 +2,13 @@
 
 이 패키지는 Privacy Router extractor의 모델 평가를 재현하기 위한 모든 자료를 포함합니다.
 
+> **참고**: 이 프로젝트에는 2개의 test suite가 있습니다.
+> - **Unit tests** (`agents/*/tests/`): mock 기반, 코드 구조/로직 검증 (~30초)
+> - **Eval suite** (`eval/`): 실제 LLM 호출, LLM 출력 품질 검증 (수 분 ~ 수십 분)
+>
+> 이 eval suite는 "LLM이 올바르게 판단하는가?"를 검증합니다.
+> 코드 구조 검증은 unit tests에서 담당합니다.
+
 ## Quick Start
 
 ```bash

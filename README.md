@@ -262,6 +262,69 @@ Detailed architecture: [`docs/architecture.md`](docs/architecture.md)
 | [`docs/architecture.md`](docs/architecture.md) | Pipeline, components, tech stack |
 | [`docs/detection.md`](docs/detection.md) | Detection examples with real API responses |
 
+
+---
+
+## Testing
+
+이 프로젝트는 **2개의 test suite**로 구성됩니다. 각각 다른 목적으로 설계되었습니다.
+
+### Suite 1: Unit Tests (`agents/*/tests/`)
+
+**목적**: 코드 구조와 로직 검증 (mock 기반)
+
+```bash
+python3 -m pytest agents/extractor/tests/ agents/judge/tests/ agents/router/tests/ -v
+```
+
+| 검증 대상 | 방식 | 예시 |
+|-----------|------|------|
+| 파이프라인 구조 | mock | Extractor → Judge → Router 경로 |
+| 검증 로직 | deterministic | SCREAMING_CASE, confidence ≥ 0.5 |
+| 마스킹/수화 | mock LLM 호출 | span → placeholder → 복원 |
+| 정책 결정 | deterministic | is_essential → policy_action |
+| 에러 처리 | mock exception | LLM 실패 시 fallback |
+
+- **실행 시점**: 매 commit, CI
+- **소요 시간**: ~30초
+- **결정론적**: ✅ (같은 결과 보장)
+
+### Suite 2: Eval Suite (`scripts/eval_runner.py`)
+
+**목적**: LLM 출력 품질 검증 (실제 LLM 호출)
+
+```bash
+# 단일 모델, 5 trials
+python3 scripts/eval_runner.py --model gemma4-e4b-vllm --trials 5
+
+# 전체 보고서
+python3 scripts/eval_runner.py --report
+```
+
+| 검증 대상 | 방식 | 지표 |
+|-----------|------|------|
+| 민감도 탐지 | N≥5 trials | Sensitivity Accuracy |
+| 정책 결정 | N≥5 trials | Action Accuracy |
+| 형태적 기밀사항 | 패턴 기반 케이스 | PII, 전화번호, 이메일 |
+| 맥락적 기밀사항 | 맥락 기반 케이스 | 사업비밀, 연구아이디어 |
+| JSON 출력 | N≥5 trials | JSON Validity |
+| 통계적 유의성 | paired t-test | p < 0.05 |
+
+- **실행 시점**: 모델 변경, 튜닝, 프롬프트 수정 시
+- **소요 시간**: 수 분 ~ 수십 분
+- **비결정론적**: ⚠️ (LLM에 따라 변동)
+
+### 왜 분리되어 있는가?
+
+```
+Unit tests (mock)           Eval suite (real LLM)
+  → "코드가 맞는가?"           → "LLM이 맞는가?"
+  → 빠르고 안정적              → 느리지만 현실적
+  → 매 commit 실행             → 모델/튜닝 변경 시 실행
+  → 코드 버그 탐지             → LLM 품질 측정
+```
+
+mock 없이 LLM에 의존하면 테스트 실패 시 "코드 버그 vs LLM 변동"을 구분할 수 없습니다.
 ---
 
 ## Repository Structure
