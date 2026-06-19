@@ -146,10 +146,9 @@ def _validate_critic_records(
             continue
 
         # Same validation as ExtractorCore._validate_record
-        cat_raw = item.category.strip()
-        if not _SCREAMING_CASE_RE.match(cat_raw):
+        cat = item.category.strip().upper()
+        if not _SCREAMING_CASE_RE.match(cat):
             continue
-        cat = cat_raw.upper()
 
         span = item.span.strip()
         if not span:

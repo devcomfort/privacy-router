@@ -45,10 +45,9 @@ def _validate_record(
 
     Returns ``None`` when the item is invalid and should be discarded.
     """
-    cat_raw = item.category.strip()
-    if not _SCREAMING_CASE_RE.match(cat_raw):
+    cat = item.category.strip().upper()
+    if not _SCREAMING_CASE_RE.match(cat):
         return None
-    cat = cat_raw.upper()
 
     span = item.span.strip()
     if not span:

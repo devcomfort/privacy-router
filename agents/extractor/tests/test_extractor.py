@@ -72,17 +72,17 @@ class TestValidateRecord:
         item = _ExtractedItem(category="VALID_TAG", span="nonexistent", confidence=0.9)
         assert _validate_record(item, "some text") is None
 
-    def test_valid_screaming_case(self):
-        """Valid SCREAMING_SNAKE_CASE passes and is preserved."""
-        item = _ExtractedItem(category="MY_TAG", span="text", confidence=0.9)
+    def test_normalizes_to_screaming_case(self):
+        """Near-miss like my_tag is normalized to MY_TAG."""
+        item = _ExtractedItem(category="my_tag", span="text", confidence=0.9)
         record = _validate_record(item, "some text")
         assert record is not None
         assert record.category == "MY_TAG"
 
-    def test_lowercase_rejected(self):
-        """Lowercase category is rejected (not SCREAMING_SNAKE_CASE)."""
-        item = _ExtractedItem(category="my_tag", span="text", confidence=0.9)
-        assert _validate_record(item, "some text") is None
+    def test_rejects_invalid_format(self):
+        """Truly invalid format (spaces) is rejected."""
+        item = _ExtractedItem(category="has space", span="text", confidence=0.9)
+        assert _validate_record(item, "some text here") is None
 
 # ═════════════════════════════════════════════════════════════════════════════
 # ExtractionRecord
