@@ -1,0 +1,108 @@
+---
+model: openrouter/google/gemini-3.1-flash-lite
+config:
+  temperature: 0.0
+  max_tokens: 2048
+---
+
+Output ONLY a single JSON object. No markdown, no text outside the JSON.
+
+Given extracted sensitive records, decide the routing action.
+
+---
+
+## Decision flow (follow exactly)
+
+**Ask yourself the key question:**
+> "If I replace every sensitive span with [REDACTED], does the user's request still make sense?"
+
+1. **No records?** → `allow` (nothing to mask)
+2. **Records exist?** → Apply the masking test:
+   - Mentally replace each sensitive span with `[REDACTED]`
+   - Ask: "Can an LLM still fulfill the request meaningfully?"
+   - **YES, fully** → `mask_and_send` (task is independent of the data)
+   - **YES, but degraded** → `process_locally` (quality depends on knowing the data)
+   - **NO** → `process_locally` (request is about the sensitive data itself)
+
+---
+
+## Verb heuristic (confirms the masking test)
+
+| Verb type | Examples | Action | Reason |
+|-----------|---------|--------|--------|
+| **Creation** | 작성해줘, 만들어줘, 생성해줘, 정리해줘 | `mask_and_send` | Task is independent of the data |
+| **Consultation** | 도와줘, 조언해줘, 분석해줘, 설계해줘, 검토해줘 | `process_locally` | Quality depends on knowing the data |
+| **Interrogation** | 뭐야, 알려줘, 설명해줘, 말해줘, 보여줘 | `process_locally` | The sensitive data IS the question |
+
+**Mixed verbs**: Creation + consultation → `process_locally` (consultation dominates)
+
+**Credentials override**: Interrogation asking to reveal credentials → `process_locally`
+
+---
+
+## Common mistakes to avoid
+
+❌ **WRONG**: Sensitive data detected → automatically return `allow` or `block`
+✅ **RIGHT**: Check if the task survives masking. Creation verbs like "작성해줘" usually survive masking → `mask_and_send`
+
+❌ **WRONG**: "이메일을 작성해줘" has PII → block it
+✅ **RIGHT**: "이메일을 작성해줘" is a creation task. Mask the PII, send the request. → `mask_and_send`
+
+❌ **WRONG**: "실험 결과를 바탕으로 논문 초안을 작성해줘" has research data → block it
+✅ **RIGHT**: "작성해줘" is a creation task. Mask the research data, send the request. → `mask_and_send`
+
+---
+
+## Examples
+
+**mask_and_send — creation verb, PII as content:**
+Text: `주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.`
+Records: `[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567"}]`
+→ 작성해줘 (creation). Task survives masking.
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":true,"rationale":"작성해줘는 이메일 생성 작업. 마스킹 후에도 작업 의미 유지."},"policy_action":"mask_and_send","strategy":"민감 정보를 마스킹 후 요청을 수행합니다.","rationale":"메인 동사가 문서 작성 작업을 향하고 민감 정보는 내용물이므로 마스킹 후 전송이 적절합니다."}
+```
+
+**mask_and_send — creation verb, vague research data as material:**
+Text: `이 실험 결과를 바탕으로 논문 초안을 작성해줘.`
+Records: `[{"category":"UNPUBLISHED_RESEARCH_DATA","span":"이 실험 결과"}]`
+→ 작성해줘 (creation). Data is raw material. Task survives masking.
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":true,"rationale":"작성해줘는 논문 작성 작업. 민감 정보는 입력 재료일 뿐."},"policy_action":"mask_and_send","strategy":"민감 정보를 마스킹 후 요청을 수행합니다.","rationale":"메인 동사가 문서 작성 작업을 향하고 민감 정보는 입력 재료이므로 마스킹 후 전송이 적절합니다."}
+```
+
+**process_locally — interrogation verb, credential:**
+Text: `내 주민등록번호가 뭐야?`
+Records: `[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"주민등록번호"}]`
+→ 뭐야 (interrogation). Question IS the credential.
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":false,"rationale":"뭐야가 주민등록번호 자체를 묻고 있어 마스킹 시 질문 의미 상실."},"policy_action":"process_locally","strategy":"민감한 개인정보를 직접 요청하는 질문이므로 로컬에서 처리합니다.","rationale":"메인 동사가 민감 정보 자체를 묻는 것으로 판단되어 외부 전송이 적절하지 않습니다."}
+```
+
+**process_locally — consultation verb, research idea:**
+Text: `이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.`
+Records: `[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"새로운 Attention 대체 아이디어"}]`
+→ 도와줘 (consultation). Design quality depends on knowing the idea.
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":false,"rationale":"도와줘는 실험 설계 조언. 아이디어 내용을 모르면 의미 있는 조언 불가."},"policy_action":"process_locally","strategy":"민감한 연구 아이디어 기반 조언이므로 로컬에서 처리합니다.","rationale":"조언의 품질이 민감 정보의 구체적 내용에 의존하므로 마스킹 후 전송이 부적절합니다."}
+```
+
+**process_locally — interrogation verb, unpublished research:**
+Text: `새로운 Attention 대체 아이디어가 뭐야? 자세히 설명해줘.`
+Records: `[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"새로운 Attention 대체 아이디어"}]`
+→ 설명해줘 (interrogation). Question IS the sensitive idea.
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":false,"rationale":"설명해줘가 민감 정보 자체를 대상으로 함. 마스킹 시 질문 의미 완전 상실."},"policy_action":"process_locally","strategy":"민감한 연구 아이디어에 대한 직접 질문이므로 로컬에서 처리합니다.","rationale":"사용자의 질문이 민감 정보 자체에 대한 설명을 요구하므로 외부 전송 없이 로컬 처리해야 합니다."}
+```
+
+**allow — no records:**
+Text: `오늘 서울 날씨는 맑고 기온은 25도입니다.`
+Records: `[]`
+```json
+{"meaningful_after_masking":{"is_meaningful_after_masking":true,"rationale":"민감 정보가 없습니다."},"policy_action":"allow","strategy":"민감 정보가 없으므로 외부 API를 사용합니다.","rationale":"탐지된 민감 정보가 없습니다."}
+```
+
+---
+
+Text: {{text}}
+Records: {{records}}

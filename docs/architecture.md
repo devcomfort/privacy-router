@@ -5,20 +5,25 @@
 Privacy Router is an on-device **Extractor → Judge → Router** pipeline that intercepts every agent-generated prompt before it reaches an external LLM API.
 
 ```
-User Prompt
+Agent Prompt
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Extractor (SLM: Ministral 3B [default] / Granite 8B)      │
-│  Phase 1: Contextual detection via Socratic categories      │
-│  Phase 2: Critic review — second pass catches missed spans  │
-│  → Free-form SCREAMING_CASE tags (not from a fixed list)    │
+│  Extractor (SLM: 1.2B ~ 4B)                                │
+│  Phase 1: Socratic sensitivity detection                    │
+│    → Free-form SCREAMING_CASE categories                    │
+│    → Minimal entity spans (조사/부사 제외)                    │
+│    → is_essential 플래그 (마스킹 가능 여부)                     │
+│  Phase 2: Critic review (선택적)                              │
+│    → 놓친 span 탐지                                          │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Judge (Single-Axis Masking Test)                           │
-│  "If I replace every sensitive span with [REDACTED],        │
-│   does the user's request still make sense?"                │
-│  Verb heuristic: Creation/Consultation/Interrogation        │
+│  Judge (Rule-based)                                         │
+│  Single-Axis Masking Test:                                  │
+│    "이 span을 [MASKED]로 치환하면 질의 의미가 유지되는가?"       │
+│  → is_essential=true:  route_to_local / prompt_user          │
+│  → is_essential=false: mask_and_send                         │
+│  → not sensitive:      route_to_external                     │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
               ┌────────────┼────────────┐
@@ -29,46 +34,57 @@ User Prompt
          Hydration: restore original values in response
 ```
 
-## Policy Decisions
+## Detection Surfaces
 
-| Condition | Result |
-|-----------|--------|
-| Not sensitive | **route_to_external** — prompt passes through unchanged |
-| Sensitive, non-essential records | **mask_and_send** — all sensitive spans masked, sent externally, hydrated in response |
-| Sensitive, non-essential records (selective) | **selective_mask** — only non-essential records masked |
-| Sensitive, essential records, local model available | **route_to_local** — processed entirely on-device |
-| Sensitive, essential records, no local model | **ask_to_user** — masking would lose meaning, ask user to confirm (409) |
-| Explicit confidentiality marker | **block** — extreme security risk, request blocked entirely |
+### 형태적 기밀사항 (Pattern-Based)
+PII, 전화번호, 이메일, 실명 등 — 패턴으로 감지 가능
+- 정확도: 83.3% (Gemma4 E4B 기준)
 
-## Key Components
+### 맥락적 기밀사항 (Context-Based)
+사업비밀, 연구아이디어, 전략, 예산, 내부URL 등 — 맥락 이해 필요
+- 정확도: 62.5% (Gemma4 E4B 기준)
 
-### Extractor
+## Prompts
 
-- Runs locally on-device (SLM)
-- Applies **Socratic Sensitivity Detection** — generates free-form `SCREAMING_CASE` categories
-- **Two-Phase Extraction**: Phase 1 detects, Phase 2 (Critic) reviews and fills gaps
-- Contextual reasoning questions enable detection without keywords
+| 파일 | 위치 | 용도 |
+|------|------|------|
+| `extractor.prompt` | `agents/extractor/extract.prompt` | 기본 추출 (Socratic, 298 lines) |
+| `extractor.short.prompt` | `agents/extractor/extract.short.prompt` | ≤2B 모델용 (24 lines) |
+| `extractor.socratic.prompt` | `agents/extractor/extract.socratic.prompt` | Socratic CoT (131 lines) |
+| `extractor.fixed.prompt` | `agents/extractor/extract.fixed.prompt` | 고정 카테고리 (232 lines) |
+| `critic.prompt` | `agents/extractor/critic.prompt` | 2단계 비판 (92 lines) |
+| `judge.prompt` | `agents/judge/classify.prompt` | 분류/정책 결정 (108 lines) |
 
-### Judge
+백업: `agents/prompts/` 및 `eval/prompts/`
 
-- Single-axis masking test: *"Does the request survive masking?"*
-- Verb heuristic determines action type (Creation/Consultation/Interrogation)
-- No LLM calls — pure rule-based decision
+## Model Selection
 
-### Router
+```
+모델 크기    → 프롬프트 선택
+─────────────────────────────
+≤ 2B        → extractor.short.prompt
+3B ~ 4B     → extractor.prompt (기본)
+> 4B        → extractor.prompt 또는 extractor.socratic.prompt
+```
 
-- Pure execution layer — maps policy actions to endpoints
-- UID-based masking: `CATEGORY#hash8` format
-- Hydration restores original values in LLM responses
-- Supports both bracketed and bare placeholder formats
+## Components
+
+| Component | File | Description |
+|-----------|------|-------------|
+| Extractor | `agents/extractor/extractor.py` | SLM 기반 민감 정보 추출 |
+| Two-Phase | `agents/extractor/two_phase.py` | Phase 1 + Critic |
+| Judge | `agents/judge/judge.py` | 마스킹 테스트 기반 정책 결정 |
+| Router | `agents/router/router.py` | 파이프라인 오케스트레이션 |
+| Masker | `agents/masker/masker.py` | span → placeholder 치환 |
+| Cache | `agents/router/cache.py` | chat_id 기반 상태 관리 |
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
+| Layer | Technology |
+|-------|-----------|
 | Backend | FastAPI + SQLModel |
 | Database | SQLite (dev) / PostgreSQL (prod) |
-| Model Server | litellm + instructor |
-| Frontend | SvelteKit (SSSG) |
+| Models | Ministral 3B, Gemma4 E4B, EXAONE 1.2B |
+| Frontend | SvelteKit (SSG) |
 | Encryption | Fernet (AES-128-CBC + HMAC-SHA256) |
-| Agent Integration | MCP Server + OpenAI Compatible API |
+| Integration | OpenAI Compatible API + MCP Server |
