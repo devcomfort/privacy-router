@@ -120,17 +120,15 @@ docker exec privacy-router-hermes-1 hermes -z \
 User Prompt
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Extractor (SLM: Ministral 3B)                              │
-│  Phase 1: Contextual detection via Socratic categories      │
-│  Phase 2: Critic review — catches what Phase 1 missed       │
+│  Extractor (facade, precision="default"|"high")             │
+│  ├── ExtractorCore: Socratic sensitivity detection          │
+│  └── Critic: post-review (precision="high"일 때만)            │
 │  → Free-form SCREAMING_CASE tags                            │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Judge (Single-Axis Masking Test)                           │
-│  "If I replace every sensitive span with [REDACTED],        │
-│   does the user's request still make sense?"                │
-│  Verb heuristic: Creation / Consultation / Interrogation    │
+│  Judge (rule-based, no LLM call)                            │
+│  is_essential 플래그로 정책 결정                                │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
               ┌────────────┼────────────┐
@@ -234,7 +232,7 @@ Full logs: [`usage-log/USAGE_LOG.md`](usage-log/USAGE_LOG.md) · [`usage-log/db-
 |-----------|-----------|
 | Backend | FastAPI + SQLModel |
 | Database | SQLite (dev) / PostgreSQL (prod) |
-| Models | Ministral 3B (Extractor), Gemini Flash Lite (Judge) |
+| Models | Ministral 3B / Gemma4 E4B (Extractor), Rule-based (Judge) |
 | Frontend | SvelteKit (SSG) |
 | Encryption | Fernet (AES-128-CBC + HMAC-SHA256) |
 | Integration | OpenAI Compatible API + MCP Server |
@@ -247,7 +245,7 @@ Detailed architecture: [`docs/architecture.md`](docs/architecture.md)
 
 | Metric | Value |
 |--------|------:|
-| Monthly cost | ~$0.19/user |
+| Monthly cost | ~$0.075/user |
 | Daily requests | 50 |
 | Avg prompt | 500 tokens |
 | Avg response | 1,000 tokens |

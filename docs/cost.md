@@ -5,9 +5,9 @@
 | Component | Usage | Unit Cost | Monthly |
 |-----------|-------|----------|--------:|
 | Extractor (Ministral 3B) | 50 req/day × 500 tokens | $0.10/1M tokens | $0.075 |
-| Judge (Gemini Flash Lite) | 50 req/day × 200 tokens | $0.25/1M tokens | $0.075 |
+| Judge (rule-based) | 50 req/day | $0 (no LLM) | $0 |
 | Local model (optional) | Sensitive queries only | $0 (self-hosted) | $0 |
-| **Total** | | | **$0.15** |
+| **Total** | | | **$0.075** |
 
 ## Two-Tier Routing
 
@@ -27,7 +27,7 @@ Unlike complexity-based routers that send difficult queries to expensive models,
 | ChatGPT Plus | $20.00 | Fixed subscription, US-centric PII |
 | Gemini Advanced | $20.00 | Fixed subscription |
 | Azure AI Content Safety | $50.00+ | Per-1K-records pricing |
-| **Privacy Router** | **$0.15** | Per-request, two-tier routing |
+| **Privacy Router** | **$0.075** | Per-request, rule-based Judge |
 
 ## Cost Optimization Strategies
 
