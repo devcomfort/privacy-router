@@ -1,18 +1,17 @@
-"""Judge — Privacy policy decision engine.
+"""Judge — Privacy policy decision engine (rule-based).
 
 The Judge receives sensitivity assessments and extraction records
 from the Extractor and produces a :class:`Judgment` that tells the
 Router what action to take.
 
-The LLM is only asked one question: "does the query survive masking?"
-Sensitivity is already determined by the Extractor.
+No LLM calls — all decisions are based on is_essential flags.
 
 Examples
 --------
 >>> judge = Judge()
 >>> j = judge.classify(
 ...     sensitivity={"is_sensitive": True, "rationale": "..."},
-...     records=[{"category": "RESIDENT_REGISTRATION_NUMBER", ...}],
+...     records=[{"category": "RESIDENT_REGISTRATION_NUMBER", "is_essential": False, ...}],
 ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
 ... )
 >>> j.policy_action
@@ -21,18 +20,11 @@ Examples
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any
-
-from agents.llm import call_llm_structured, load_prompt, render_prompt
 
 from .schemas import Judgment, MeaningfulnessAssessment
 
 # ── Constants ────────────────────────────────────────────────────────────────
-
-_PROMPT_PATH = Path(__file__).parent / "classify.prompt"
-"""Path to the dotpromptz prompt file used for classification."""
 
 _DEFAULT_JUDGE: Judge | None = None
 """Module-level singleton, populated on first call to :func:`judge`."""
@@ -44,33 +36,22 @@ _DEFAULT_JUDGE: Judge | None = None
 class Judge:
     """Privacy policy judge that decides what action to take.
 
-    The Judge evaluates whether a query remains meaningful after
-    masking its sensitive spans. It does NOT re-evaluate whether
-    information is sensitive — that is the Extractor's responsibility.
+    Rule-based: no LLM calls. Decisions based on is_essential flags.
 
     Parameters
     ----------
     model : str or None
-        Override the model identifier from the prompt file.
-        If ``None``, the model in ``classify.prompt`` is used.
-
-    Examples
-    --------
-    >>> judge = Judge()
-    >>> judgment = judge.classify(
-    ...     sensitivity={"is_sensitive": False, "rationale": "no PII"},
-    ...     records=[],
-    ...     text="hello",
-    ... )
-    >>> judgment.policy_action
-    'allow'
+        Ignored (kept for backward compatibility).
+    api_base : str or None
+        Ignored (kept for backward compatibility).
     """
 
-    def __init__(self, model: str | None = None) -> None:
-        self._prompt = load_prompt(str(_PROMPT_PATH))
-        self._model = model or self._prompt["model"]
-
-    # ── Public API ───────────────────────────────────────────────────────────
+    def __init__(
+        self,
+        model: str | None = None,
+        api_base: str | None = None,
+    ) -> None:
+        pass
 
     def classify(
         self,
@@ -87,7 +68,7 @@ class Judge:
         records : list of dict
             Validated extraction records.
         text : str
-            The original input text, used for context analysis.
+            The original input text (unused in rule-based mode).
 
         Returns
         -------
@@ -100,7 +81,7 @@ class Judge:
         >>> judge = Judge()
         >>> j = judge.classify(
         ...     sensitivity={"is_sensitive": True, "rationale": "주민등록번호"},
-        ...     records=[{"category": "RRN", "span": "901212-1234567"}],
+        ...     records=[{"category": "RRN", "span": "901212-1234567", "is_essential": False}],
         ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
         ... )
         >>> j.policy_action
@@ -108,7 +89,8 @@ class Judge:
         """
         is_sensitive = sensitivity.get("is_sensitive", len(records) > 0)
 
-        if not is_sensitive:
+        # No sensitive info → allow
+        if not is_sensitive or not records:
             return Judgment(
                 meaningful_after_masking=MeaningfulnessAssessment(
                     is_meaningful_after_masking=True,
@@ -119,26 +101,30 @@ class Judge:
                 rationale=sensitivity.get("rationale", "탐지된 민감 정보가 없습니다."),
             )
 
-        records_json = json.dumps(records, ensure_ascii=False, indent=2)
-        rendered = render_prompt(
-            self._prompt["template"], text=text, records=records_json
-        )
-        messages = [{"role": "user", "content": rendered}]
+        # Check is_essential flags
+        essential_count = sum(1 for r in records if r.get("is_essential", False))
 
-        try:
-            return call_llm_structured(
-                messages, Judgment, model=self._model, max_tokens=2048
-            )
-        except Exception:
+        if essential_count > 0:
             return Judgment(
                 meaningful_after_masking=MeaningfulnessAssessment(
                     is_meaningful_after_masking=False,
-                    rationale="파싱 실패.",
+                    rationale=f"essential: {essential_count}/{len(records)} records",
                 ),
-                policy_action="process_locally",
-                strategy="판단 실패: 로컬에서 처리합니다.",
-                rationale="SLM 응답을 파싱할 수 없습니다.",
+                policy_action="route_to_local",
+                strategy="민감 정보가 질의의 핵심이므로 로컬에서 처리합니다.",
+                rationale=f"essential: {essential_count}/{len(records)} records",
             )
+
+        # All records are maskable
+        return Judgment(
+            meaningful_after_masking=MeaningfulnessAssessment(
+                is_meaningful_after_masking=True,
+                rationale=f"마스킹 가능: {len(records)} records",
+            ),
+            policy_action="mask_and_send",
+            strategy="민감 정보를 마스킹 후 요청을 수행합니다.",
+            rationale=f"마스킹 가능: {len(records)} records",
+        )
 
 
 # ── Module-level convenience ─────────────────────────────────────────────────

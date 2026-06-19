@@ -251,26 +251,24 @@ class PrivacyRouter:
         True
         """
         from agents.extractor import Extractor
+        from agents.judge import Judge
+
         extractor = Extractor(model=self._extractor_model, api_base=self._api_base)
         extraction = extractor.extract(text)
         records = extraction.records
 
-        # Phase 2: Rule-based routing from is_essential flags
-        if not extraction.sensitivity.is_sensitive:
-            policy_action = "route_to_external"
-        elif any(r.is_essential for r in records):
-            # Load-bearing: check if local model is available
-            try:
-                from config import load_config
-                cfg = load_config()
-                if cfg.local.model:
-                    policy_action = "route_to_local"
-                else:
-                    policy_action = "prompt_user"
-            except Exception:
-                policy_action = "prompt_user"
-        else:
-            policy_action = "mask_and_send"
+        # Phase 2: Rule-based Judge
+        judge = Judge()
+        records_dict = [
+            {"category": r.category, "span": r.span, "is_essential": r.is_essential}
+            for r in records
+        ]
+        judgment = judge.classify(
+            sensitivity={"is_sensitive": extraction.sensitivity.is_sensitive, "rationale": extraction.sensitivity.rationale},
+            records=records_dict,
+            text=text,
+        )
+        policy_action = judgment.policy_action
 
         mask_indices = (
             list(range(len(records)))
@@ -279,24 +277,7 @@ class PrivacyRouter:
         )
 
         # Phase 3: Route
-        from agents.judge import Judgment, MeaningfulnessAssessment
         route = self._router.resolve(policy_action)
-
-        # Build a synthetic judgment for backward compatibility
-        essential_count = sum(1 for r in records if r.is_essential)
-        rationale = (
-            f"essential: {essential_count}/{len(records)} records" if records
-            else "no records"
-        )
-        judgment = Judgment(
-            meaningful_after_masking=MeaningfulnessAssessment(
-                is_meaningful_after_masking=(policy_action not in ("route_to_local", "prompt_user")),
-                rationale=rationale,
-            ),
-            policy_action=policy_action,
-            strategy=route.description,
-            rationale=rationale,
-        )
 
         return PipelineResult(
             sensitivity=extraction.sensitivity,
