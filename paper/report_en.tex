@@ -216,7 +216,7 @@ Input & Detection & Category & Confidence \\
 
 \subsection{Two-Tier Model Stack}
 
-Privacy Router uses a Two-Tier configuration with different models for Extractor and Judge:
+Privacy Router uses a single-model configuration for the Extractor, with a rule-based Judge that requires no LLM calls:
 
 \begin{table}[h]
 \centering
@@ -225,10 +225,10 @@ Privacy Router uses a Two-Tier configuration with different models for Extractor
 Role & Model & Cost (\$/1M tok) & Parameters \\
 \midrule
 Extractor & \texttt{mistralai/ministral-3b-2512} & \$0.10 & 3B \\
-Judge & \texttt{google/gemini-3.1-flash-lite} & \$0.25 & Frontier \\
+Judge & Rule-based (no LLM) & \$0 & -- \\
 \bottomrule
 \end{tabular}
-\caption{Two-Tier Model Stack}
+\caption{Model Stack}
 \end{table}
 
 \subsection{Monthly Cost Estimate}
@@ -237,8 +237,8 @@ Assumptions: 50 requests/day average, 500-token average prompt, 1,000-token aver
 
 \begin{align*}
 \text{Extractor cost} &= 50 \times 30 \times 500 \times \frac{0.10}{1{,}000{,}000} \approx \$0.075/\text{month} \\
-\text{Judge cost} &= 50 \times 30 \times 300 \times \frac{0.25}{1{,}000{,}000} \approx \$0.113/\text{month} \\
-\text{Total} &\approx \$0.19/\text{month}
+\text{Judge cost} &= \$0 \text{ (rule-based, no LLM call)} \\
+\text{Total} &\approx \$0.075/\text{month}
 \end{align*}
 
 This is over 50x cheaper than Big-Tech solutions (Azure AI Content Safety at \$50+/month, OpenAI Moderation API at \$10+).
@@ -324,29 +324,38 @@ Key security-related project decisions are documented as Architecture Decision R
 \end{itemize}
 
 % ===========================================================================
-\section{Smartening: Two-Phase Extraction}
+\section{Smartening: Extractor Architecture}
 % ===========================================================================
 
-\subsection{Phase 1 (Extract)}
+\subsection{ExtractorCore (Socratic Extraction)}
 
-An SLM analyzes user text to detect sensitive information. The v1 prompt is pattern-matching-based, enumerating keyword cues (number patterns, company names, budget expressions):
+An SLM analyzes user text to detect sensitive information using Socratic reasoning. The model asks three questions per sentence to derive free-form SCREAMING\_CASE categories:
 
 \begin{verbatim}
-## Step 1: Scan for sensitive spans
-- Numbers matching ID formats
-- Company names + project/process mentions
-- Numbers with "억원", "만원" (budget)
-- Phrases about decisions ("결정", "채택", "검토 중")
+Q1: What is the core attribute of this information?
+Q2: Why is this information sensitive?
+Q3: How would I name this in one word?
+-> SCREAMING_SNAKE_CASE category
 \end{verbatim}
 
-\subsection{Phase 2 (Critic)}
+\subsection{Critic (Post-Review, precision="high")}
 
-A different SLM reviews Phase 1 results and supplements missing records. During merging, the following validations are performed:
+When \texttt{precision="high"}, a second SLM reviews ExtractorCore results and supplements missing records. The Critic runs on any non-empty text, regardless of ExtractorCore results. During merging, the following validations are performed:
 
 \begin{itemize}[nosep]
   \item Deduplication of identical span + category combinations
   \item Automatic removal of hallucinated spans (not present in original text)
-  \item Update when Phase 2 modifies Phase 1 records
+  \item Same validation bar as ExtractorCore (confidence $\geq$ 0.5, SCREAMING\_CASE regex)
+\end{itemize}
+
+\subsection{Judge (Rule-Based)}
+
+The Judge determines policy actions based on \texttt{is\_essential} flags without LLM calls:
+
+\begin{itemize}[nosep]
+  \item \texttt{is\_essential > 0} $\rightarrow$ \texttt{route\_to\_local} (sensitive data is the query itself)
+  \item All maskable $\rightarrow$ \texttt{mask\_and\_send} (replace spans with placeholders)
+  \item Not sensitive $\rightarrow$ \texttt{route\_to\_external} (pass through unchanged)
 \end{itemize}
 
 \subsection{v2 Prompt: Contextual Reasoning Questions}
@@ -544,7 +553,7 @@ Experiments connecting Hermes Agent and OpenClaw Agent through the Privacy Route
   \item Context-based sensitive information detection is determined by \textbf{prompt design}, not model size.
   \item Two contextual reasoning questions (``published in a newspaper?'' and ``posted before publication?'') alone improved business/research secret detection from 0\% to 100\% across all tested models.
   \item \texttt{ministral-3b-2512} (\$0.10) with v2 prompts matched \texttt{gemini-3.1-flash-lite} (\$0.25) in performance, enabling a 60\% cost reduction.
-  \item The Two-Tier configuration (Extractor: ministral-3b + Judge: gemini-3.1-flash-lite) achieved an operating cost of approximately \$0.19/month.
+  \item The rule-based Judge configuration (no LLM call) achieved an operating cost of approximately \$0.075/month.
 \end{enumerate}
 
 \subsection{Limitations}

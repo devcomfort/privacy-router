@@ -619,8 +619,8 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                     <p class="card__text"><strong>Deterministic masking</strong> with UID-based placeholders. Mask → LLM → Restore (roundtrip-safe).</p>
                 </div>
                 <div class="card">
-                    <span class="card__label">Two-Phase Extractor</span>
-                    <p class="card__text">Phase 1: SLM detection. Phase 2: <strong>Critic pass</strong> for review and gap-filling. Deduplication + hallucination filtering.</p>
+                    <span class="card__label">Extractor (precision facade)</span>
+                    <p class="card__text">ExtractorCore: Socratic detection. <strong>Critic:</strong> post-review when <code>precision="high"</code>. Deduplication + validation.</p>
                 </div>
                 <div class="card">
                     <span class="card__label">Observability (Planned for Future)</span>
@@ -855,13 +855,13 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-body">
             <div>
-                <h2 class="section-heading">Two-Phase Extraction</h2>
-                <p class="section-sub">Phase 1: Socratic extraction — Phase 2: Critic pass finds what Phase 1 missed</p>
+                <h2 class="section-heading">Extractor Architecture</h2>
+                <p class="section-sub">ExtractorCore: Socratic extraction — Critic: post-review (precision="high")</p>
             </div>
             <div class="flex gap-24 reveal-stagger">
                 <div class="card flex-1">
-                    <span class="card__label">Two-Phase Extractor</span>
-                    <p class="card__text" style="margin-top: 4px;"><strong>Phase 1:</strong> Socratic extraction generates SCREAMING_CASE sensitivity categories.<br><strong>Phase 2:</strong> Critic pass reviews results and fills gaps. Deduplication and hallucination filtering merge the final output.</p>
+                    <span class="card__label">Extractor (precision facade)</span>
+                    <p class="card__text" style="margin-top: 4px;"><strong>ExtractorCore:</strong> Socratic extraction generates SCREAMING_CASE sensitivity categories.<br><strong>Critic:</strong> Post-review when <code>precision="high"</code>. Finds what ExtractorCore missed. Same validation bar for both passes.</p>
                 </div>
                 <div class="card card--accent flex-1">
                     <span class="card__label">v2 Results</span>
@@ -1023,7 +1023,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                         </div>
                         <div class="flex items-center gap-8">
                             <span style="color: var(--warning); font-size: 16px;">⚠</span>
-                            <span class="card__text"><strong>SLM hallucination risk</strong> — detection model may miss → mitigated by Critic pass</span>
+                            <span class="card__text"><strong>SLM hallucination risk</strong> — detection model may miss → mitigated by Critic (precision="high")</span>
                         </div>
                     </div>
                 </div>

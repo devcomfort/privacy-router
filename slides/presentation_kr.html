@@ -619,8 +619,8 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                     <p class="card__text"><strong>결정론적 마스킹</strong> UID 기반 플레이스홀더. 마스킹 → LLM → 복원(roundtrip-safe).</p>
                 </div>
                 <div class="card">
-                    <span class="card__label">TwoPhaseExtractor</span>
-                    <p class="card__text">Phase 1: SLM 탐지. Phase 2: <strong>Critic 패스</strong>로 검토 및 보완. 중복 제거 + 환각 필터링.</p>
+                    <span class="card__label">Extractor (퍼사드, precision)</span>
+                    <p class="card__text">ExtractorCore: Socratic 탐지. <strong>Critic:</strong> <code>precision="high"</code>일 때 사후 검증. 중복 제거 + 검증.</p>
                 </div>
                 <div class="card">
                     <span class="card__label">Observability (향후 추가 예정)</span>
@@ -855,13 +855,13 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-body">
             <div>
-                <h2 class="section-heading">Two-Phase Extraction</h2>
-                <p class="section-sub">Phase 1: Socratic 추출 — Phase 2: Critic 패스가 Phase 1이 놓친 것을 찾음</p>
+                <h2 class="section-heading">Extractor 아키텍처</h2>
+                <p class="section-sub">ExtractorCore: Socratic 추출 — Critic: 사후 검증 (precision="high")</p>
             </div>
             <div class="flex gap-24 reveal-stagger">
                 <div class="card flex-1">
-                    <span class="card__label">Two-Phase Extractor</span>
-                    <p class="card__text" style="margin-top: 4px;"><strong>Phase 1:</strong> Socratic 추출이 SCREAMING_CASE 민감도 카테고리를 생성.<br><strong>Phase 2:</strong> Critic 패스가 결과를 검토하고 빈틈을 보완. 중복 제거 및 환각 필터링으로 병합.</p>
+                    <span class="card__label">Extractor (퍼사드, precision)</span>
+                    <p class="card__text" style="margin-top: 4px;"><strong>ExtractorCore:</strong> Socratic 추출이 SCREAMING_CASE 민감도 카테고리를 생성.<br><strong>Critic:</strong> <code>precision="high"</code>일 때 사후 검증. ExtractorCore가 놓친 것을 탐지. 양쪽 패스 동일 검증 기준.</p>
                 </div>
                 <div class="card card--accent flex-1">
                     <span class="card__label">v2 결과</span>
@@ -1023,7 +1023,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                         </div>
                         <div class="flex items-center gap-8">
                             <span style="color: var(--warning); font-size: 16px;">⚠</span>
-                            <span class="card__text"><strong>SLM 환각 위험</strong> — 탐지 모델이 놓칠 수 있음 → Critic 패스로 완화</span>
+                            <span class="card__text"><strong>SLM 환각 위험</strong> — 탐지 모델이 놓칠 수 있음 → Critic으로 완화 (precision="high")</span>
                         </div>
                     </div>
                 </div>

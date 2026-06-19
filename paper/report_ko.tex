@@ -217,7 +217,7 @@ Masker는 마스킹/하이드레이션을 실행하는 비LLM 컴포넌트이다
 
 \subsection{Two-Tier 모델 스택}
 
-Privacy Router는 Extractor와 Judge에 각각 다른 모델을 배치하는 Two-Tier 구성을 사용한다:
+Privacy Router는 Extractor에 단일 모델을 사용하고, Judge는 LLM 호출 없이 규칙 기반으로 동작한다:
 
 \begin{table}[h]
 \centering
@@ -226,10 +226,10 @@ Privacy Router는 Extractor와 Judge에 각각 다른 모델을 배치하는 Two
 역할 & 모델 & 비용 (\$/1M tok) & 파라미터 \\
 \midrule
 Extractor & \texttt{mistralai/ministral-3b-2512} & \$0.10 & 3B \\
-Judge & \texttt{google/gemini-3.1-flash-lite} & \$0.25 & Frontier \\
+Judge & 규칙 기반 (LLM 미사용) & \$0 & -- \\
 \bottomrule
 \end{tabular}
-\caption{Two-Tier 모델 스택}
+\caption{모델 스택}
 \end{table}
 
 \subsection{월 운영 비용 추정}
@@ -238,8 +238,8 @@ Judge & \texttt{google/gemini-3.1-flash-lite} & \$0.25 & Frontier \\
 
 \begin{align*}
 \text{Extractor 비용} &= 50 \times 30 \times 500 \times \frac{0.10}{1{,}000{,}000} \approx \$0.075/\text{월} \\
-\text{Judge 비용} &= 50 \times 30 \times 300 \times \frac{0.25}{1{,}000{,}000} \approx \$0.113/\text{월} \\
-\text{총 비용} &\approx \$0.19/\text{월}
+\text{Judge 비용} &= \$0 \text{ (규칙 기반, LLM 미사용)} \\
+\text{총 비용} &\approx \$0.075/\text{월}
 \end{align*}
 
 이는 Big-Tech 솔루션(Azure AI Content Safety 월 \$50+, OpenAI Moderation API 포함 시 \$10+) 대비 50배 이상 저렴하다.
@@ -325,29 +325,38 @@ MaskingContract & \textbf{영구 미저장} & 프로세스 메모리 & 단일 \t
 \end{itemize}
 
 % ===========================================================================
-\section{스마트닝: Two-Phase Extraction}
+\section{스마트닝: Extractor 아키텍처}
 % ===========================================================================
 
-\subsection{Phase 1 (Extract)}
+\subsection{ExtractorCore (Socratic 추출)}
 
-SLM이 사용자 텍스트를 분석하여 민감 정보를 탐지한다. v1 프롬프트는 패턴 매칭 기반으로, 키워드 단서(숫자 패턴, 회사명, 예산 표현 등)를 열거한다:
+SLM이 사용자 텍스트를 분석하여 민감 정보를 탐지한다. 소크라테스 추론을 사용하여 각 문장에 대해 3가지 질문을 던지고 자유 형식 SCREAMING\_CASE 카테고리를 유도한다:
 
 \begin{verbatim}
-## Step 1: Scan for sensitive spans
-- Numbers matching ID formats
-- Company names + project/process mentions
-- Numbers with "억원", "만원" (budget)
-- Phrases about decisions ("결정", "채택", "검토 중")
+Q1: 이 정보의 핵심 속성은 무엇인가?
+Q2: 이 정보가 왜 민감한가?
+Q3: 이 정보를 한 단어로 표현하면?
+-> SCREAMING_SNAKE_CASE 카테고리
 \end{verbatim}
 
-\subsection{Phase 2 (Critic)}
+\subsection{Critic (사후 검증, precision="high")}
 
-다른 SLM이 Phase 1 결과를 검토하고 누락된 레코드를 보완한다. 병합 시 다음 검증을 수행한다:
+\texttt{precision="high"}일 때, 두 번째 SLM이 ExtractorCore 결과를 검토하고 누락된 레코드를 보완한다. Critic은 비어있는 텍스트를 제외하고 항상 실행된다. 병합 시 다음 검증을 수행한다:
 
 \begin{itemize}[nosep]
   \item 동일한 span + category 조합의 중복 제거
   \item 원본 텍스트에 존재하지 않는 span(할루시네이션) 자동 제거
-  \item Phase 2가 Phase 1의 레코드를 수정한 경우 업데이트
+  \item ExtractorCore와 동일한 검증 기준 (confidence $\geq$ 0.5, SCREAMING\_CASE 정규식)
+\end{itemize}
+
+\subsection{Judge (규칙 기반)}
+
+Judge는 LLM 호출 없이 \texttt{is\_essential} 플래그를 기반으로 정책을 결정한다:
+
+\begin{itemize}[nosep]
+  \item \texttt{is\_essential > 0} $\rightarrow$ \texttt{route\_to\_local} (민감 정보가 질의 자체)
+  \item 마스킹 가능 $\rightarrow$ \texttt{mask\_and\_send} (span을 플레이스홀더로 치환)
+  \item 비민감 $\rightarrow$ \texttt{route\_to\_external} (변경 없이 전달)
 \end{itemize}
 
 \subsection{v2 프롬프트: 맥락적 추론 질문}
@@ -545,7 +554,7 @@ Hermes Agent와 OpenClaw Agent를 Privacy Router API 경유 방식으로 연결�
   \item 컨텍스트 기반 민감 정보 탐지는 모델 크기가 아니라 \textbf{프롬프트 설계}에 의해 결정된다.
   \item 맥락적 추론 질문 2개(``신문에 실리면?'', ``출판 전에 공개되면?'')만으로 모든 테스트 모델의 사업/연구 기밀 탐지율을 0\%$\rightarrow$100\%로 개선했다.
   \item \texttt{ministral-3b-2512}(\$0.10)는 v2 프롬프트 기준 \texttt{gemini-3.1-flash-lite}(\$0.25)와 동등한 성능을 보여, 비용 60\% 절감이 가능하다.
-  \item Two-Tier 구성(Extractor: ministral-3b + Judge: gemini-3.1-flash-lite)으로 월 \$0.19 수준의 운영 비용을 달성했다.
+  \item 규칙 기반 Judge 구성(LLM 미사용)으로 월 \$0.075 수준의 운영 비용을 달성했다.
 \end{enumerate}
 
 \subsection{한계}
