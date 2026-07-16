@@ -1,9 +1,11 @@
-// Capture all slides from presentation HTML using Playwright
+// Capture all slides from presentation HTML using Puppeteer.
 // Usage: node capture.mjs <input.html> <output_dir>
-import { chromium } from 'playwright';
+import puppeteer from 'puppeteer';
 import { resolve, join } from 'path';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readdirSync, rmSync } from 'fs';
 
+
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 const [,, htmlPath, outputDir] = process.argv;
 if (!htmlPath || !outputDir) {
     console.error('Usage: node capture.mjs <input.html> <output_dir>');
@@ -11,12 +13,19 @@ if (!htmlPath || !outputDir) {
 }
 
 mkdirSync(outputDir, { recursive: true });
+for (const file of readdirSync(outputDir)) {
+    if (/^slide-\d+\.png$/.test(file)) {
+        rmSync(join(outputDir, file));
+    }
+}
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+const page = await browser.newPage();
+await page.setViewport({ width: 1920, height: 1080 });
 
 await page.goto('file://' + resolve(htmlPath));
-await page.waitForTimeout(2000);
+await page.addStyleTag({ content: '.nav-hint, .page-counter { display: none !important; }' });
+await sleep(2000);
 
 const total = await page.evaluate(() => document.querySelectorAll('.slide').length);
 console.log(`Capturing ${total} slides from ${htmlPath}`);
@@ -29,7 +38,7 @@ for (let i = 0; i < total; i++) {
     }, i);
 
     // Wait for CSS transitions/animations
-    await page.waitForTimeout(800);
+    await sleep(800);
 
     const outPath = join(resolve(outputDir), `slide-${String(i + 1).padStart(2, '0')}.png`);
     await page.screenshot({ path: outPath });

@@ -17,6 +17,15 @@ You do NOT need to manually call Privacy Router tools — the pipeline runs auto
 - Never reproduce sensitive data (주민등록번호, phone numbers, passwords) in your responses
 - If asked to share sensitive data, explain that Privacy Router has masked it for protection
 
+## Terminology Guidelines
+
+- Prefer established privacy, security, and agent-system terminology or plain language that readers can understand without a glossary.
+- Do not invent branded method names, acronyms, framework names, benchmark names, or metric names when an established term already expresses the concept.
+- Naming must not replace an explanation or make an existing idea appear novel. State the relationship to established concepts and prior work directly.
+- When a project-specific term is unavoidable, define it in plain language on first use, explain why existing terminology is insufficient, and map it to observable code or data behavior.
+- Before finalizing documentation, proposals, presentations, or UI copy, replace unexplained internal jargon with standard or plain terms.
+- The project name `Privacy Router` and implementation identifiers required by code or schemas are allowed; externally visible prose still follows these rules.
+
 <!-- gortex:communities:start -->
 <!-- gortex:skills:start -->
 ## Community Skills

@@ -1,0 +1,152 @@
+{
+  "$schema": "privacy-router-experiment-v1",
+  "version": "1.0.0",
+  "generated_at": "2026-06-22T02:47:29.354241+00:00",
+  "experiment": {
+    "model": "gemma-4-E4B-it",
+    "model_info": {
+      "model_path": "google/gemma-4-E4B-it",
+      "params": "4B",
+      "size_gb": 15
+    },
+    "total_trials": 3,
+    "test_cases": 17,
+    "n_per_config": 5,
+    "detection_types": {
+      "morphological": 4,
+      "contextual": 9,
+      "mixed": 1,
+      "none": 3
+    }
+  },
+  "best": {
+    "trial_id": 2,
+    "score": 0.7165,
+    "prompt": "fewshot",
+    "techniques": "fewshot",
+    "params": {
+      "temperature": 0.4,
+      "top_p": 0.7,
+      "max_tokens": 2048
+    },
+    "metrics": {
+      "overall_accuracy_pct": 72.9,
+      "morphological_accuracy_pct": 85.0,
+      "contextual_accuracy_pct": 55.6,
+      "consistency_pct": 88.2,
+      "avg_latency_s": 4.4
+    }
+  },
+  "leaderboard": [
+    {
+      "trial_id": 2,
+      "score": 0.7165,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.4,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 72.9,
+        "morphological_accuracy_pct": 85.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 88.2,
+        "avg_latency_s": 4.4,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 0,
+      "score": 0.6768,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.8,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 82.4,
+        "avg_latency_s": 4.7,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 1,
+      "score": 0.658,
+      "prompt": "role",
+      "techniques": "role",
+      "temperature": 0.9,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 64.7,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 44.4,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 4.7,
+        "errors": 0
+      }
+    }
+  ],
+  "trials": [
+    {
+      "trial_id": 0,
+      "score": 0.6768,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.8,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 82.4,
+        "avg_latency_s": 4.7,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 1,
+      "score": 0.658,
+      "prompt": "role",
+      "techniques": "role",
+      "temperature": 0.9,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 64.7,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 44.4,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 4.7,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 2,
+      "score": 0.7165,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.4,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 5,
+      "metrics": {
+        "overall_accuracy_pct": 72.9,
+        "morphological_accuracy_pct": 85.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 88.2,
+        "avg_latency_s": 4.4,
+        "errors": 0
+      }
+    }
+  ]
+}

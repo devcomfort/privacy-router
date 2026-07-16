@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { KeyOut, KeyCreated, RouterSettings } from '$lib/types';
-	import { keys as keysApi, settings as settingsApi } from '$lib/api';
+	import { adminAuth, keys as keysApi, settings as settingsApi } from '$lib/api';
 	import { Button, Card, Select, Alert, LangToggle } from '$lib/components/ui';
 	import { t } from '$lib/i18n';
+	import { onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
 	import {
 		KeyList,
@@ -12,7 +13,12 @@
 		BulkActionBar
 	} from '$lib/components/admin';
 
+	onDestroy(adminAuth.clear);
+
 	// ── State ───────────────────────────────────────────────────────────────
+	let adminKey = $state('');
+	let authenticated = $state(false);
+	let authenticating = $state(false);
 	let keys = $state<KeyOut[]>([]);
 	let settings = $state<RouterSettings | null>(null);
 	let selectedIds = $state<Set<string>>(new Set());
@@ -30,35 +36,53 @@
 	let alertCounter = $state(0);
 
 	// Settings form
-	let extractorModel = $state('');
-	let judgeModel = $state('');
-	let generatorModel = $state('');
+	let decisionModel = $state('');
 	let localModel = $state('');
+	let externalModel = $state('');
 
-	let modelOptions: { value: string; label: string }[] = $state([]);
+	let localModelOptions: { value: string; label: string }[] = $state([]);
+	let externalModelOptions: { value: string; label: string }[] = $state([]);
 
 	// ── Lifecycle ───────────────────────────────────────────────────────────
 	async function loadAll() {
-		try {
-			const [k, s] = await Promise.all([keysApi.list(), settingsApi.get()]);
-			keys = k;
-			settings = s;
-			modelOptions = (s.models ?? []).map((m) => ({
+		const [k, s] = await Promise.all([keysApi.list(), settingsApi.get()]);
+		keys = k;
+		settings = s;
+		localModelOptions = (s.models ?? [])
+			.filter((m) => m.location === 'local')
+			.map((m) => ({
 				value: m.model_id,
 				label: m.display_name ?? m.model_id
 			}));
-			extractorModel = s.extractor?.model ?? '';
-			judgeModel = s.judge?.model ?? '';
-			generatorModel = s.generator?.model ?? '';
-			localModel = s.local?.model ?? '';
-		} catch (e) {
-			showAlert(e instanceof Error ? e.message : String(e), 'error');
-		}
+		externalModelOptions = (s.models ?? [])
+			.filter((m) => m.location === 'external')
+			.map((m) => ({
+				value: m.model_id,
+				label: m.display_name ?? m.model_id
+			}));
+		decisionModel = s.decision?.model ?? '';
+		localModel = s.local?.model ?? '';
+		externalModel = s.external?.model ?? '';
 	}
 
-	$effect(() => {
-		loadAll();
-	});
+	async function handleUnlock() {
+		const key = adminKey.trim();
+		if (!key || authenticating) return;
+
+		authenticating = true;
+		adminAuth.setKey(key);
+		try {
+			await loadAll();
+			authenticated = true;
+			adminKey = '';
+		} catch (e) {
+			adminAuth.clear();
+			authenticated = false;
+			showAlert(e instanceof Error ? e.message : String(e), 'error');
+		} finally {
+			authenticating = false;
+		}
+	}
 
 	// ── Helpers ─────────────────────────────────────────────────────────────
 	function showAlert(message: string, variant: 'success' | 'error' | 'warning' = 'success') {
@@ -67,6 +91,21 @@
 		setTimeout(() => {
 			alerts = alerts.filter((a) => a.id !== id);
 		}, 4000);
+	}
+
+	function handleSignOut() {
+		adminAuth.clear();
+		authenticated = false;
+		adminKey = '';
+		createdKey = '';
+		showKeyOpen = false;
+		createOpen = false;
+		renameOpen = false;
+		bulkDeleteConfirm = false;
+		keys = [];
+		settings = null;
+		selectedIds = new Set();
+		alerts = [];
 	}
 
 	// ── Key actions ─────────────────────────────────────────────────────────
@@ -170,7 +209,7 @@
 	function handleKeyCreated(data: KeyCreated) {
 		createdKey = data.api_key;
 		showKeyOpen = true;
-		loadAll();
+		void loadAll().catch((e) => showAlert(e instanceof Error ? e.message : String(e), 'error'));
 		showAlert(get(t)('alert.key_created'));
 	}
 
@@ -178,10 +217,9 @@
 	async function handleSaveSettings() {
 		try {
 			await settingsApi.save({
-				extractor: { model: extractorModel },
-				judge: { model: judgeModel },
-				generator: { model: generatorModel },
-				local: { model: localModel }
+				decision: { model: decisionModel },
+				local: { model: localModel },
+				external: { model: externalModel }
 			});
 			showAlert(get(t)('alert.settings_saved'));
 		} catch (e) {
@@ -200,6 +238,9 @@
 			<a href="/" class="text-sm text-slate-400 hover:text-white transition">{$t('nav.back')}</a>
 			<div class="flex items-center gap-3">
 				<span class="text-xs text-slate-500">{$t('nav.admin')}</span>
+				{#if authenticated}
+					<Button variant="secondary" size="sm" onclick={handleSignOut}>{$t('admin.auth.sign_out')}</Button>
+				{/if}
 				<LangToggle />
 			</div>
 		</div>
@@ -215,6 +256,45 @@
 			{/each}
 		</div>
 
+		{#if !authenticated}
+			<Card class="mx-auto max-w-xl">
+				<form
+					class="space-y-5 p-6"
+					onsubmit={(event) => {
+						event.preventDefault();
+						void handleUnlock();
+					}}
+				>
+					<div class="space-y-2">
+						<h1 class="text-xl font-semibold text-white">{$t('admin.auth.title')}</h1>
+						<p class="text-sm leading-6 text-slate-400">{$t('admin.auth.description')}</p>
+					</div>
+					<div class="space-y-2">
+						<label for="admin-key" class="block text-sm font-medium text-slate-200">
+							{$t('admin.auth.label')}
+						</label>
+						<input
+							id="admin-key"
+							type="password"
+							bind:value={adminKey}
+							autocomplete="off"
+							spellcheck="false"
+							aria-describedby="admin-key-storage"
+							placeholder={$t('admin.auth.placeholder')}
+							class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+						/>
+						<p id="admin-key-storage" class="text-xs leading-5 text-slate-500">
+							{$t('admin.auth.memory_only')}
+						</p>
+					</div>
+					<div class="flex justify-end">
+						<Button type="submit" disabled={!adminKey.trim() || authenticating}>
+							{authenticating ? $t('admin.auth.submitting') : $t('admin.auth.submit')}
+						</Button>
+					</div>
+				</form>
+			</Card>
+		{:else}
 		<!-- Warning -->
 		<Alert variant="warning">
 			{$t('admin.warning')}
@@ -254,23 +334,32 @@
 		<Card>
 			<div class="p-6 space-y-4">
 				<h2 class="text-xl font-bold text-white">{$t('admin.settings.title')}</h2>
+				<p class="max-w-2xl text-sm leading-6 text-slate-400">{$t('admin.settings.description')}</p>
 				<div class="grid gap-4 sm:grid-cols-2">
-					<Select bind:value={extractorModel} options={modelOptions} label="Extractor" />
-					<Select bind:value={judgeModel} options={modelOptions} label="Judge" />
-					<Select bind:value={generatorModel} options={modelOptions} label="Generator (외부)" />
-					<Select bind:value={localModel} options={modelOptions} label="Local (내부)" />
+					<Select bind:value={decisionModel} options={localModelOptions} label={$t('admin.settings.decision')} />
+					<Select bind:value={localModel} options={localModelOptions} label={$t('admin.settings.local_generation')} />
+					<Select bind:value={externalModel} options={externalModelOptions} label={$t('admin.settings.external_generation')} />
 				</div>
 				<div class="flex justify-end">
 					<Button onclick={handleSaveSettings}>{$t('admin.settings.save')}</Button>
 				</div>
 			</div>
 		</Card>
+		{/if}
 	</main>
 </div>
 
+{#if authenticated}
 <!-- Modals -->
 <CreateKeyModal bind:open={createOpen} onclose={() => (createOpen = false)} oncreated={handleKeyCreated} />
-<ShowKeyModal bind:open={showKeyOpen} onclose={() => (showKeyOpen = false)} apiKey={createdKey} />
+<ShowKeyModal
+	bind:open={showKeyOpen}
+	onclose={() => {
+		showKeyOpen = false;
+		createdKey = '';
+	}}
+	apiKey={createdKey}
+/>
 <RenameKeyModal
 	bind:open={renameOpen}
 	onclose={() => (renameOpen = false)}
@@ -298,4 +387,5 @@
 			</div>
 		</div>
 	</div>
+{/if}
 {/if}

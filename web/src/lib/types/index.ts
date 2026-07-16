@@ -6,6 +6,7 @@ export type {
 	BulkActionResult,
 	ProviderOut,
 	ModelOut,
+	SettingsModel,
 	AgentConfig,
 	RouterSettings,
 	ChatMessage,

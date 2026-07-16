@@ -151,7 +151,7 @@ run_smoke_test() {
     chat_ok=$(curl -s -X POST "${BASE_URL}/v1/chat/completions" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${TEST_RAW_KEY}" \
-        -d '{"model":"openrouter/google/gemma-4-26b-a4b-it","messages":[{"role":"user","content":"Say OK"}],"max_tokens":5}' \
+        -d '{"model":"privacy-router","messages":[{"role":"user","content":"Say OK"}],"max_tokens":5}' \
         | python3 -c "import sys,json; d=json.load(sys.stdin); print(bool(d['choices'][0]['message']['content']))" 2>/dev/null)
     if [ "$chat_ok" = "True" ]; then
         log "  Chat Completions: OK"

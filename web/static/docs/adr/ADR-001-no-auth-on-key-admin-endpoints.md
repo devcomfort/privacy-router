@@ -1,3 +1,5 @@
+> Public sanitized copy. Raw identifier-like examples are replaced with placeholders.
+
 # ADR-001: No Authentication on Key and Admin Endpoints
 
 ## Date
@@ -22,11 +24,11 @@ However, several management endpoints in `server/api/routes/keys.py` and `server
 - `GET /api/settings`
 - `POST /api/settings`
 
-There is also a bootstrapping problem: the only way to create the first API key is through the key-management endpoint, but the key-management endpoint itself currently requires no credentials. Requiring authentication for these endpoints would force the project to add a separate admin account system (passwords, sessions, or OAuth) and increase operational complexity for users who just want to run the server locally.
+There is also a bootstrapping problem: the only way to create the first API key is through the <api-key> endpoint, but the <api-key> endpoint itself currently requires no credentials. Requiring authentication for these endpoints would force the project to add a separate admin account system (passwords, sessions, or OAuth) and increase operational complexity for users who just want to run the server locally.
 
 ## Decision
 
-Leave the key-management and admin/settings endpoints unauthenticated for the current release.
+Leave the <api-key> and admin/settings endpoints unauthenticated for the current release.
 
 Rationale:
 

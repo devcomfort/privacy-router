@@ -1,18 +1,8 @@
 """Shared LLM calling interface using litellm + instructor.
 
-Model candidates:
-  Small (<8B):
-    ibm-granite/granite-4.1-8b          ($0.05)  한국어
-    mistralai/ministral-3b-2512        ($0.10)  현행
-  Middle (8-30B):
-    qwen/qwen3.6-35b-a3b               ($0.14)  MoE, 한국어
-    qwen/qwen3.5-9b                     ($0.04)  9B
-    deepseek/deepseek-v4-flash          ($0.10)  아시아언어
-    google/gemma-4-26b-a4b-it           ($0.06)  무료티어
-  Large (>30B, Native JSON):
-    anthropic/claude-haiku-latest        ($1.00)  Structured output
-    google/gemini-3.1-flash-lite        ($0.25)  Judge 추천
-    google/gemini-3.5-flash             ($1.50)  최신
+Normal routed requests pass the active profile's model and API base explicitly.
+The module-level fallback is the configured External Model and exists only for
+low-level callers that omit a model.
 """
 
 from __future__ import annotations
@@ -22,13 +12,15 @@ import os
 import re
 import warnings
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 import instructor  # noqa: E402  -- must follow warnings / env setup
 import litellm
 from dotenv import load_dotenv
 from dotpromptz import Dotprompt
 from pydantic import BaseModel
+
+from config import resolve_model_api_key
 
 # Suppress noisy warnings before they happen
 warnings.filterwarnings("ignore", message="Field name.*shadows an attribute")
@@ -38,18 +30,18 @@ litellm.suppress_debug_info = True
 # Load .env from project root
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-T = TypeVar("T", bound=BaseModel)
+DEFAULT_EXTERNAL_MODEL = "openrouter/google/gemma-4-26b-it"
 
 
 def load_prompt(prompt_path: str) -> dict[str, Any]:
     """Load and parse a .prompt file using dotpromptz."""
     d = Dotprompt()
-    with open(prompt_path, "r") as f:
+    with open(prompt_path) as f:
         content = f.read()
     parsed = d.parse(content)
 
     return {
-        "model": parsed.raw.get("model", "openrouter/mistralai/ministral-3b-2512"),
+        "model": parsed.raw.get("model", DEFAULT_EXTERNAL_MODEL),
         "config": parsed.raw.get("config", {}),
         "template": parsed.template,
     }
@@ -63,6 +55,11 @@ def render_prompt(template: str, **kwargs: Any) -> str:
     return result
 
 
+def _resolve_api_key(model: str) -> str | None:
+    """Resolve a model's provider key from the shared configuration store."""
+    return resolve_model_api_key(model)
+
+
 def call_llm(
     messages: list[dict[str, str]],
     model: str | None = None,
@@ -72,8 +69,8 @@ def call_llm(
     api_base: str | None = None,
 ) -> str:
     """Call LLM via litellm (unstructured text output)."""
-    model = model or os.getenv("LLM_MODEL", "openrouter/mistralai/ministral-3b-2512")
-    api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
+    model = model or os.getenv("LLM_MODEL", DEFAULT_EXTERNAL_MODEL)
+    api_key = api_key or _resolve_api_key(model) or os.getenv("OPENROUTER_API_KEY", "")
 
     kwargs: dict = dict(
         model=model,
@@ -90,7 +87,7 @@ def call_llm(
     return response.choices[0].message.content.strip()
 
 
-def call_llm_structured(
+def call_llm_structured[T: BaseModel](
     messages: list[dict[str, str]],
     response_model: type[T],
     model: str | None = None,
@@ -111,8 +108,8 @@ def call_llm_structured(
     >>> isinstance(response, Answer)
     True
     """
-    model = model or os.getenv("LLM_MODEL", "openrouter/mistralai/ministral-3b-2512")
-    api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
+    model = model or os.getenv("LLM_MODEL", DEFAULT_EXTERNAL_MODEL)
+    api_key = api_key or _resolve_api_key(model) or os.getenv("OPENROUTER_API_KEY", "")
     # For local/openai-compatible endpoints, use a dummy key if none provided
     if not api_key and api_base:
         api_key = "dummy"
@@ -142,7 +139,7 @@ def call_llm_structured(
     return client.chat.completions.create(**kwargs)
 
 
-def _call_raw_json(
+def _call_raw_json[T: BaseModel](
     messages: list[dict[str, str]],
     response_model: type[T],
     model: str,
@@ -161,11 +158,10 @@ def _call_raw_json(
     if api_base:
         kwargs["api_base"] = api_base
 
-    # EXAONE needs response_format to produce JSON
-    if "exaone" in model.lower():
-        kwargs["response_format"] = {"type": "json_object"}
+    # Force JSON output for all models
+    kwargs["response_format"] = {"type": "json_object"}
 
-    response = litellm.completion(**kwargs)
+    response = litellm.completion(**kwargs, timeout=60)
     content = response.choices[0].message.content.strip()
 
     # Extract JSON from markdown blocks
@@ -182,7 +178,7 @@ def _call_raw_json(
     # If content doesn't start with {, try to extract JSON from reasoning text
     if not content.lstrip().startswith("{"):
         # Find the last JSON object in the text
-        json_matches = list(re.finditer(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', content, re.DOTALL))
+        json_matches = list(re.finditer(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", content, re.DOTALL))
         if json_matches:
             content = json_matches[-1].group(0)
 

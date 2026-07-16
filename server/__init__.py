@@ -1,13 +1,7 @@
-"""Privacy Router Server — HTTP proxy + MCP server.
+"""Privacy Router HTTP server package.
 
-Public API
-----------
-app
-    FastAPI application instance.
-mcp
-    FastMCP server instance with ``classify`` and ``route`` tools.
-main()
-    Start the HTTP server (uvicorn on port 8787).
+``app`` is loaded lazily so importing a lightweight submodule does not pull in
+the API, agent, and database stacks. Import the MCP server from ``server.mcp``.
 
 Examples
 --------
@@ -15,24 +9,27 @@ Examples
 >>> main()  # starts uvicorn on :8787
 """
 
-from server.api.main import app
-from server.mcp import mcp
+import argparse
+from collections.abc import Sequence
+from importlib import import_module
+
+__all__ = ["app", "main"]
 
 
-__all__ = ["app", "mcp", "main"]
+def __getattr__(name: str):
+    if name == "app":
+        return import_module("server.api").app
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def main():
-    """Start the HTTP proxy server."""
-    import uvicorn
-
-    from server.config import get_config
-
-    cfg = get_config()
+def _start_server() -> None:
+    """Start the HTTP server on port 8787."""
+    cfg = import_module("server.config").get_config()
     print("Privacy Router Server")
-    print(f"  Extractor: {cfg.extractor.model}")
-    print(f"  Judge:     {cfg.judge.model}")
-    print(f"  Models:    {len(cfg.models)} registered")
+    print(f"  Privacy analysis:   {cfg.decision.model}")
+    print(f"  Local generation:   {cfg.local.model}")
+    print(f"  External generation: {cfg.external.model}")
+    print(f"  Models:             {len(cfg.models)} registered")
     print()
     print("  HTTP Proxy:  http://localhost:8787")
     print("  Chat UI:     http://localhost:8787/")
@@ -40,4 +37,15 @@ def main():
     print("  MCP (stdio): connect via FastMCP")
     print()
 
-    uvicorn.run(app, host="0.0.0.0", port=8787)
+    api_app = import_module("server.api").app
+    import_module("uvicorn").run(api_app, host="0.0.0.0", port=8787)
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    """Parse console arguments and start the Privacy Router HTTP server."""
+    parser = argparse.ArgumentParser(
+        prog="privacy-router",
+        description="Start the Privacy Router HTTP server.",
+    )
+    parser.parse_args(argv)
+    _start_server()

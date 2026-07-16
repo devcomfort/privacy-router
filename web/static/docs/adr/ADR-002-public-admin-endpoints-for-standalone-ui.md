@@ -1,3 +1,5 @@
+> Public sanitized copy. Raw identifier-like examples are replaced with placeholders.
+
 # ADR-002: Public Admin Endpoints for Standalone Admin UI
 
 ## Date
@@ -40,7 +42,7 @@ Positive:
 
 - The admin dashboard is fully functional on first run.
 - No extra dependency on an identity provider, cookie store, or admin credential database.
-- Simple mental model: the API has a public "management plane" and a key-protected "data plane."
+- Simple mental model: the API has a public "management plane" and a <api-key> "data plane."
 
 Negative:
 

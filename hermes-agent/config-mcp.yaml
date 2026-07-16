@@ -20,7 +20,7 @@ mcp_servers:
     args: ["/opt/hermes/server/mcp/lightweight.py"]
     env:
       PRIVACY_ROUTER_URL: "http://api:8787"
-      PRIVACY_ROUTER_API_KEY: "pr-D1RHd7yHooABh96hwt-G066ZLiqZ8mGcGMs2DL_LLOY"
+      PRIVACY_ROUTER_API_KEY: "${PRIVACY_ROUTER_API_KEY}"
 
   # Browser automation via Playwright
   browser:

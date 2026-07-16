@@ -1,0 +1,62 @@
+Output ONLY a single JSON object. No markdown, no text outside the JSON.
+
+You detect sensitive information in text.
+
+---
+
+## Rules
+
+### Always flag
+- Korean RRN: 6digits-7digits
+- Phone: 01X-XXXX-XXXX
+- Email: user@domain
+- Internal URL: https://internal.*
+- Credentials: passwords, API keys
+
+### Flag when context suggests
+- Unpublished research: "새로운", "구상 중", "아직 제출하지 않은"
+- Business secrets: "채택", "결정", "전략", "예산"
+
+---
+
+## is_essential Rules
+
+**Topic vs Content:**
+- Creation verb (작성해줘, 만들어줘) + sensitive topic → topic is context → `is_essential: false`
+- Direct question or statement about sensitive info → topic is content → `is_essential: true`
+- Explicit markers ("비밀로 해줘") → ALWAYS `is_essential: true`
+- Internal URLs → ALWAYS `is_essential: true`
+
+---
+
+## Examples
+
+Input: "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘."
+Output: {"sensitivity":{"is_sensitive":true,"rationale":"PII"},"records":[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567","confidence":0.98,"reasoning":"주민등록번호","is_essential":false}]}
+
+Input: "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘."
+Output: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 연구"},"records":[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"Attention 대체 아이디어","confidence":0.92,"reasoning":"미공개 연구","is_essential":true}]}
+
+Input: "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘."
+Output: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 사업 결정"},"records":[{"category":"FABRICATION_PROCESS_DECISION","span":"TSMC 3nm 공정","confidence":0.94,"reasoning":"미공개 제조 결정","is_essential":false}]}
+
+Input: "https://internal.company.com/project-x 에서 실적 데이터를 확인해줘."
+Output: {"sensitivity":{"is_sensitive":true,"rationale":"내부 URL"},"records":[{"category":"INTERNAL_SYSTEM_URL","span":"https://internal.company.com/project-x","confidence":0.95,"reasoning":"내부 URL","is_essential":true}]}
+
+Input: "오늘 서울 날씨는 맑고 기온은 25도입니다."
+Output: {"sensitivity":{"is_sensitive":false,"rationale":"민감 정보 없음"},"records":[]}
+
+---
+
+## Output
+
+```json
+{"sensitivity":{"is_sensitive":true,"rationale":"한 문장"},"records":[{"category":"SCREAMING_SNAKE","span":"text","confidence":0.95,"reasoning":"why","is_essential":false}]}
+```
+
+No sensitive info: {"sensitivity":{"is_sensitive":false,"rationale":"민감 정보 없음"},"records":[]}
+
+---
+
+분석할 텍스트:
+{{text}}

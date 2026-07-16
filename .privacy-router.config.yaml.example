@@ -1,137 +1,59 @@
-# Privacy Router — Configuration Example
-# =============================================================================
-# Copy this file to .privacy-router.config.yaml and edit for your environment:
+# Privacy Router bootstrap configuration
 #
-#   cp .privacy-router.config.yaml.example .privacy-router.config.yaml
-#
-# =============================================================================
-# litellm Model ID Conventions
-# -----------------------------------------------------------------------------
-# The model id prefix determines how litellm routes the request:
-#
-#   openrouter/...     → OpenRouter (many providers behind one API key)
-#   openai/...         → OpenAI or any OpenAI-compatible endpoint
-#                         (set api_base for Ollama, vLLM, etc.)
-#   ollama/...         → Ollama (auto-detected by litellm, no api_base needed)
-#   anthropic/...      → Anthropic directly
-#   google/...         → Google Gemini directly
-#
-# API keys are resolved automatically by litellm from environment variables:
-#   OPENROUTER_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, etc.
-#   (loaded from .env file or system environment)
-#
-# For OpenAI-compatible endpoints you must:
-#   1. Use the openai/ prefix in the model id
-#   2. Set api_base to your endpoint URL (include /v1 if needed)
-#   3. Put your API key in the env var OPENAI_API_KEY
-#
-# Reference: https://docs.litellm.ai/docs/providers/openai_compatible
-# =============================================================================
-
-# ── Model Registry ───────────────────────────────────────────────────────────
-# List every model you want available to agents.
-# tier and cost_per_1m_tokens are informational — they don't affect behavior.
-# api_base is only needed for openai/ prefix models (custom endpoints).
+# Runtime configuration is stored in SQLite. This file seeds a new database and
+# supplies defaults for role bindings that are missing from an existing profile.
+# Model locations define trust boundaries:
+#   local    - loopback inference endpoint only
+#   external - cloud inference only
 
 models:
-  # ── Edge (<8B params, lowest cost) ─────────────────────────────────────────
-  # These models passed full PII + business secret + research secret detection
-  # in the v2 prompt evaluation (see docs/devlog/REPORT.md).
+  - id: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
+    api_base: http://127.0.0.1:8010/v1
+    location: local
+    tier: small
+    cost_per_1m_tokens: 0.0
 
-  - id: openrouter/mistralai/ministral-3b-2512
-    tier: edge
-    cost_per_1m_tokens: 0.10
-
-  - id: openrouter/ibm-granite/granite-4.1-8b
-    tier: edge
-    cost_per_1m_tokens: 0.05
-
-  # ── Performant (mid-size, good cost/performance balance) ───────────────────
-
-  - id: openrouter/qwen/qwen3.5-9b
-    tier: performant
-    cost_per_1m_tokens: 0.04
-
-  - id: openrouter/qwen/qwen3.6-35b-a3b
-    tier: performant
-    cost_per_1m_tokens: 0.14
-
-  - id: openrouter/deepseek/deepseek-v4-flash
-    tier: performant
-    cost_per_1m_tokens: 0.10
+  - id: openai/google/gemma-4-26b-local
+    api_base: http://127.0.0.1:8011/v1
+    location: local
+    tier: middle
+    cost_per_1m_tokens: 0.0
 
   - id: openrouter/google/gemma-4-26b-a4b-it
-    tier: performant
+    location: external
+    tier: middle
     cost_per_1m_tokens: 0.06
 
-  # ── Frontier (best capability, higher cost) ────────────────────────────────
-
-  - id: openrouter/google/gemini-3.1-flash-lite
-    tier: frontier
-    cost_per_1m_tokens: 0.25
-
-  - id: openrouter/google/gemini-3.5-flash
-    tier: frontier
-    cost_per_1m_tokens: 1.50
-
-  - id: openrouter/anthropic/claude-haiku-4.5
-    tier: frontier
-    cost_per_1m_tokens: 1.00
-
-  # ── Self-hosted / OpenAI-compatible examples ───────────────────────────────
-  # Uncomment and adjust for your own endpoints.  litellm will call these
-  # exactly like any other model — just prefix with openai/ and set api_base.
-  #
-  # Ollama (local):
-  # - id: openai/ministral-3:3b
-  #   api_base: http://localhost:11434/v1
-  #   tier: edge
-  #   cost_per_1m_tokens: 0.0
-  #
-  # vLLM or any OpenAI-compatible server:
-  # - id: openai/mistral-small
-  #   api_base: https://my-vllm-server.example.com/v1
-  #   tier: performant
-  #   cost_per_1m_tokens: 0.0
-
-# ── Agent Configuration ──────────────────────────────────────────────────────
-# Each agent declares which model to use and how to call it.
-# The model value MUST match an id in the models registry above —
-# otherwise config validation will fail immediately (fail-fast).
-
-extractor:
-  # The Extractor scans raw text for PII, business secrets, and research
-  # secrets. It needs strong contextual reasoning more than raw intelligence.
-  # Recommendation: ministral-3b-2512 — matches frontier models at 60% lower
-  # cost when using the v2 contextual-reasoning prompt.  See docs/devlog/
-  # for the full evaluation.
-  model: openrouter/mistralai/ministral-3b-2512
+decision:
+  model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
   config:
-    temperature: 0.0      # Deterministic output — same input, same tags
-    max_tokens: 4096       # Enough for sensitivity + multiple record outputs
-
-judge:
-  # The Judge decides whether a query survives masking.  This requires
-  # understanding verb-target relationships in Korean/English text.
-  # Recommendation: gemini-3.1-flash-lite — reliable structured JSON output.
-  model: openrouter/google/gemini-3.1-flash-lite
-  config:
-    temperature: 0.0      # Deterministic policy decisions
-    max_tokens: 2048       # Judgment output is compact (policy_action + rationale)
-
-generator:
-  # External AI — cloud API for general generation (OpenRouter, OpenAI, etc.)
-  # Used for mask_and_send and allow policy actions.
-  model: openrouter/mistralai/ministral-3b-2512
-  config:
-    temperature: 0.7      # Creative generation
-    max_tokens: 512        # Typical chat response length
+    temperature: 0.0
+    max_tokens: 2048
 
 local:
-  # Local AI — self-hosted models (Ollama, vLLM, etc.)
-  # Used for process_locally policy action — sensitive data stays on-device.
-  # Requires the model to be registered in the models list above.
-  model: openai/ministral-3:3b
+  model: openai/google/gemma-4-26b-local
   config:
-    temperature: 0.7      # Creative generation
-    max_tokens: 512        # Typical chat response length
+    temperature: 0.7
+    max_tokens: 512
+
+external:
+  model: openrouter/google/gemma-4-26b-a4b-it
+  config:
+    temperature: 0.7
+    max_tokens: 512
+
+profiles:
+  default:
+    description: EXAONE privacy analysis, local Gemma generation, OpenRouter external generation
+    decision:
+      model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
+      temperature: 0.0
+      max_tokens: 2048
+    local:
+      model: openai/google/gemma-4-26b-local
+      temperature: 0.7
+      max_tokens: 512
+    external:
+      model: openrouter/google/gemma-4-26b-a4b-it
+      temperature: 0.7
+      max_tokens: 512

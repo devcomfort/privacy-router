@@ -20,8 +20,7 @@ from fastapi.responses import JSONResponse
 
 from agents.masker import Masker
 from agents.router import PrivacyRouter
-from server.api.auth import require_auth
-from server.api.main import app
+from server.api import app, require_auth
 
 
 @app.post("/api/v1/guardrail")
@@ -43,8 +42,10 @@ async def guardrail(request: Request, _auth: str = Depends(require_auth)) -> JSO
         {"decision": "BLOCKED"}
         {"decision": "GUARDRAIL_INTERVENED", "modified_texts": [...]}
     """
-    body: dict[str, Any] = await request.json()
-
+    try:
+        body: dict[str, Any] = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
     input_type: str = body.get("input_type", "request")
     texts: list[str] = body.get("texts", [])
 
@@ -78,9 +79,11 @@ async def guardrail(request: Request, _auth: str = Depends(require_auth)) -> JSO
             modified_texts.append(text)
 
     if any_masked:
-        return JSONResponse({
-            "decision": "GUARDRAIL_INTERVENED",
-            "modified_texts": modified_texts,
-        })
+        return JSONResponse(
+            {
+                "decision": "GUARDRAIL_INTERVENED",
+                "modified_texts": modified_texts,
+            }
+        )
 
     return JSONResponse({"decision": "NONE"})

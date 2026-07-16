@@ -1,8 +1,7 @@
-"""Encryption utility for masking records.
+"""Encryption utility for Privacy Router.
 
 Uses Fernet symmetric encryption (AES-128-CBC with HMAC-SHA256).
-Key is loaded from MASKING_ENCRYPTION_KEY environment variable.
-If not set, a random key is generated at startup (dev mode).
+Master key resolution: PRIVACY_ROUTER_MASTER_KEY → MASKING_ENCRYPTION_KEY → auto-generate.
 
 Usage:
     from agents.masker.crypto import encrypt_field, decrypt_field
@@ -13,21 +12,25 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import os
 
 from cryptography.fernet import Fernet
 
 
-def _get_fernet() -> Fernet:
-    """Get or create the Fernet instance."""
-    key = os.environ.get("MASKING_ENCRYPTION_KEY", "")
+def _get_master_key() -> bytes:
+    """Resolve the shared master key as bytes."""
+    key = os.environ.get("PRIVACY_ROUTER_MASTER_KEY") or os.environ.get("MASKING_ENCRYPTION_KEY") or ""
     if not key:
-        # Dev mode: generate ephemeral key (not persisted)
         key = Fernet.generate_key().decode()
-        os.environ["MASKING_ENCRYPTION_KEY"] = key
-    else:
-        key = key.strip()
-    return Fernet(key.encode() if isinstance(key, str) else key)
+        os.environ["PRIVACY_ROUTER_MASTER_KEY"] = key
+    return key.strip().encode()
+
+
+def _get_fernet() -> Fernet:
+    """Return a Fernet instance backed by the shared master key."""
+    return Fernet(_get_master_key())
 
 
 def generate_key() -> str:
@@ -49,3 +52,43 @@ def decrypt_field(ciphertext: str) -> str:
         return ""
     f = _get_fernet()
     return f.decrypt(ciphertext.encode()).decode()
+
+
+def _fingerprint(value: str, domain: bytes) -> str:
+    """Return a keyed SHA-256 fingerprint within one explicit domain."""
+    if not value:
+        return ""
+    return hmac.new(_get_master_key(), domain + b"\0" + value.encode(), hashlib.sha256).hexdigest()
+
+
+def fingerprint_field(value: str) -> str:
+    """Return a masking-record HMAC-SHA256 fingerprint."""
+    return _fingerprint(value, b"privacy-router:masking-record")
+
+
+def cache_fingerprint(value: str) -> str:
+    """Return a cache-key HMAC-SHA256 fingerprint."""
+    return _fingerprint(value, b"privacy-router:cache-key")
+
+
+def key_fingerprint(key: str) -> str:
+    """Return a short, domain-separated HMAC fingerprint without key fragments."""
+    return _fingerprint(key, b"privacy-router:provider-key")[:16]
+
+
+def resolve_provider_key(encrypted_api_key: str | None, api_key_env: str | None) -> str | None:
+    """Resolve a provider API key from DB or environment.
+
+    Resolution order:
+    1. encrypted_api_key (decrypt from DB)
+    2. api_key_env (read from environment variable)
+    3. None (caller decides how to handle missing key)
+    """
+    if encrypted_api_key:
+        try:
+            return decrypt_field(encrypted_api_key)
+        except Exception:
+            pass  # corrupted ciphertext, fall through
+    if api_key_env:
+        return os.environ.get(api_key_env)
+    return None

@@ -1,5 +1,5 @@
 ---
-model: openrouter/mistralai/ministral-3b-2512
+model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
 config:
   temperature: 0.0
   max_tokens: 4096
@@ -117,21 +117,8 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
 | "내 주민번호가 뭐야?" | "내 [MASKED]가 뭐야?" | true |
 | "TSMC 3nm 채택 결정" | "[MASKED] 채택 결정" | true |
 
----
 
-## 6. Harm Classification (유해성 분류)
-
-각 span에 대해 해당하는 **모든** 유해성 레이블을 선택합니다:
-
-| 레이블 | 기준 |
-|--------|------|
-| `IDENTITY` | 특정 개인을 식별할 수 있는가? |
-| `COMPETITIVE` | 경쟁사가 알면 이득을 얻는가? |
-| `SAFETY` | 누군가의 안전이 위험한가? |
-
----
-
-## 7. Steps (처리 절차)
+## 6. Steps (처리 절차)
 
 ### Step 1: 민감 span 추출
 
@@ -163,9 +150,6 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
     {
       "category": "FIXED_CATEGORY_NAME",
       "span": "추출된 최소 단위",
-      "harms": [
-        {"label": "IDENTITY", "reason": "주민등록번호로 개인 식별 가능"}
-      ],
       "confidence": 0.95,
       "reasoning": "왜 이게 민감한지 한 줄 설명",
       "is_essential": false
@@ -178,13 +162,12 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
 
 **필드 설명:**
 - `category`: §4의 고정 카테고리 중 하나
-- `harms`: 유해성 레이블 배열 (label + reason)
 - `confidence`: 0.0~1.0 (0.9+=확실, 0.7+=추정, 0.5-=불확실)
 - `reasoning`: 왜 민감한지 한 줄 설명
 
 ---
 
-## 9. 완전한 예시 (End-to-End Example)
+## 8. 완전한 예시 (End-to-End Example)
 
 **입력**: "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해."
 
@@ -199,7 +182,6 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
     {
       "category": "PERSON_NAME",
       "span": "김동현",
-      "harms": [{"label": "IDENTITY", "reason": "실명으로 개인 식별 가능"}],
       "confidence": 0.98,
       "reasoning": "식별 맥락에서의 실명",
       "is_essential": false
@@ -207,7 +189,6 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
     {
       "category": "INSTITUTION",
       "span": "광주과학기술원",
-      "harms": [{"label": "IDENTITY", "reason": "기관명으로 소속 추정 가능"}],
       "confidence": 0.90,
       "reasoning": "학생의 소속 기관",
       "is_essential": false
@@ -215,7 +196,6 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
     {
       "category": "UNPUBLISHED_RESEARCH",
       "span": "contextual distillation",
-      "harms": [{"label": "COMPETITIVE", "reason": "미공개 연구 개념으로 경쟁사에 이점 제공"}],
       "confidence": 0.85,
       "reasoning": "미공개 연구 주제",
       "is_essential": false
@@ -226,7 +206,7 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
 
 ---
 
-## 10. Input (입력)
+## 9. Input (입력)
 
 분석할 텍스트:
 {{text}}

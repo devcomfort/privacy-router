@@ -1,10 +1,12 @@
 <script lang="ts">
+	const generatedId = $props.id();
 	interface Option {
 		value: string;
 		label: string;
 	}
 
 	interface Props {
+		id?: string;
 		value?: string;
 		options: Option[];
 		label?: string;
@@ -13,6 +15,7 @@
 	}
 
 	let {
+		id = generatedId,
 		value = $bindable(''),
 		options,
 		label,
@@ -23,9 +26,10 @@
 
 <div class="space-y-1.5">
 	{#if label}
-		<label class="block text-sm font-medium text-slate-300">{label}</label>
+		<label for={id} class="block text-sm font-medium text-slate-300">{label}</label>
 	{/if}
 	<select
+		{id}
 		{disabled}
 		bind:value
 		{onchange}

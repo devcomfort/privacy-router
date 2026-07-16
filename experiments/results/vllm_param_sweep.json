@@ -1,0 +1,298 @@
+{
+  "E2B": {
+    "results": [
+      {
+        "total_s": 6.9,
+        "avg_lat": 3.08,
+        "acc": 65.0,
+        "tps": 2.92,
+        "errors": 0,
+        "label": "baseline",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 5.5,
+        "avg_lat": 3.56,
+        "acc": 65.0,
+        "tps": 3.6,
+        "errors": 0,
+        "label": "seqs=24",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 4.4,
+        "avg_lat": 2.34,
+        "acc": 65.0,
+        "tps": 4.59,
+        "errors": 0,
+        "label": "seqs=32",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 4.6,
+        "avg_lat": 2.13,
+        "acc": 65.0,
+        "tps": 4.32,
+        "errors": 0,
+        "label": "gpu=0.75",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 4.3,
+        "avg_lat": 2.26,
+        "acc": 65.0,
+        "tps": 4.66,
+        "errors": 0,
+        "label": "gpu=0.75+seqs=24",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 4.3,
+        "avg_lat": 2.29,
+        "acc": 65.0,
+        "tps": 4.62,
+        "errors": 0,
+        "label": "gpu=0.75+seqs=32",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 5.3,
+        "avg_lat": 2.14,
+        "acc": 65.0,
+        "tps": 3.8,
+        "errors": 0,
+        "label": "gpu=0.85",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 4.3,
+        "avg_lat": 2.28,
+        "acc": 65.0,
+        "tps": 4.64,
+        "errors": 0,
+        "label": "gpu=0.85+seqs=24",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 4.3,
+        "avg_lat": 2.26,
+        "acc": 65.0,
+        "tps": 4.65,
+        "errors": 0,
+        "label": "gpu=0.85+seqs=32",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 3.9,
+        "avg_lat": 1.38,
+        "acc": 40.0,
+        "tps": 5.08,
+        "errors": 9,
+        "label": "len=2048",
+        "gpu": 0.65,
+        "len": 2048,
+        "seqs": 16
+      },
+      {
+        "total_s": 4.0,
+        "avg_lat": 1.41,
+        "acc": 40.0,
+        "tps": 5.02,
+        "errors": 9,
+        "label": "len=2048+seqs=24",
+        "gpu": 0.65,
+        "len": 2048,
+        "seqs": 24
+      },
+      {
+        "total_s": 3.3,
+        "avg_lat": 1.06,
+        "acc": 40.0,
+        "tps": 6.1,
+        "errors": 9,
+        "label": "len=2048+gpu=0.75+seqs=24",
+        "gpu": 0.75,
+        "len": 2048,
+        "seqs": 24
+      },
+      {
+        "total_s": 4.6,
+        "avg_lat": 1.78,
+        "acc": 40.0,
+        "tps": 4.3,
+        "errors": 9,
+        "label": "len=2048+gpu=0.85+seqs=32",
+        "gpu": 0.85,
+        "len": 2048,
+        "seqs": 32
+      }
+    ],
+    "baseline_acc": 65.0
+  },
+  "E4B": {
+    "results": [
+      {
+        "total_s": 9.9,
+        "avg_lat": 5.42,
+        "acc": 60.0,
+        "tps": 2.03,
+        "errors": 0,
+        "label": "baseline",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 8.0,
+        "avg_lat": 5.84,
+        "acc": 60.0,
+        "tps": 2.5,
+        "errors": 0,
+        "label": "seqs=24",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 6.9,
+        "avg_lat": 4.72,
+        "acc": 60.0,
+        "tps": 2.9,
+        "errors": 0,
+        "label": "seqs=32",
+        "gpu": 0.65,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 8.5,
+        "avg_lat": 4.43,
+        "acc": 60.0,
+        "tps": 2.34,
+        "errors": 0,
+        "label": "gpu=0.75",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 6.9,
+        "avg_lat": 4.64,
+        "acc": 60.0,
+        "tps": 2.92,
+        "errors": 0,
+        "label": "gpu=0.75+seqs=24",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 6.9,
+        "avg_lat": 4.65,
+        "acc": 60.0,
+        "tps": 2.92,
+        "errors": 0,
+        "label": "gpu=0.75+seqs=32",
+        "gpu": 0.75,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 8.6,
+        "avg_lat": 4.5,
+        "acc": 60.0,
+        "tps": 2.32,
+        "errors": 0,
+        "label": "gpu=0.85",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 16
+      },
+      {
+        "total_s": 6.9,
+        "avg_lat": 4.7,
+        "acc": 60.0,
+        "tps": 2.9,
+        "errors": 0,
+        "label": "gpu=0.85+seqs=24",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 24
+      },
+      {
+        "total_s": 6.8,
+        "avg_lat": 4.66,
+        "acc": 60.0,
+        "tps": 2.92,
+        "errors": 0,
+        "label": "gpu=0.85+seqs=32",
+        "gpu": 0.85,
+        "len": 4096,
+        "seqs": 32
+      },
+      {
+        "total_s": 7.7,
+        "avg_lat": 2.99,
+        "acc": 35.0,
+        "tps": 2.59,
+        "errors": 9,
+        "label": "len=2048",
+        "gpu": 0.65,
+        "len": 2048,
+        "seqs": 16
+      },
+      {
+        "total_s": 6.4,
+        "avg_lat": 2.26,
+        "acc": 35.0,
+        "tps": 3.11,
+        "errors": 9,
+        "label": "len=2048+seqs=24",
+        "gpu": 0.65,
+        "len": 2048,
+        "seqs": 24
+      },
+      {
+        "total_s": 6.4,
+        "avg_lat": 2.27,
+        "acc": 35.0,
+        "tps": 3.12,
+        "errors": 9,
+        "label": "len=2048+gpu=0.75+seqs=24",
+        "gpu": 0.75,
+        "len": 2048,
+        "seqs": 24
+      },
+      {
+        "total_s": 7.7,
+        "avg_lat": 2.97,
+        "acc": 35.0,
+        "tps": 2.6,
+        "errors": 9,
+        "label": "len=2048+gpu=0.85+seqs=32",
+        "gpu": 0.85,
+        "len": 2048,
+        "seqs": 32
+      }
+    ],
+    "baseline_acc": 60.0
+  }
+}

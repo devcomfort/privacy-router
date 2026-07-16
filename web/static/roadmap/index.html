@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="en" data-current-locale="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Source-grounded Privacy Router query aggregation implementation roadmap.">
+  <meta name="theme-color" content="#101827">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Privacy Router — Query Aggregation Roadmap">
+  <meta property="og:description" content="A bilingual, source-grounded implementation roadmap for fail-closed Query Aggregation.">
+  <meta property="og:url" content="https://privacy-router-roadmap.surge.sh/">
+  <link rel="canonical" href="https://privacy-router-roadmap.surge.sh/">
+  <title>Privacy Router — Query Aggregation Roadmap</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: oklch(0.982 0.004 264);
+      --surface: oklch(1 0 0);
+      --surface-muted: oklch(0.958 0.008 264);
+      --ink: oklch(0.225 0.03 264);
+      --ink-soft: oklch(0.405 0.026 264);
+      --line: oklch(0.87 0.012 264);
+      --line-strong: oklch(0.72 0.025 264);
+      --accent: oklch(0.51 0.205 264);
+      --accent-soft: oklch(0.93 0.035 264);
+      --accent-ink: oklch(0.34 0.16 264);
+      --required: oklch(0.55 0.2 27);
+      --required-soft: oklch(0.95 0.035 27);
+      --planned: oklch(0.56 0.14 76);
+      --planned-soft: oklch(0.955 0.04 76);
+      --research: oklch(0.49 0.13 315);
+      --research-soft: oklch(0.95 0.03 315);
+      --success: oklch(0.45 0.12 155);
+      --success-soft: oklch(0.95 0.035 155);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-24: 6rem;
+      --radius-sm: 0.45rem;
+      --radius-md: 0.8rem;
+      --shadow: 0 1.25rem 3.5rem color-mix(in oklab, var(--ink) 10%, transparent);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { overflow-x: clip; scroll-behavior: smooth; background: var(--canvas); }
+    body { margin: 0; overflow-x: clip; background: var(--canvas); color: var(--ink); font-size: 1rem; line-height: 1.65; }
+    button, a { font: inherit; }
+    a { color: var(--accent-ink); text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 0.12em; }
+    :focus-visible { outline: 0.2rem solid var(--accent); outline-offset: 0.2rem; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; font-variant-ligatures: none; }
+    code { overflow-wrap: anywhere; }
+    h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 760; letter-spacing: -0.025em; line-height: 1.12; text-wrap: balance; }
+    h1 { max-width: 12ch; font-size: clamp(2.75rem, 8vw, 5.5rem); letter-spacing: -0.038em; }
+    h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+    h3 { font-size: 1.2rem; }
+    p { margin-block: 0; text-wrap: pretty; }
+    ul, ol { margin-block: 0; padding-inline-start: 1.3rem; }
+    li + li { margin-top: var(--space-2); }
+
+    .locale-target { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .briefing-ko { display: none; }
+    html[data-current-locale="ko"] .briefing-en { display: none; }
+    html[data-current-locale="ko"] .briefing-ko { display: block; }
+    #ko:target ~ .site .briefing-en { display: none; }
+    #ko:target ~ .site .briefing-ko { display: block; }
+    #en:target ~ .site .briefing-en { display: block; }
+    #en:target ~ .site .briefing-ko { display: none; }
+
+    .utility-bar {
+      position: sticky;
+      z-index: 30;
+      top: 0;
+      display: flex;
+      min-height: 4rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-2) max(var(--space-4), env(safe-area-inset-left));
+      border-bottom: 1px solid color-mix(in oklab, white 16%, transparent);
+      background: var(--ink);
+      color: white;
+    }
+    .brand { display: flex; min-width: 0; align-items: center; gap: var(--space-3); color: white; text-decoration: none; }
+    .brand-mark { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in oklab, white 34%, transparent); border-radius: 50%; font-size: 0.72rem; font-weight: 800; letter-spacing: -0.04em; }
+    .brand-copy { overflow: hidden; font-size: 0.86rem; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+    .language-control { display: flex; padding: 0.2rem; border: 1px solid color-mix(in oklab, white 28%, transparent); border-radius: 999px; }
+    .lang-link, .expand-button { min-height: 2.75rem; border-radius: 999px; color: color-mix(in oklab, white 76%, transparent); font-size: 0.82rem; font-weight: 700; text-decoration: none; }
+    .lang-link { display: inline-flex; align-items: center; padding-inline: 0.9rem; }
+    .lang-link[href="#en"] { background: white; color: var(--ink); }
+    #ko:target ~ .site .lang-link[href="#en"] { background: transparent; color: color-mix(in oklab, white 76%, transparent); }
+    #ko:target ~ .site .lang-link[href="#ko"] { background: white; color: var(--ink); }
+    #en:target ~ .site .lang-link[href="#en"] { background: white; color: var(--ink); }
+    #en:target ~ .site .lang-link[href="#ko"] { background: transparent; color: color-mix(in oklab, white 76%, transparent); }
+    html[data-current-locale="ko"] .lang-link[href="#en"] { background: transparent; color: color-mix(in oklab, white 76%, transparent); }
+    html[data-current-locale="ko"] .lang-link[href="#ko"] { background: white; color: var(--ink); }
+    .expand-button { border: 1px solid color-mix(in oklab, white 28%, transparent); background: transparent; padding-inline: 1rem; cursor: pointer; }
+    .expand-button:hover { background: color-mix(in oklab, white 10%, transparent); color: white; }
+    .button-ko { display: none; }
+    #ko:target ~ .site .button-en { display: none; }
+    #ko:target ~ .site .button-ko { display: inline; }
+    html[data-current-locale="ko"] .button-en { display: none; }
+    html[data-current-locale="ko"] .button-ko { display: inline; }
+
+    .hero { background: var(--ink); color: white; }
+    .hero-inner { width: min(100% - 2rem, 82rem); margin-inline: auto; padding: clamp(4.5rem, 12vw, 9rem) 0 clamp(3.5rem, 8vw, 6rem); }
+    .status-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8); }
+    .status-badge { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2rem; padding: 0.25rem 0.7rem; border: 1px solid color-mix(in oklab, var(--planned) 62%, white); border-radius: 999px; background: color-mix(in oklab, var(--planned) 22%, transparent); color: oklch(0.9 0.08 76); font-size: 0.78rem; font-weight: 760; }
+    .status-dot { width: 0.52rem; height: 0.52rem; border-radius: 50%; background: oklch(0.78 0.16 76); }
+    .verified { color: color-mix(in oklab, white 62%, transparent); font-size: 0.82rem; }
+    .hero h1 { color: white; }
+    .hero-lede { max-width: 66ch; margin-top: var(--space-8); color: color-mix(in oklab, white 76%, transparent); font-size: clamp(1.08rem, 2vw, 1.32rem); line-height: 1.6; }
+    .hero-verdict { display: grid; gap: var(--space-4); margin-top: var(--space-12); padding-top: var(--space-6); border-top: 1px solid color-mix(in oklab, white 18%, transparent); }
+    .hero-verdict strong { color: white; font-size: 1.08rem; }
+    .hero-verdict p { max-width: 70ch; color: color-mix(in oklab, white 68%, transparent); }
+    .count-line { margin-top: var(--space-8); color: color-mix(in oklab, white 58%, transparent); font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+
+    .page-grid { width: min(100% - 2rem, 82rem); margin-inline: auto; padding-block: clamp(3rem, 8vw, 7rem); }
+    .toc { margin-bottom: var(--space-12); }
+    .toc-title { margin-bottom: var(--space-3); color: var(--ink-soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .toc nav { display: flex; gap: var(--space-2); overflow-x: auto; padding: 0.2rem 0.2rem var(--space-2); scrollbar-width: thin; }
+    .toc a { display: inline-flex; min-height: 2.75rem; flex: 0 0 auto; align-items: center; padding-inline: 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink-soft); font-size: 0.82rem; font-weight: 650; text-decoration: none; }
+    .toc a[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+    .content { min-width: 0; }
+    .content-section { scroll-margin-top: 5.5rem; padding-block: var(--space-16); border-top: 1px solid var(--line); }
+    .content-section:first-child { padding-top: 0; border-top: 0; }
+    .section-intro { max-width: 70ch; margin-top: var(--space-4); color: var(--ink-soft); }
+    .section-note { margin-top: var(--space-6); padding: var(--space-4) var(--space-6); border: 1px solid var(--accent); border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-ink); }
+
+    .change-chain { display: grid; gap: var(--space-2); margin-top: var(--space-8); padding: 0; list-style: none; counter-reset: chain; }
+    .change-chain li { display: grid; grid-template-columns: 2.25rem 1fr; align-items: start; gap: var(--space-3); margin: 0; padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+    .change-chain li::before { counter-increment: chain; content: counter(chain); display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; background: var(--ink); color: white; font-size: 0.78rem; font-weight: 800; }
+    .change-chain code { color: var(--accent-ink); font-size: 0.92rem; }
+
+    .problem-line {
+      margin: 1.35rem 0 0;
+      padding: 0.9rem 1rem;
+      border: 1px solid color-mix(in oklab, var(--planned), white 60%);
+      border-radius: var(--radius-sm);
+      background: color-mix(in oklab, var(--planned), white 91%);
+      color: var(--ink);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .architecture-compare { margin: 1rem 0 1.6rem; }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .flow-lane {
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    .flow-lane[data-flow="after"] {
+      border-color: color-mix(in oklab, var(--accent), white 50%);
+      background: color-mix(in oklab, var(--accent), white 97%);
+    }
+    .flow-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .flow-heading h3 { margin: 0; font-size: 1rem; }
+    .flow-state {
+      flex: 0 0 auto;
+      color: var(--ink-soft);
+      font: 700 0.68rem/1 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .flow-state.implicit { color: oklch(0.40 0.11 76); }
+    .flow-steps {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: flow-step;
+    }
+    .flow-step {
+      position: relative;
+      min-width: 0;
+      padding: 0.72rem 0.8rem 0.72rem 2.55rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: white;
+      overflow-wrap: anywhere;
+    }
+    .flow-step::before {
+      counter-increment: flow-step;
+      content: counter(flow-step);
+      position: absolute;
+      left: 0.75rem;
+      top: 0.78rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font: 700 0.65rem/1.15rem ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      text-align: center;
+    }
+    .flow-step + .flow-step::after {
+      content: "";
+      position: absolute;
+      left: 1.3rem;
+      bottom: calc(100% + 1px);
+      height: 0.65rem;
+      border-left: 2px solid var(--line-strong);
+    }
+    .flow-lane[data-flow="before"] .flow-step[data-step="judge-combined"] {
+      border-color: var(--planned);
+    }
+    .flow-lane[data-flow="before"] .flow-step[data-step="judge-combined"]::after {
+      border-left-style: dashed;
+      border-left-color: var(--planned);
+    }
+    .flow-lane[data-flow="after"] .flow-step[data-step="query-decision-summary"] {
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .flow-step strong { display: block; margin-bottom: 0.2rem; font-size: 0.9rem; }
+    .flow-step span { display: block; color: var(--ink-soft); font-size: 0.78rem; line-height: 1.4; }
+    .evidence-branch {
+      margin: 0.75rem 0 0 2.55rem;
+      padding: 0.68rem 0.75rem;
+      border-left: 2px solid var(--accent);
+      background: color-mix(in oklab, var(--accent), white 94%);
+      color: var(--ink-soft);
+      font: 650 0.75rem/1.45 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      overflow-wrap: anywhere;
+    }
+    .evidence-branch strong { color: var(--accent-ink); }
+
+    .table-wrap { margin-top: var(--space-8); overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 0.6rem 1.8rem color-mix(in oklab, var(--ink) 5%, transparent); }
+    table { width: 100%; min-width: 44rem; border-collapse: collapse; font-size: 0.91rem; }
+    caption { padding: var(--space-4); color: var(--ink-soft); font-weight: 650; text-align: left; }
+    th, td { padding: 0.9rem 1rem; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--surface-muted); color: var(--ink-soft); font-size: 0.78rem; font-weight: 780; letter-spacing: 0.04em; }
+    td { color: var(--ink-soft); }
+    td strong { color: var(--ink); }
+
+    .priority-label, .state-label { display: inline-flex; width: fit-content; align-items: center; min-height: 1.8rem; padding-inline: 0.58rem; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.035em; white-space: nowrap; }
+    .priority-label.p0, .state-label.required { background: var(--required-soft); color: var(--required); }
+    .priority-label.p1, .state-label.release { background: var(--planned-soft); color: oklch(0.43 0.12 76); }
+    .priority-label.p2, .state-label.quality { background: var(--accent-soft); color: var(--accent-ink); }
+    .priority-label.research, .state-label.deferred { background: var(--research-soft); color: var(--research); }
+    .state-label.excluded { background: var(--surface-muted); color: var(--ink-soft); }
+
+    .package-list { margin-top: var(--space-8); border-top: 1px solid var(--line-strong); }
+    details { border-bottom: 1px solid var(--line-strong); background: transparent; }
+    summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); min-height: 5.25rem; padding: var(--space-4) var(--space-2); cursor: pointer; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; grid-column: 1; grid-row: 1; display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink-soft); font-size: 1.15rem; line-height: 1; }
+    details[open] summary::after { content: "−"; }
+    .package-code { grid-column: 2; grid-row: 1; color: var(--accent-ink); font-size: 0.78rem; font-weight: 800; }
+    .package-title { grid-column: 2; grid-row: 2; color: var(--ink); font-size: 1.04rem; font-weight: 720; line-height: 1.35; }
+    summary .state-label { grid-column: 3; grid-row: 1 / span 2; }
+    .package-body { padding: 0 var(--space-2) var(--space-8) 3.85rem; }
+    .detail-grid { display: grid; gap: var(--space-6); }
+    .detail-block h3 { margin-bottom: var(--space-2); color: var(--ink-soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+    .detail-block p, .detail-block li { max-width: 72ch; color: var(--ink-soft); }
+    .path-list { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: 0; list-style: none; }
+    .path-list li { margin: 0; padding: 0.25rem 0.5rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--accent-ink); font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; font-size: 0.78rem; overflow-wrap: anywhere; }
+    .acceptance { padding: var(--space-4); border: 1px solid color-mix(in oklab, var(--success) 35%, var(--line)); border-radius: var(--radius-md); background: var(--success-soft); }
+    .acceptance h3 { color: var(--success); }
+
+    .exclusion-list { display: grid; gap: var(--space-3); margin-top: var(--space-8); padding: 0; list-style: none; }
+    .exclusion-list li { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); margin: 0; padding-block: var(--space-4); border-bottom: 1px solid var(--line); }
+    .exclusion-mark { display: grid; width: 1.7rem; height: 1.7rem; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink-soft); font-size: 0.8rem; font-weight: 800; }
+    .exclusion-list strong { display: block; margin-bottom: var(--space-1); color: var(--ink); }
+    .exclusion-list p { max-width: 68ch; color: var(--ink-soft); }
+
+    .run-order { display: grid; gap: 0; margin-top: var(--space-8); padding: 0; list-style: none; counter-reset: run-order; }
+    .run-order li { counter-increment: run-order; display: grid; grid-template-columns: 3rem 1fr; gap: var(--space-4); margin: 0; padding: var(--space-4) 0; border-bottom: 1px solid var(--line); }
+    .run-order li::before { content: counter(run-order, decimal-leading-zero); color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 820; }
+    .run-order strong { display: block; color: var(--ink); }
+    .run-order span { color: var(--ink-soft); }
+
+    .sources { display: grid; gap: var(--space-3); margin-top: var(--space-8); padding: 0; list-style: none; }
+    .sources li { margin: 0; }
+    .source-link { display: flex; min-height: 3.25rem; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-3); border-bottom: 1px solid var(--line); color: var(--ink); font-weight: 680; text-decoration: none; }
+    .source-link span:last-child { color: var(--accent); }
+
+    .footer { padding: var(--space-8) max(var(--space-4), env(safe-area-inset-left)); border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.82rem; text-align: center; }
+
+    @media (min-width: 64rem) {
+      .utility-bar { padding-inline: max(var(--space-8), calc((100vw - 82rem) / 2)); }
+      .page-grid { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: clamp(3rem, 7vw, 7rem); align-items: start; }
+      .toc { position: sticky; top: 6rem; margin: 0; }
+      .toc nav { display: grid; overflow: visible; padding: 0; }
+      .toc a { min-height: 2.5rem; border: 0; border-radius: var(--radius-sm); background: transparent; white-space: normal; }
+      .toc a[aria-current="true"] { border: 0; }
+      .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-block.acceptance { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 42rem) {
+      html { scrollbar-width: none; }
+      html::-webkit-scrollbar { display: none; }
+      .brand-copy, .expand-button { display: none; }
+      .utility-bar { align-items: center; }
+      .hero-inner, .page-grid { width: min(calc(100% - 1.25rem), 82rem); }
+      .hero-inner { padding-top: 3.75rem; }
+      .status-line { align-items: flex-start; flex-direction: column; }
+      summary { grid-template-columns: auto minmax(0, 1fr); min-height: 5.75rem; }
+      summary .state-label { grid-column: 2; grid-row: 3; margin-top: var(--space-2); }
+      .package-body { padding-left: 3.2rem; }
+      h1 { font-size: clamp(2.55rem, 15vw, 4.1rem); }
+      .compare-grid { grid-template-columns: 1fr; }
+      .flow-lane { padding: 0.85rem; }
+      .evidence-branch { margin-left: 2.2rem; }
+    }
+
+    @media (pointer: coarse) {
+      .toc a, .source-link, summary { min-height: 3rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media print {
+      @page { margin: 1.6cm; }
+      :root { --canvas: white; --surface: white; --ink: black; --ink-soft: #303030; --line: #b8b8b8; }
+      .utility-bar, .toc { display: none !important; }
+      body, .hero { background: white; color: black; }
+      .hero { border-bottom: 2px solid black; }
+      .hero h1, .hero-verdict strong { color: black; }
+      .hero-lede, .hero-verdict p, .count-line, .verified { color: #303030; }
+      .status-badge { border-color: #555; background: white; color: black; }
+      .status-dot { background: black; }
+      .hero-inner, .page-grid { width: 100%; padding: 1rem 0; }
+      .page-grid { display: block; }
+      .content-section { break-before: auto; }
+      details { break-inside: avoid; }
+      details > *:not(summary) { display: block; }
+      details:not([open]) > .package-body { display: block; }
+      summary::after { display: none; }
+      .table-wrap { box-shadow: none; overflow: visible; }
+      table { min-width: 0; font-size: 8pt; }
+      .problem-line,
+      .flow-lane,
+      .flow-step,
+      .evidence-branch {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      a { color: black; text-decoration: none; }
+      .footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <span id="en" class="locale-target" aria-hidden="true"></span>
+  <span id="ko" class="locale-target" aria-hidden="true"></span>
+  <div class="site">
+    <header class="utility-bar">
+      <a class="brand" href="#status-en" aria-label="Privacy Router roadmap home">
+        <span class="brand-mark" aria-hidden="true">PR</span>
+        <span class="brand-copy">Privacy Router · Implementation Brief</span>
+      </a>
+      <div class="controls">
+        <nav class="language-control" aria-label="Language">
+          <a class="lang-link" href="#en" lang="en" aria-pressed="true">EN</a>
+          <a class="lang-link" href="#ko" lang="ko" aria-pressed="false">한국어</a>
+        </nav>
+        <button class="expand-button" id="expand-all" type="button" aria-expanded="false">
+          <span class="button-en">Expand all</span><span class="button-ko">모두 펼치기</span>
+        </button>
+      </div>
+    </header>
+
+    <article class="briefing briefing-en" lang="en" aria-labelledby="title-en">
+      <header class="hero" id="status-en">
+        <div class="hero-inner">
+          <div class="status-line">
+            <span class="status-badge"><span class="status-dot" aria-hidden="true"></span>Target design — runtime implementation pending</span>
+            <span class="verified">Source-verified · 11 July 2026</span>
+          </div>
+          <h1 id="title-en">Query Aggregation Roadmap</h1>
+          <p class="hero-lede">A single, evidence-led map of what Privacy Router must implement, what it should clean up, what belongs to research, and what should not be built.</p>
+          <div class="hero-verdict">
+            <strong>The key truth</strong>
+            <p>Query Aggregation is not a naming exercise. It is the fail-closed boundary that prevents an extractor failure, contradictory record set, or local-model outage from becoming an external raw-prompt leak.</p>
+          </div>
+          <p class="count-line">9 P0 packages · 3 P1 packages · 7 P2 packages · 2 research packages · 10 explicit exclusions</p>
+        </div>
+      </header>
+
+      <div class="page-grid">
+        <aside class="toc" aria-label="Roadmap sections">
+          <p class="toc-title">On this page</p>
+          <nav>
+            <a href="#conclusion-en">Conclusion</a>
+            <a href="#priorities-en">Priority map</a>
+            <a href="#p0-en">P0 · Security</a>
+            <a href="#p1-en">P1 · Release</a>
+            <a href="#p2-en">P2 · Docs &amp; UX</a>
+            <a href="#research-en">Research</a>
+            <a href="#excluded-en">Do not build</a>
+            <a href="#sequence-en">Execution order</a>
+            <a href="#done-en">Definition of Done</a>
+            <a href="#sources-en">Sources</a>
+          </nav>
+        </aside>
+
+        <main class="content">
+          <section class="content-section" id="conclusion-en">
+            <h2>The smallest correct runtime change</h2>
+            <p class="section-intro">Keep the design boring and inspectable. One explicit artifact moves through deterministic boundaries; span evidence remains separate from the query-level decision.</p>
+            <p class="problem-line">Problem — span evidence exists, but the query-level decision is implicit inside Judge, so the fail-closed invariant is hard to verify at each boundary.</p>
+            <figure class="architecture-compare" aria-labelledby="compare-en-title">
+              <figcaption id="compare-en-title" class="sr-only">Current and target Query Aggregation structures</figcaption>
+              <div class="compare-grid">
+                <section class="flow-lane" data-flow="before" aria-labelledby="before-en-title">
+                  <div class="flow-heading"><h3 id="before-en-title">Before · implicit decision</h3><span class="flow-state implicit">implicit</span></div>
+                  <ol class="flow-steps">
+                    <li class="flow-step" data-step="raw-prompt"><strong>Raw prompt</strong><span>One query enters the privacy boundary.</span></li>
+                    <li class="flow-step" data-step="extraction-records"><strong>ExtractionRecord[]</strong><span>Span evidence exists without a query-level outcome.</span></li>
+                    <li class="flow-step" data-step="judge-combined"><strong>Judge</strong><span>Aggregation + policy share one implicit boundary.</span></li>
+                    <li class="flow-step" data-step="router"><strong>Router</strong><span>Routing consumes the combined judgment.</span></li>
+                  </ol>
+                </section>
+                <section class="flow-lane" data-flow="after" aria-labelledby="after-en-title">
+                  <div class="flow-heading"><h3 id="after-en-title">After · explicit contract</h3><span class="flow-state">explicit</span></div>
+                  <ol class="flow-steps">
+                    <li class="flow-step" data-step="raw-prompt"><strong>Raw prompt</strong><span>One query enters the privacy boundary.</span></li>
+                    <li class="flow-step" data-step="extraction-result"><strong>ExtractionResult</strong><span>Success or failure is explicit.</span></li>
+                    <li class="flow-step" data-step="query-decision-summary"><strong>QueryDecisionSummary</strong><span>One pure artifact carries the query-level decision.</span></li>
+                    <li class="flow-step" data-step="judge-policy"><strong>Judge</strong><span>Policy only · canonical action.</span></li>
+                    <li class="flow-step" data-step="router-gate"><strong>Router</strong><span>Invariant gate · allowed endpoint.</span></li>
+                  </ol>
+                  <div class="evidence-branch" data-evidence-branch><strong>Evidence branch</strong><br>ExtractionRecord[] → Masker</div>
+                </section>
+              </div>
+            </figure>
+            <ol class="change-chain">
+              <li><div><strong>Explicit extraction outcome</strong><br><code>success | failed(reason)</code></div></li>
+              <li><div><strong>Pure query summary</strong><br><code>ExtractionResult → QueryDecisionSummary</code></div></li>
+              <li><div><strong>Deterministic policy</strong><br><code>Judge(summary) → canonical action</code></div></li>
+              <li><div><strong>Invariant-enforcing route</strong><br><code>Router(summary, action) → allowed endpoint</code></div></li>
+              <li><div><strong>Atomic masking contract</strong><br><code>ExtractionRecord[] → MaskingContract</code></div></li>
+              <li><div><strong>Single-extraction proxy</strong><br><code>one request → one evidence set</code></div></li>
+              <li><div><strong>Observable boundary tests</strong><br><code>unsafe state → 0 external raw calls</code></div></li>
+            </ol>
+            <p class="section-note"><strong>Design constraint:</strong> a stateful <code>QueryAggregator</code> class is optional. The required abstraction is a schema plus one pure aggregation function. Do not add a package or service until state or dependency injection makes it necessary.</p>
+          </section>
+
+          <section class="content-section" id="priorities-en">
+            <h2>Priority map</h2>
+            <p class="section-intro">Not every previously mentioned task is a release blocker. This map separates trust-boundary correctness from release hygiene, communication quality, and model-engine research.</p>
+            <div class="table-wrap">
+              <table>
+                <caption>Work classification and release meaning</caption>
+                <thead><tr><th>Class</th><th>Packages</th><th>Release meaning</th><th>Exit signal</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="priority-label p0">P0</span></td><td><strong>9</strong></td><td>Security and correctness. Required before claiming fail-closed Query Aggregation.</td><td>Every unsafe state records zero external raw calls.</td></tr>
+                  <tr><td><span class="priority-label p1">P1</span></td><td><strong>3</strong></td><td>Release consistency. Installation, services, and CI match their documentation.</td><td>Core install, compose smoke, and deterministic CI are reproducible.</td></tr>
+                  <tr><td><span class="priority-label p2">P2</span></td><td><strong>7</strong></td><td>Documentation and UX. Users can tell current behavior from target design.</td><td>Docs are truthful, bilingual, synchronized, and accessible.</td></tr>
+                  <tr><td><span class="priority-label research">Research</span></td><td><strong>2</strong></td><td>Engine and evaluation work. Useful evidence, not a core API gate.</td><td>Versioned compatibility and result manifests exist.</td></tr>
+                  <tr><td><span class="state-label excluded">Excluded</span></td><td><strong>10</strong></td><td>Stale, redundant, or unjustified work that should not steer implementation.</td><td>The item stays outside the active roadmap.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="content-section" id="p0-en">
+            <h2>P0 · Security and correctness</h2>
+            <p class="section-intro">These packages close the actual raw-transmission risk. They are ordered by dependency and each ends in an externally observable contract.</p>
+            <div class="package-list">
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.1</span><span class="package-title">Lock the external-transmission invariant in tests</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>The current suite does not prove that extractor exceptions, invalid structured output, contradictory records, or local failures produce zero external raw calls.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Write adapter-spy acceptance tests before changing runtime behavior. Cover safe, maskable, essential, mixed, parse failure, schema failure, invalid offsets, invalid mask indices, local failure, and hydration failure.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/extractor/tests/</li><li>agents/judge/tests/</li><li>agents/router/tests/</li><li>tests/core/test_masker.py</li><li>server/tests/</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>A test named for extraction failure observes exactly zero external raw calls. Every unsafe branch asserts both the route decision and the trust-boundary payload.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.2</span><span class="package-title">Distinguish extraction success from failure</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>A successful zero-record extraction and a failed extraction can collapse into the same <code>is_sensitive=false, records=[]</code> state. Downstream code can misread uncertainty as safety.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Add an explicit failure status and normalized failure reason to <code>ExtractionResult</code>. Invalid records must never disappear silently into a safe result.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/extractor/schemas.py</li><li>agents/extractor/extractor_core.py</li><li>agents/extractor/extractor.py</li><li>agents/extractor/__init__.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>Successful empty extraction has <code>extraction_failed=false</code>; any call, parse, schema, or record-validation failure has <code>extraction_failed=true</code> and cannot become <code>allow</code>.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.3</span><span class="package-title">Add QueryDecisionSummary and pure aggregation</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>Extractor, Judge, Router, and MiddleMan can each derive their own partial aggregate from span records, allowing counts, essentiality, and maskability to drift.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Define <code>QueryDecisionSummary</code> and one pure <code>summarize_extraction()</code> function. Keep <code>ExtractionRecord[]</code> as the masking and audit source of truth.</p></div>
+                  <div class="detail-block"><h3>Required fields</h3><ul><li>Failure state and reason</li><li>Sensitivity, essentiality, and maskability</li><li>Record and essential counts</li><li>Category counts and ordered categories</li><li>Validated mask indices</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>Pure unit tests cover empty, maskable, essential, mixed, duplicate-category, and failure inputs with deterministic output. No database table or stateful service is introduced.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.4</span><span class="package-title">Make Judge consume the summary</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>Judge currently accepts loose dictionaries and can reconstruct a different state from the one used by masking or routing.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Make the rule-based Judge consume <code>QueryDecisionSummary</code> and emit only <code>allow</code>, <code>selective_mask</code>, <code>block</code>, or <code>prompt_user</code>.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/judge/judge.py</li><li>agents/judge/schemas.py</li><li>agents/judge/tests/test_judge.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>Failure never maps to <code>allow</code>; non-essential-only maps to <code>selective_mask</code>; any essential record maps to <code>block</code>. New code emits no legacy alias.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.5</span><span class="package-title">Enforce final Router invariants</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>The Router can translate a policy string into an endpoint without checking whether the action contradicts extraction failure, essential records, or an empty masking set.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Validate the summary-action pair at the final execution boundary. Normalize legacy aliases only at ingress; keep internal and output vocabulary canonical.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/router/schemas.py</li><li>agents/router/router.py</li><li>agents/router/tests/test_router.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p><code>allow</code> requires successful extraction with zero records. <code>selective_mask</code> requires validated non-empty records and no essential span. Contradictions fail before an adapter call.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.6</span><span class="package-title">Close MiddleMan and forced-override bypasses</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>MiddleMan can recalculate policy after user record overrides and forced generation can be confused with audited, request-scoped user consent.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Reuse the same summary, Judge, and Router path after every override. Until explicit consent has a separate authenticated contract, essential or failed extraction remains blocked or prompts the user.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/router/middle_man.py</li><li>server/mcp/tools.py</li><li>router and MCP tests</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>Deleting records or forcing generation cannot convert an essential or failed request into an external raw route. Record indices and post-override summaries are validated.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.7</span><span class="package-title">Make masking atomic and hydration fail-fast</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>A missing span or invalid index can be skipped, leaving raw text in a partially masked payload. Hydration validation does not currently enforce the documented unknown-placeholder failure.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Validate every index, offset, span, category, and placeholder before replacement. Either produce the complete contract or fail the whole masking operation. Reject unknown placeholders during hydration.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>agents/masker/masker.py</li><li>agents/masker/schemas.py</li><li>agents/masker/errors.py</li><li>tests/core/test_masker.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>One invalid record aborts the batch; no external call follows. Known placeholders round-trip exactly, while any placeholder outside the contract produces a typed hydration failure.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.8</span><span class="package-title">Apply single-extraction in the API proxy</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>The proxy can extract once for policy and again for masking. Different results create a time-of-check/time-of-use gap. Local failures or streaming can also downgrade to an external masked route.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Generate one extraction, summary, record set, and masking contract per request. Reuse them through policy, masking, forwarding, and hydration. Local failure must not change the trust decision.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>server/api/routes/proxy.py</li><li>server/api/routes/responses.py</li><li>server/tests/</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>The Extractor is called exactly once. Essential, failed, or invalid requests never downgrade to external forwarding. Hydration failure never returns a partial success response.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.9</span><span class="package-title">Constrain API and MCP metadata</span><span class="state-label required">Required</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>Problem</h3><p>Response metadata can copy raw spans, full extraction records, or placeholder maps into client logs and downstream telemetry even when forwarding itself is safe.</p></div>
+                  <div class="detail-block"><h3>Required change</h3><p>Default to counts, categories, actions, routes, and redacted placeholder identifiers. Put raw detail behind an explicit authenticated local-only contract if it remains necessary. Align TypeScript types with the actual wire payload.</p></div>
+                  <div class="detail-block"><h3>Affected paths</h3><ul class="path-list"><li>server/api/routes/</li><li>server/mcp/tools.py</li><li>web/src/lib/types/api.ts</li><li>web/src/lib/types/index.ts</li></ul></div>
+                  <div class="detail-block acceptance"><h3>Acceptance</h3><p>Ordinary API and MCP logs contain no raw spans or restoration values. Payload fixtures match frontend types exactly, and target-only fields are not represented as current runtime fields.</p></div>
+                </div></div>
+              </details>
+            </div>
+          </section>
+
+          <section class="content-section" id="p1-en">
+            <h2>P1 · Release consistency</h2>
+            <p class="section-intro">These packages do not change policy, but they determine whether someone else can install, run, and verify the product described by the repository.</p>
+            <div class="package-list">
+              <details data-work-package="p1">
+                <summary><span class="package-code">P1.1</span><span class="package-title">Split production and experiment dependencies</span><span class="state-label release">Release</span></summary>
+                <div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Why</h3><p>The core API calls OpenAI-compatible endpoints and should not require GPU engines or optimization packages to install.</p></div><div class="detail-block"><h3>Change</h3><p>Separate core, experiment, local-inference, and document-generation dependency groups. Keep engine-specific packages opt-in.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>A CPU-only core installation and API image succeed without vLLM, Optuna, or Ninja.</p></div></div></div>
+              </details>
+              <details data-work-package="p1">
+                <summary><span class="package-code">P1.2</span><span class="package-title">Reconcile Docker and Hermes execution contracts</span><span class="state-label release">Release</span></summary>
+                <div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Why</h3><p>Compose comments, README instructions, profile expectations, and CI smoke tests describe different default service sets.</p></div><div class="detail-block"><h3>Change</h3><p>Choose one default, align every command, pin the Hermes source revision, separate core and Hermes smoke gates, and remove stale integration references.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>One documented command always starts the same service set and both core and optional Hermes paths have reproducible smoke checks.</p></div></div></div>
+              </details>
+              <details data-work-package="p1">
+                <summary><span class="package-code">P1.3</span><span class="package-title">Separate deterministic tests, integration tests, and real-LLM eval</span><span class="state-label release">Release</span></summary>
+                <div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Why</h3><p>Pure unit tests, database tests, running-server scenarios, and model-quality evaluation currently have overlapping collection and documentation.</p></div><div class="detail-block"><h3>Change</h3><p>Define explicit markers and commands for unit, integration, scenario, and real-LLM evaluation. Make CI and README use the same commands.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>The deterministic suite passes without Docker or network access; service and model gates run only when explicitly requested.</p></div></div></div>
+              </details>
+            </div>
+          </section>
+
+          <section class="content-section" id="p2-en">
+            <h2>P2 · Documentation and UX</h2>
+            <p class="section-intro">These packages make the system legible. The first item is immediate: planned security behavior must not be presented as current runtime fact.</p>
+            <div class="package-list">
+              <details data-work-package="p2"><summary><span class="package-code">P2.1</span><span class="package-title">Label current and target architecture honestly</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Show <code>Extractor → Judge → Router</code> as current and <code>Extractor → Query Aggregation → Judge → Router</code> as target until the runtime and tests prove otherwise.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Every planned schema and component carries a visible Target or Not implemented label.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.2</span><span class="package-title">Add a current status page</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Organize blockers, implementation state, decisions, research constraints, accepted risks, and resolved history by problem, impact, evidence, and exit criteria.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>A reader can identify the next release blocker without interpreting historical audit prose.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.3</span><span class="package-title">Reconcile README routes, models, and commands</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Correct documentation route names, source-document paths, model/runtime claims, Docker service semantics, and test commands.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Every public URL and command in README resolves against the shipped build and runtime.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.4</span><span class="package-title">Provide complete English and Korean content</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Move all headings, explanations, tables, controls, scenarios, status labels, and download labels into complete locale surfaces.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Language switching changes the whole reading experience; technical identifiers remain stable while prose never mixes languages.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.5</span><span class="package-title">Enforce source and web documentation parity</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Choose one source of truth with build-time link rewriting, or add a parity test that fails when a synchronized web copy drifts.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Editing one document and forgetting its public copy becomes a deterministic test failure.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.6</span><span class="package-title">Classify audit and TODO history</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Mark the audit as a dated snapshot and classify backlog items as done, active, deferred, decision-needed, rejected, or historical.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Resolved paths and old requests no longer masquerade as current blockers.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.7</span><span class="package-title">Clear accessibility warnings</span><span class="state-label quality">Quality</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Change</h3><p>Fix label association, accessible names, menu state, modal semantics and focus, keyboard click equivalents, and deprecated slot usage.</p></div><div class="detail-block acceptance"><h3>Acceptance</h3><p>Svelte checking reports zero errors and zero accessibility warnings; keyboard-only navigation covers every interactive path.</p></div></div></div></details>
+            </div>
+          </section>
+
+          <section class="content-section" id="research-en">
+            <h2>Research-only work</h2>
+            <p class="section-intro">These items improve evidence and engine coverage. They do not block an OpenAI-compatible core API release.</p>
+            <div class="package-list">
+              <details data-work-package="research"><summary><span class="package-code">R.1</span><span class="package-title">Build a model-specific vLLM matrix</span><span class="state-label deferred">Deferred</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Scope</h3><p>Record model, engine version, image, architecture, response format, memory, startup result, and repeated evaluation result.</p></div><div class="detail-block acceptance"><h3>Exit signal</h3><p>Compatibility is claimed per model and version, never generically. Monkey patches require a product-critical combination and pinned upstream behavior.</p></div></div></div></details>
+              <details data-work-package="research"><summary><span class="package-code">R.2</span><span class="package-title">Reconcile the experiment-result manifest</span><span class="state-label deferred">Deferred</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>Scope</h3><p>Choose the authoritative manifest and classify every result as valid, partial, archived, contaminated, or pending.</p></div><div class="detail-block acceptance"><h3>Exit signal</h3><p>Historical and current results are distinguishable, and no manifest labels completed output as pending.</p></div></div></div></details>
+            </div>
+          </section>
+
+          <section class="content-section" id="excluded-en">
+            <h2>Explicitly excluded</h2>
+            <p class="section-intro">Removing unjustified work is part of the roadmap. These items either duplicate existing boundaries, contradict project decisions, or add no observable safety.</p>
+            <ul class="exclusion-list">
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Create a speculative <code>core/</code> package</strong><p>The summary schema and pure function fit the existing Extractor/Router boundary. Add a package only after a real ownership or cycle problem appears.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Revive an LLM-based Judge</strong><p>Reasoning belongs in extraction; policy and route selection stay deterministic and testable.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Add observability in this change</strong><p>Telemetry is a separate future concern and must not steer the fail-closed design.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Duplicate local inference inside Privacy Router</strong><p>The router consumes OpenAI-compatible endpoints. Engine-specific inference stays in model services and configuration.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Do not evaluate SGLang executability or compatibility</strong><p>SGLang executability and compatibility are outside this roadmap and will not be evaluated.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Delete archives unconditionally</strong><p>Historical experiments carry provenance. Retention requires an explicit size, licensing, or privacy policy.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Recreate deprecated tests</strong><p>Test current behavior and current interfaces rather than restoring files mentioned by stale audits.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Reimplement the web documentation system</strong><p>The route tree, renderer, locale stores, and navigation already exist. Repair truthfulness and parity instead.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Add LICENSE, Mermaid, or retired integrations</strong><p>These conflict with explicit project decisions and do not support this safety change.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Treat commit squashing as product functionality</strong><p>Compact history is integration hygiene, not a runtime deliverable or security claim.</p></div></li>
+            </ul>
+          </section>
+
+          <section class="content-section" id="sequence-en">
+            <h2>Recommended execution order</h2>
+            <p class="section-intro">Each step earns the next. Documentation truthfulness comes first; experimental breadth comes last.</p>
+            <ol class="run-order">
+              <li><div><strong>Label Query Aggregation as target architecture</strong><span>Stop presenting the planned component as current behavior.</span></div></li>
+              <li><div><strong>Write fail-closed acceptance tests</strong><span>Observe the current raw-transmission weakness before implementation.</span></div></li>
+              <li><div><strong>Add explicit extraction failure</strong><span>Separate safe empty output from unknown output.</span></div></li>
+              <li><div><strong>Add the pure query summary</strong><span>Compute one deterministic decision artifact.</span></div></li>
+              <li><div><strong>Wire Judge to the summary</strong><span>Emit canonical policy actions only.</span></div></li>
+              <li><div><strong>Enforce Router invariants</strong><span>Reject contradictory action-state pairs before execution.</span></div></li>
+              <li><div><strong>Close override bypasses</strong><span>Recompute through the same path and keep forced generation fail-closed.</span></div></li>
+              <li><div><strong>Make masking and hydration atomic</strong><span>One invalid record aborts the complete operation.</span></div></li>
+              <li><div><strong>Apply single-extraction in the proxy</strong><span>Reuse one evidence set and remove external downgrade.</span></div></li>
+              <li><div><strong>Constrain API and MCP metadata</strong><span>Keep raw evidence out of ordinary downstream logs.</span></div></li>
+              <li><div><strong>Run deterministic focused tests</strong><span>Prove trust-boundary behavior without model or network variability.</span></div></li>
+              <li><div><strong>Repair docs, localization, and accessibility</strong><span>Make the verified behavior understandable to both locales.</span></div></li>
+              <li><div><strong>Reconcile packaging, Compose, and CI</strong><span>Make the release reproducible by another operator.</span></div></li>
+              <li><div><strong>Run real-LLM evaluation separately</strong><span>Measure model quality after deterministic correctness is stable.</span></div></li>
+            </ol>
+          </section>
+
+          <section class="content-section" id="done-en">
+            <h2>Definition of Done</h2>
+            <p class="section-intro">A route label is not proof. Completion is measured at the external adapter and at the payload crossing the trust boundary.</p>
+            <div class="table-wrap">
+              <table>
+                <caption>Fail-closed acceptance matrix</caption>
+                <thead><tr><th>Input state</th><th>Canonical action</th><th>External raw calls</th><th>Required payload effect</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Successful, zero records</strong></td><td><code>allow</code></td><td>At most 1</td><td>Original prompt may reach the configured external endpoint.</td></tr>
+                  <tr><td><strong>Non-essential records only</strong></td><td><code>selective_mask</code></td><td>0</td><td>One external call may contain validated <code>CATEGORY#hash8</code> placeholders only.</td></tr>
+                  <tr><td><strong>At least one essential record</strong></td><td><code>block</code></td><td>0</td><td>No external payload; remain local or prompt the user.</td></tr>
+                  <tr><td><strong>Essential and non-essential mixed</strong></td><td><code>block</code></td><td>0</td><td>No partial external forwarding.</td></tr>
+                  <tr><td><strong>Extractor exception</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0</td><td>Unknown is never treated as safe.</td></tr>
+                  <tr><td><strong>Structured parse or schema failure</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0</td><td>No raw fallback and a normalized failure reason.</td></tr>
+                  <tr><td><strong>Invalid span offset</strong></td><td><code>block</code></td><td>0</td><td>Masking aborts before any adapter call.</td></tr>
+                  <tr><td><strong>Invalid mask index</strong></td><td><code>block</code></td><td>0</td><td>No silent record drop and no partial mask.</td></tr>
+                  <tr><td><strong>Local endpoint failure</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0</td><td>No downgrade to an external endpoint.</td></tr>
+                  <tr><td><strong>Hydration failure</strong></td><td>Response error</td><td>0 additional</td><td>No partially hydrated success response.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="section-note"><strong>Public example contract:</strong> documentation uses <code>&lt;personal-id&gt;</code> and <code>PERSONAL_IDENTIFIER#7f3a9c2d</code>. It never needs a real value to demonstrate the boundary.</p>
+          </section>
+
+          <section class="content-section" id="sources-en">
+            <h2>Source evidence</h2>
+            <p class="section-intro">This briefing summarizes verified repository state. The normative implementation rules remain in the source specification.</p>
+            <ul class="sources">
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/query-aggregation-spec.md"><span>Query Aggregation specification</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/architecture.md"><span>Current architecture documentation</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/data-flow.md"><span>Data-flow documentation</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router"><span>Privacy Router repository</span><span aria-hidden="true">↗</span></a></li>
+            </ul>
+          </section>
+        </main>
+      </div>
+    </article>
+
+    <article class="briefing briefing-ko" lang="ko" aria-labelledby="title-ko">
+      <header class="hero" id="status-ko">
+        <div class="hero-inner">
+          <div class="status-line">
+            <span class="status-badge"><span class="status-dot" aria-hidden="true"></span>목표 설계 — 런타임 구현 대기</span>
+            <span class="verified">소스 검증 · 2026년 7월 11일</span>
+          </div>
+          <h1 id="title-ko">Query Aggregation 작업 지도</h1>
+          <p class="hero-lede">Privacy Router가 반드시 구현할 일, 릴리스 전에 정리할 일, 연구로 분리할 일, 그리고 만들지 말아야 할 일을 하나의 근거 중심 문서로 정리했습니다.</p>
+          <div class="hero-verdict">
+            <strong>핵심 결론</strong>
+            <p>Query Aggregation은 이름을 추가하는 작업이 아닙니다. Extractor 실패, 모순된 record 집합, local model 장애가 외부 raw prompt 유출로 바뀌지 않도록 만드는 fail-closed 경계입니다.</p>
+          </div>
+          <p class="count-line">P0 9개 · P1 3개 · P2 7개 · 연구 2개 · 명시적 제외 10개</p>
+        </div>
+      </header>
+
+      <div class="page-grid">
+        <aside class="toc" aria-label="작업 지도 섹션">
+          <p class="toc-title">페이지 목차</p>
+          <nav>
+            <a href="#conclusion-ko">핵심 결론</a>
+            <a href="#priorities-ko">우선순위 지도</a>
+            <a href="#p0-ko">P0 · 보안</a>
+            <a href="#p1-ko">P1 · 릴리스</a>
+            <a href="#p2-ko">P2 · 문서와 UX</a>
+            <a href="#research-ko">연구 전용</a>
+            <a href="#excluded-ko">만들지 않을 것</a>
+            <a href="#sequence-ko">실행 순서</a>
+            <a href="#done-ko">완료 기준</a>
+            <a href="#sources-ko">근거 문서</a>
+          </nav>
+        </aside>
+
+        <main class="content">
+          <section class="content-section" id="conclusion-ko">
+            <h2>가장 작은 올바른 런타임 변경</h2>
+            <p class="section-intro">설계는 단순하고 검증 가능해야 합니다. 하나의 명시적 artifact가 결정 경계를 통과하고, span 증거는 query-level 판단과 분리된 상태로 유지됩니다.</p>
+            <p class="problem-line">문제 — span 증거는 있지만 query-level 결정이 Judge 내부에 암묵적으로 섞여 있어, fail-closed invariant를 각 경계에서 검증하기 어렵습니다.</p>
+            <figure class="architecture-compare" aria-labelledby="compare-ko-title">
+              <figcaption id="compare-ko-title" class="sr-only">현재와 목표 Query Aggregation 구조</figcaption>
+              <div class="compare-grid">
+                <section class="flow-lane" data-flow="before" aria-labelledby="before-ko-title">
+                  <div class="flow-heading"><h3 id="before-ko-title">이전 · 암묵적 결정</h3><span class="flow-state implicit">암묵적</span></div>
+                  <ol class="flow-steps">
+                    <li class="flow-step" data-step="raw-prompt"><strong>Raw prompt</strong><span>하나의 query가 privacy boundary로 들어옵니다.</span></li>
+                    <li class="flow-step" data-step="extraction-records"><strong>ExtractionRecord[]</strong><span>span 증거는 있지만 query-level 결과는 없습니다.</span></li>
+                    <li class="flow-step" data-step="judge-combined"><strong>Judge</strong><span>집계 + 정책이 하나의 암묵적 경계를 공유합니다.</span></li>
+                    <li class="flow-step" data-step="router"><strong>Router</strong><span>결합된 판단을 받아 routing합니다.</span></li>
+                  </ol>
+                </section>
+                <section class="flow-lane" data-flow="after" aria-labelledby="after-ko-title">
+                  <div class="flow-heading"><h3 id="after-ko-title">이후 · 명시적 계약</h3><span class="flow-state">명시적</span></div>
+                  <ol class="flow-steps">
+                    <li class="flow-step" data-step="raw-prompt"><strong>Raw prompt</strong><span>하나의 query가 privacy boundary로 들어옵니다.</span></li>
+                    <li class="flow-step" data-step="extraction-result"><strong>ExtractionResult</strong><span>성공 또는 실패가 명시됩니다.</span></li>
+                    <li class="flow-step" data-step="query-decision-summary"><strong>QueryDecisionSummary</strong><span>하나의 순수 artifact가 query-level 결정을 전달합니다.</span></li>
+                    <li class="flow-step" data-step="judge-policy"><strong>Judge</strong><span>정책만 수행 · canonical action.</span></li>
+                    <li class="flow-step" data-step="router-gate"><strong>Router</strong><span>invariant gate · 허용된 endpoint.</span></li>
+                  </ol>
+                  <div class="evidence-branch" data-evidence-branch><strong>증거 분기</strong><br>ExtractionRecord[] → 마스킹</div>
+                </section>
+              </div>
+            </figure>
+            <ol class="change-chain">
+              <li><div><strong>명시적 추출 결과</strong><br><code>success | failed(reason)</code></div></li>
+              <li><div><strong>순수 query summary</strong><br><code>ExtractionResult → QueryDecisionSummary</code></div></li>
+              <li><div><strong>결정론적 policy</strong><br><code>Judge(summary) → canonical action</code></div></li>
+              <li><div><strong>Invariant를 검증하는 route</strong><br><code>Router(summary, action) → allowed endpoint</code></div></li>
+              <li><div><strong>Atomic masking contract</strong><br><code>ExtractionRecord[] → MaskingContract</code></div></li>
+              <li><div><strong>Single-extraction proxy</strong><br><code>one request → one evidence set</code></div></li>
+              <li><div><strong>관찰 가능한 경계 테스트</strong><br><code>unsafe state → external raw call 0회</code></div></li>
+            </ol>
+            <p class="section-note"><strong>설계 제약:</strong> stateful <code>QueryAggregator</code> class는 선택 사항입니다. 필수 abstraction은 schema와 하나의 순수 집계 함수입니다. 상태나 dependency injection이 실제로 필요해질 때까지 새 package나 service를 추가하지 않습니다.</p>
+          </section>
+
+          <section class="content-section" id="priorities-ko">
+            <h2>우선순위 지도</h2>
+            <p class="section-intro">지금까지 언급된 모든 작업이 release blocker는 아닙니다. Trust boundary 정확성, 릴리스 정합성, 문서 품질, 모델 엔진 연구를 구분합니다.</p>
+            <div class="table-wrap">
+              <table>
+                <caption>작업 분류와 릴리스 의미</caption>
+                <thead><tr><th>분류</th><th>작업 수</th><th>릴리스 의미</th><th>완료 신호</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="priority-label p0">P0</span></td><td><strong>9</strong></td><td>보안·정확성. Fail-closed Query Aggregation을 주장하기 전에 필수입니다.</td><td>모든 unsafe 상태에서 외부 raw call이 0회입니다.</td></tr>
+                  <tr><td><span class="priority-label p1">P1</span></td><td><strong>3</strong></td><td>릴리스 정합성. 설치, service, CI가 문서와 일치합니다.</td><td>Core 설치, Compose smoke, deterministic CI가 재현됩니다.</td></tr>
+                  <tr><td><span class="priority-label p2">P2</span></td><td><strong>7</strong></td><td>문서·UX. 사용자가 현재 동작과 목표 설계를 구분합니다.</td><td>문서가 정확하고, 이중 언어이며, 동기화되고, 접근 가능합니다.</td></tr>
+                  <tr><td><span class="priority-label research">Research</span></td><td><strong>2</strong></td><td>엔진·평가 연구. 유용한 증거지만 core API gate는 아닙니다.</td><td>Version별 compatibility와 result manifest가 존재합니다.</td></tr>
+                  <tr><td><span class="state-label excluded">제외</span></td><td><strong>10</strong></td><td>구현을 잘못 이끄는 오래되었거나 중복된 작업입니다.</td><td>Active roadmap에 포함하지 않습니다.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="content-section" id="p0-ko">
+            <h2>P0 · 보안과 정확성</h2>
+            <p class="section-intro">실제 raw 전송 위험을 닫는 작업입니다. 의존 순서대로 배치했으며, 각 작업은 외부에서 관찰 가능한 계약으로 끝납니다.</p>
+            <div class="package-list">
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.1</span><span class="package-title">외부 전송 invariant를 테스트로 고정</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>현재 suite는 Extractor 예외, 잘못된 structured output, 모순된 record, local 장애가 외부 raw call 0회를 만든다는 사실을 증명하지 않습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>런타임을 바꾸기 전에 adapter spy 기반 acceptance test를 작성합니다. Safe, maskable, essential, mixed, parse 실패, schema 실패, invalid offset/index, local 실패, hydration 실패를 포함합니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/extractor/tests/</li><li>agents/judge/tests/</li><li>agents/router/tests/</li><li>tests/core/test_masker.py</li><li>server/tests/</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>Extraction 실패 테스트에서 external raw call이 정확히 0회입니다. 모든 unsafe branch가 route label뿐 아니라 trust-boundary payload도 검증합니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.2</span><span class="package-title">Extraction 성공과 실패를 구분</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>정상적인 zero-record 추출과 실패한 추출이 같은 <code>is_sensitive=false, records=[]</code> 상태로 합쳐질 수 있습니다. Downstream이 불확실성을 안전으로 오해합니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p><code>ExtractionResult</code>에 명시적 실패 상태와 정규화된 실패 이유를 추가합니다. Invalid record를 조용히 삭제해 safe 결과로 만들면 안 됩니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/extractor/schemas.py</li><li>agents/extractor/extractor_core.py</li><li>agents/extractor/extractor.py</li><li>agents/extractor/__init__.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>정상 empty extraction은 <code>extraction_failed=false</code>, call·parse·schema·record 검증 실패는 <code>extraction_failed=true</code>이며 <code>allow</code>가 될 수 없습니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.3</span><span class="package-title">QueryDecisionSummary와 순수 집계 구현</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>Extractor, Judge, Router, MiddleMan이 span record에서 각각 부분 집계를 만들면 count, essentiality, maskability가 서로 달라질 수 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p><code>QueryDecisionSummary</code>와 하나의 순수 <code>summarize_extraction()</code> 함수를 정의합니다. <code>ExtractionRecord[]</code>는 masking과 audit의 source of truth로 유지합니다.</p></div>
+                  <div class="detail-block"><h3>필수 필드</h3><ul><li>실패 상태와 이유</li><li>민감도, 필수성, maskability</li><li>전체 record와 essential count</li><li>Category count와 결정론적 category 순서</li><li>검증된 mask index</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>순수 unit test가 empty, maskable, essential, mixed, duplicate category, failure를 결정론적으로 검증합니다. DB table이나 stateful service는 추가하지 않습니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.4</span><span class="package-title">Judge가 summary만 사용</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>Judge가 loose dictionary를 받아 masking이나 routing과 다른 상태를 다시 만들 수 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>Rule-based Judge는 <code>QueryDecisionSummary</code>를 입력받고 <code>allow</code>, <code>selective_mask</code>, <code>block</code>, <code>prompt_user</code>만 출력합니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/judge/judge.py</li><li>agents/judge/schemas.py</li><li>agents/judge/tests/test_judge.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>Failure는 <code>allow</code>가 될 수 없습니다. Non-essential only는 <code>selective_mask</code>, essential 하나 이상은 <code>block</code>입니다. 새 코드는 legacy alias를 출력하지 않습니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.5</span><span class="package-title">Router 최종 invariant 적용</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>Router가 policy string을 endpoint로 바꾸면서 extraction failure, essential record, empty mask set과 action의 모순을 확인하지 않을 수 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>최종 실행 경계에서 summary-action 조합을 검증합니다. Legacy alias는 ingress에서만 정규화하고 내부와 출력은 canonical vocabulary를 사용합니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/router/schemas.py</li><li>agents/router/router.py</li><li>agents/router/tests/test_router.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p><code>allow</code>는 성공한 zero-record extraction만 허용합니다. <code>selective_mask</code>는 essential이 없는 검증된 nonempty record가 필요합니다. 모순은 adapter 호출 전에 실패합니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.6</span><span class="package-title">MiddleMan·forced override 우회 차단</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>MiddleMan이 user override 이후 policy를 별도로 재계산할 수 있고, forced generation이 감사 가능한 request-scoped user consent와 혼동될 수 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>모든 override 이후 같은 summary, Judge, Router 경로를 재사용합니다. 명시적 consent가 별도 authenticated contract를 갖기 전까지 essential 또는 failed extraction은 block 또는 prompt 상태를 유지합니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/router/middle_man.py</li><li>server/mcp/tools.py</li><li>router and MCP tests</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>Record 삭제나 forced generation으로 essential 또는 failed request가 external raw route가 되지 않습니다. Record index와 post-override summary를 검증합니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.7</span><span class="package-title">Masking atomic·Hydration fail-fast</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>찾지 못한 span이나 invalid index를 건너뛰면 raw text가 일부 남은 payload가 외부로 전송될 수 있습니다. Hydration validation도 문서화된 unknown-placeholder 실패를 강제하지 않습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>치환 전에 모든 index, offset, span, category, placeholder를 검증합니다. 완전한 contract를 만들거나 전체 masking을 실패시킵니다. Hydration 중 unknown placeholder를 거부합니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>agents/masker/masker.py</li><li>agents/masker/schemas.py</li><li>agents/masker/errors.py</li><li>tests/core/test_masker.py</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>하나의 invalid record가 전체 batch를 중단하고 external call은 발생하지 않습니다. Known placeholder는 정확히 round-trip하고 contract 외 placeholder는 typed hydration failure를 만듭니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.8</span><span class="package-title">API proxy single-extraction 적용</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>Proxy가 policy 결정을 위해 한 번, masking을 위해 다시 추출하면 서로 다른 결과로 TOCTOU gap이 생깁니다. Local 실패나 streaming이 external masked route로 downgrade될 수도 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>Request마다 하나의 extraction, summary, record set, masking contract를 만들고 policy, masking, forwarding, hydration에서 재사용합니다. Local 실패는 trust decision을 바꾸지 않습니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>server/api/routes/proxy.py</li><li>server/api/routes/responses.py</li><li>server/tests/</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>Extractor 호출은 정확히 1회입니다. Essential, failed, invalid request가 external로 downgrade되지 않습니다. Hydration 실패를 partial success로 반환하지 않습니다.</p></div>
+                </div></div>
+              </details>
+
+              <details data-work-package="p0">
+                <summary><span class="package-code">P0.9</span><span class="package-title">API·MCP metadata 경계 정리</span><span class="state-label required">필수</span></summary>
+                <div class="package-body"><div class="detail-grid">
+                  <div class="detail-block"><h3>문제</h3><p>Response metadata가 raw span, 전체 extraction record, placeholder map을 client log와 downstream telemetry로 복사할 수 있습니다.</p></div>
+                  <div class="detail-block"><h3>필요한 변경</h3><p>기본값은 count, category, action, route, redacted placeholder identifier만 제공합니다. Raw detail이 필요하면 명시적인 authenticated local-only contract로 분리합니다. TypeScript type을 실제 wire payload와 맞춥니다.</p></div>
+                  <div class="detail-block"><h3>대상 경로</h3><ul class="path-list"><li>server/api/routes/</li><li>server/mcp/tools.py</li><li>web/src/lib/types/api.ts</li><li>web/src/lib/types/index.ts</li></ul></div>
+                  <div class="detail-block acceptance"><h3>완료 기준</h3><p>일반 API와 MCP log에 raw span 또는 restoration value가 없습니다. Payload fixture와 frontend type이 정확히 일치하며 target-only field를 현재 runtime field처럼 표현하지 않습니다.</p></div>
+                </div></div>
+              </details>
+            </div>
+          </section>
+
+          <section class="content-section" id="p1-ko">
+            <h2>P1 · 릴리스 정합성</h2>
+            <p class="section-intro">Policy를 바꾸지는 않지만, 다른 사람이 repository 설명대로 설치하고 실행하고 검증할 수 있는지를 결정합니다.</p>
+            <div class="package-list">
+              <details data-work-package="p1"><summary><span class="package-code">P1.1</span><span class="package-title">제품·실험 dependency 분리</span><span class="state-label release">릴리스</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>이유</h3><p>Core API는 OpenAI-compatible endpoint를 호출하므로 설치 과정에서 GPU engine이나 optimization package가 필수가 아니어야 합니다.</p></div><div class="detail-block"><h3>변경</h3><p>Core, experiment, local inference, document generation dependency group을 분리하고 engine package는 opt-in으로 유지합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>CPU-only core 설치와 API image가 vLLM, Optuna, Ninja 없이 성공합니다.</p></div></div></div></details>
+              <details data-work-package="p1"><summary><span class="package-code">P1.2</span><span class="package-title">Docker·Hermes 실행 계약 정리</span><span class="state-label release">릴리스</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>이유</h3><p>Compose 주석, README, profile 기대값, CI smoke가 서로 다른 기본 service 집합을 설명합니다.</p></div><div class="detail-block"><h3>변경</h3><p>하나의 default를 선택해 모든 명령을 맞추고, Hermes source revision을 고정하고, core와 Hermes smoke gate를 분리하고, 오래된 integration 참조를 제거합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>문서화된 하나의 명령은 언제나 같은 service 집합을 시작하며 core와 optional Hermes 경로 모두 재현 가능한 smoke check가 있습니다.</p></div></div></div></details>
+              <details data-work-package="p1"><summary><span class="package-code">P1.3</span><span class="package-title">테스트·평가 경계 분리</span><span class="state-label release">릴리스</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>이유</h3><p>Pure unit, DB, running-server scenario, model-quality eval의 collection과 문서가 겹쳐 있습니다.</p></div><div class="detail-block"><h3>변경</h3><p>Unit, integration, scenario, real-LLM eval용 marker와 명령을 명시하고 CI와 README가 같은 명령을 사용하게 합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>Deterministic suite는 Docker와 network 없이 통과하고 service/model gate는 명시적으로 요청할 때만 실행됩니다.</p></div></div></div></details>
+            </div>
+          </section>
+
+          <section class="content-section" id="p2-ko">
+            <h2>P2 · 문서와 UX</h2>
+            <p class="section-intro">시스템을 이해 가능하게 만드는 작업입니다. 첫 작업은 즉시 필요합니다. 계획된 보안 동작을 현재 runtime 사실처럼 표현하면 안 됩니다.</p>
+            <div class="package-list">
+              <details data-work-package="p2"><summary><span class="package-code">P2.1</span><span class="package-title">현재·목표 설계 구분</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p><code>Extractor → Judge → Router</code>를 현재로, <code>Extractor → Query Aggregation → Judge → Router</code>를 runtime과 test가 증명될 때까지 목표로 표시합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>모든 planned schema와 component에 Target 또는 미구현 상태가 보입니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.2</span><span class="package-title">현재 상태 페이지 추가</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>Blocker, 구현 상태, 결정 필요 항목, 연구 제약, accepted risk, resolved history를 문제·영향·근거·완료 기준으로 정리합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>독자가 과거 audit 문장을 해석하지 않고 다음 release blocker를 찾을 수 있습니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.3</span><span class="package-title">README 정합성 수정</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>문서 route 이름, source document 경로, model/runtime 주장, Docker service 의미, test 명령을 수정합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>README의 모든 public URL과 명령이 실제 build와 runtime에서 동작합니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.4</span><span class="package-title">완전한 영문·한국어 제공</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>모든 heading, 설명, table, control, scenario, status label, download label을 완전한 locale surface로 옮깁니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>언어 전환이 전체 읽기 경험을 바꾸며 기술 identifier는 유지하되 prose는 언어를 섞지 않습니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.5</span><span class="package-title">Source·web 문서 parity 보장</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>Build-time link rewrite가 있는 단일 source of truth를 선택하거나 synchronized web copy가 달라질 때 실패하는 parity test를 추가합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>문서 하나를 수정하고 public copy를 잊으면 deterministic test가 실패합니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.6</span><span class="package-title">Audit·TODO 역사 분류</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>Audit를 날짜가 있는 snapshot으로 표시하고 backlog를 done, active, deferred, decision-needed, rejected, historical로 분류합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>해결된 경로와 과거 요청이 현재 blocker처럼 보이지 않습니다.</p></div></div></div></details>
+              <details data-work-package="p2"><summary><span class="package-code">P2.7</span><span class="package-title">접근성 경고 제거</span><span class="state-label quality">품질</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>변경</h3><p>Label association, accessible name, menu state, modal semantic과 focus, keyboard click equivalent, deprecated slot 사용을 수정합니다.</p></div><div class="detail-block acceptance"><h3>완료 기준</h3><p>Svelte check가 error 0개, accessibility warning 0개를 보고하고 keyboard-only navigation이 모든 interactive path를 포함합니다.</p></div></div></div></details>
+            </div>
+          </section>
+
+          <section class="content-section" id="research-ko">
+            <h2>연구 전용 작업</h2>
+            <p class="section-intro">엔진 coverage와 근거를 강화하지만 OpenAI-compatible core API release를 막지는 않습니다.</p>
+            <div class="package-list">
+              <details data-work-package="research"><summary><span class="package-code">R.1</span><span class="package-title">모델별 vLLM 매트릭스 작성</span><span class="state-label deferred">보류</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>범위</h3><p>Model, engine version, image, architecture, response format, memory, startup, 반복 평가 결과를 기록합니다.</p></div><div class="detail-block acceptance"><h3>완료 신호</h3><p>Compatibility를 generic하게 주장하지 않고 model/version별로 기록합니다. Monkey patch는 product-critical 조합과 pinned upstream behavior가 있을 때만 허용합니다.</p></div></div></div></details>
+              <details data-work-package="research"><summary><span class="package-code">R.2</span><span class="package-title">실험 결과 manifest 정합화</span><span class="state-label deferred">보류</span></summary><div class="package-body"><div class="detail-grid"><div class="detail-block"><h3>범위</h3><p>Authoritative manifest를 선택하고 모든 결과를 valid, partial, archived, contaminated, pending으로 분류합니다.</p></div><div class="detail-block acceptance"><h3>완료 신호</h3><p>Historical result와 current result가 구분되고 manifest가 완료된 output을 pending으로 표시하지 않습니다.</p></div></div></div></details>
+            </div>
+          </section>
+
+          <section class="content-section" id="excluded-ko">
+            <h2>명시적으로 제외할 일</h2>
+            <p class="section-intro">근거 없는 작업을 제거하는 것도 roadmap의 일부입니다. 다음 항목은 기존 경계를 중복하거나 프로젝트 결정을 위반하거나 관찰 가능한 보안을 추가하지 않습니다.</p>
+            <ul class="exclusion-list">
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>추측으로 <code>core/</code> package 만들기</strong><p>Summary schema와 순수 함수는 기존 Extractor/Router 경계에 둘 수 있습니다. 실제 ownership 또는 cycle 문제가 생길 때만 package를 추가합니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>LLM Judge 부활</strong><p>Reasoning은 extraction에 두고 policy와 route 선택은 deterministic하고 testable하게 유지합니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>이번 변경에 observability 추가</strong><p>Telemetry는 별도 future concern이며 fail-closed 설계를 이끌면 안 됩니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Privacy Router 내부에 local inference 중복 구현</strong><p>Router는 OpenAI-compatible endpoint를 사용합니다. Engine-specific inference는 model service와 config에 남깁니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>SGLang 실행 가능성·호환성 평가 제외</strong><p>SGLang 실행 가능성과 호환성은 이 로드맵에서 평가하지 않습니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Archive를 조건 없이 삭제</strong><p>Historical experiment는 provenance를 갖습니다. Retention에는 size, licensing, privacy 정책이 필요합니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Deprecated test를 복구</strong><p>오래된 audit에 나온 파일을 복원하지 말고 현재 behavior와 interface를 test합니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Web documentation system 재구현</strong><p>Route tree, renderer, locale store, navigation이 이미 있습니다. Truthfulness와 parity를 고칩니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>LICENSE, Mermaid, retired integration 추가</strong><p>명시적 project decision과 충돌하고 이번 safety change를 지원하지 않습니다.</p></div></li>
+              <li data-exclusion="true"><span class="exclusion-mark">×</span><div><strong>Commit squash를 제품 기능으로 취급</strong><p>Compact history는 integration hygiene이지 runtime deliverable이나 security claim이 아닙니다.</p></div></li>
+            </ul>
+          </section>
+
+          <section class="content-section" id="sequence-ko">
+            <h2>권장 실행 순서</h2>
+            <p class="section-intro">각 단계가 다음 단계를 정당화합니다. 문서의 정직함을 먼저 확보하고 실험 범위 확장은 마지막에 둡니다.</p>
+            <ol class="run-order">
+              <li><div><strong>Query Aggregation을 목표 설계로 표시</strong><span>계획된 component를 현재 behavior처럼 보여주지 않습니다.</span></div></li>
+              <li><div><strong>Fail-closed acceptance test 작성</strong><span>구현 전에 현재 raw transmission 약점을 관찰합니다.</span></div></li>
+              <li><div><strong>명시적 extraction failure 추가</strong><span>Safe empty output과 unknown output을 분리합니다.</span></div></li>
+              <li><div><strong>순수 query summary 추가</strong><span>하나의 결정론적 decision artifact를 계산합니다.</span></div></li>
+              <li><div><strong>Judge를 summary에 연결</strong><span>Canonical policy action만 출력합니다.</span></div></li>
+              <li><div><strong>Router invariant 적용</strong><span>실행 전에 모순된 action-state 조합을 거부합니다.</span></div></li>
+              <li><div><strong>Override 우회 경로 차단</strong><span>같은 경로에서 다시 계산하고 forced generation도 fail-closed로 유지합니다.</span></div></li>
+              <li><div><strong>Masking과 hydration atomic 적용</strong><span>하나의 invalid record가 전체 작업을 중단합니다.</span></div></li>
+              <li><div><strong>Proxy에 single-extraction 적용</strong><span>하나의 evidence set을 재사용하고 external downgrade를 제거합니다.</span></div></li>
+              <li><div><strong>API와 MCP metadata 제한</strong><span>일반 downstream log에 raw evidence를 남기지 않습니다.</span></div></li>
+              <li><div><strong>Focused deterministic test 실행</strong><span>Model과 network 변동 없이 trust-boundary behavior를 증명합니다.</span></div></li>
+              <li><div><strong>문서, locale, 접근성 정리</strong><span>검증된 behavior를 두 언어로 이해 가능하게 만듭니다.</span></div></li>
+              <li><div><strong>Packaging, Compose, CI 정리</strong><span>다른 운영자가 release를 재현할 수 있게 합니다.</span></div></li>
+              <li><div><strong>Real-LLM eval 별도 실행</strong><span>Deterministic correctness가 안정된 뒤 model quality를 측정합니다.</span></div></li>
+            </ol>
+          </section>
+
+          <section class="content-section" id="done-ko">
+            <h2>완료 기준</h2>
+            <p class="section-intro">Route label만으로는 증거가 되지 않습니다. 완료 여부는 external adapter와 trust boundary를 통과하는 payload에서 측정합니다.</p>
+            <div class="table-wrap">
+              <table>
+                <caption>Fail-closed acceptance matrix</caption>
+                <thead><tr><th>입력 상태</th><th>Canonical action</th><th>외부 raw call</th><th>필수 payload 효과</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>성공, record 0개</strong></td><td><code>allow</code></td><td>최대 1회</td><td>원본 prompt가 configured external endpoint에 전송될 수 있습니다.</td></tr>
+                  <tr><td><strong>Non-essential record만 존재</strong></td><td><code>selective_mask</code></td><td>0회</td><td>검증된 <code>CATEGORY#hash8</code> placeholder만 포함한 external call 1회를 허용합니다.</td></tr>
+                  <tr><td><strong>Essential record 하나 이상</strong></td><td><code>block</code></td><td>0회</td><td>External payload 없이 local 또는 user prompt 상태를 유지합니다.</td></tr>
+                  <tr><td><strong>Essential과 non-essential 혼합</strong></td><td><code>block</code></td><td>0회</td><td>일부만 외부로 보내지 않습니다.</td></tr>
+                  <tr><td><strong>Extractor 예외</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0회</td><td>Unknown을 safe로 처리하지 않습니다.</td></tr>
+                  <tr><td><strong>Structured parse 또는 schema 실패</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0회</td><td>Raw fallback 없이 정규화된 failure reason을 제공합니다.</td></tr>
+                  <tr><td><strong>Invalid span offset</strong></td><td><code>block</code></td><td>0회</td><td>Adapter call 전에 masking이 중단됩니다.</td></tr>
+                  <tr><td><strong>Invalid mask index</strong></td><td><code>block</code></td><td>0회</td><td>Record를 조용히 버리거나 일부만 mask하지 않습니다.</td></tr>
+                  <tr><td><strong>Local endpoint 실패</strong></td><td><code>block</code> / <code>prompt_user</code></td><td>0회</td><td>External endpoint로 downgrade하지 않습니다.</td></tr>
+                  <tr><td><strong>Hydration 실패</strong></td><td>Response error</td><td>추가 0회</td><td>일부만 hydrate된 success response를 반환하지 않습니다.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="section-note"><strong>공개 예시 계약:</strong> 문서는 <code>&lt;personal-id&gt;</code>와 <code>PERSONAL_IDENTIFIER#7f3a9c2d</code>를 사용합니다. 경계를 설명하기 위해 실제 값은 필요하지 않습니다.</p>
+          </section>
+
+          <section class="content-section" id="sources-ko">
+            <h2>근거 문서</h2>
+            <p class="section-intro">이 페이지는 검증한 repository 상태를 요약합니다. Normative implementation rule은 source specification에 남아 있습니다.</p>
+            <ul class="sources">
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/query-aggregation-spec.md"><span>Query Aggregation 명세</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/architecture.md"><span>현재 architecture 문서</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router/blob/main/docs/dev/data-flow.md"><span>Data flow 문서</span><span aria-hidden="true">↗</span></a></li>
+              <li><a class="source-link" href="https://github.com/devcomfort/privacy-router"><span>Privacy Router repository</span><span aria-hidden="true">↗</span></a></li>
+            </ul>
+          </section>
+        </main>
+      </div>
+    </article>
+
+    <footer class="footer">
+      <span class="button-en">Source-grounded briefing · This page describes the work plan, not completed runtime behavior.</span>
+      <span class="button-ko">소스 근거 브리핑 · 이 페이지는 완료된 runtime behavior가 아니라 작업 계획을 설명합니다.</span>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const expandButton = document.querySelector('#expand-all');
+      const languageLinks = [...document.querySelectorAll('.lang-link')];
+      let observer;
+
+      const localeFromHash = () => {
+        const hash = location.hash.slice(1);
+        if (hash === 'ko' || hash.endsWith('-ko')) return 'ko';
+        if (hash === 'en' || hash.endsWith('-en')) return 'en';
+        return null;
+      };
+      const currentLocale = () => localeFromHash() || root.dataset.currentLocale || 'en';
+      const activeArticle = () => document.querySelector(`.briefing-${currentLocale()}`);
+
+      function setLocale(locale, persist = true) {
+        const normalized = locale === 'ko' ? 'ko' : 'en';
+        root.lang = normalized;
+        root.dataset.currentLocale = normalized;
+        languageLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${normalized}`;
+          link.setAttribute('aria-pressed', String(active));
+        });
+        document.querySelector('.brand').setAttribute('href', `#status-${normalized}`);
+        if (persist) {
+          try { localStorage.setItem('privacy-router-roadmap-locale', normalized); } catch (_) { /* storage is optional */ }
+        }
+        resetExpandButton();
+        observeSections();
+        alignHashTarget();
+      }
+
+      function alignHashTarget() {
+        const id = location.hash.slice(1);
+        if (!id || id === 'en' || id === 'ko') return;
+        const target = document.getElementById(id);
+        if (!target) return;
+        requestAnimationFrame(() => {
+          const previousScrollBehavior = root.style.scrollBehavior;
+          root.style.scrollBehavior = 'auto';
+          target.scrollIntoView({ block: 'start' });
+          root.style.scrollBehavior = previousScrollBehavior;
+        });
+      }
+
+      function resetExpandButton() {
+        if (!expandButton) return;
+        expandButton.dataset.expanded = 'false';
+        expandButton.setAttribute('aria-expanded', 'false');
+        expandButton.querySelector('.button-en').textContent = 'Expand all';
+        expandButton.querySelector('.button-ko').textContent = '모두 펼치기';
+      }
+
+      function toggleDetails() {
+        const article = activeArticle();
+        if (!article) return;
+        const nextOpen = expandButton.dataset.expanded !== 'true';
+        article.querySelectorAll('details').forEach((item) => { item.open = nextOpen; });
+        expandButton.dataset.expanded = String(nextOpen);
+        expandButton.setAttribute('aria-expanded', String(nextOpen));
+        expandButton.querySelector('.button-en').textContent = nextOpen ? 'Collapse all' : 'Expand all';
+        expandButton.querySelector('.button-ko').textContent = nextOpen ? '모두 접기' : '모두 펼치기';
+      }
+
+      function observeSections() {
+        if (observer) observer.disconnect();
+        const article = activeArticle();
+        if (!article || !('IntersectionObserver' in window)) return;
+        const links = [...article.querySelectorAll('.toc a')];
+        const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+        observer = new IntersectionObserver((entries) => {
+          const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (!visible) return;
+          links.forEach((link) => link.setAttribute('aria-current', String(link.getAttribute('href') === `#${visible.target.id}`)));
+        }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+        sections.forEach((section) => observer.observe(section));
+      }
+
+      expandButton?.addEventListener('click', toggleDetails);
+      window.addEventListener('hashchange', () => setLocale(currentLocale()));
+
+      let initialLocale = localeFromHash();
+      if (!initialLocale) {
+        try { initialLocale = localStorage.getItem('privacy-router-roadmap-locale') || 'en'; } catch (_) { initialLocale = 'en'; }
+      }
+      setLocale(initialLocale, false);
+    })();
+  </script>
+</body>
+</html>

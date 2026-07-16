@@ -1,116 +1,187 @@
-"""SQLModel-backed cache for extraction results and masking contracts."""
+"""SQLModel-backed cache for encrypted extraction results and conversation context."""
 
 from __future__ import annotations
 
-import hashlib
 import json
-from datetime import datetime
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
+from sqlalchemy import delete, text
 from sqlmodel import Session, select
 
-from db.models import ExtractionCache
-from db.session import engine
+from agents.masker import decrypt_field, encrypt_field
+from db import ExtractionCache, engine
+
+_CACHE_TTL = timedelta(hours=24)
 
 
-def _text_hash(text: str) -> str:
-    """MD5 hash of text (UTF-8 encoded)."""
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
+def _is_expired(entry: ExtractionCache) -> bool:
+    """Return whether an entry exceeded the inactivity TTL."""
+    cutoff = datetime.now(UTC).replace(tzinfo=None) - _CACHE_TTL
+    return entry.updated_at < cutoff
+
+
+def _load_active_entry(
+    session: Session,
+    chat_id: str,
+) -> ExtractionCache | None:
+    """Load a row and atomically remove it only if it remains expired."""
+    for _ in range(3):
+        entry = session.get(ExtractionCache, chat_id)
+        if entry is None or not _is_expired(entry):
+            return entry
+        cutoff = datetime.now(UTC).replace(tzinfo=None) - _CACHE_TTL
+        result = session.exec(
+            delete(ExtractionCache).where(
+                ExtractionCache.chat_id == chat_id,
+                ExtractionCache.updated_at < cutoff,
+            )
+        )
+        if result.rowcount:
+            session.commit()
+            return None
+        session.expire_all()
+    raise RuntimeError("Cache entry changed repeatedly during expiration")
+
+
+def _load_locked_entry(
+    session: Session,
+    chat_id: str,
+) -> ExtractionCache | None:
+    """Serialize cache writers for one chat and load its current row."""
+    if engine.dialect.name == "sqlite":
+        session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+        return session.get(ExtractionCache, chat_id)
+    if engine.dialect.name == "postgresql":
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:chat_id, 0))"),
+            {"chat_id": chat_id},
+        )
+    return session.exec(
+        select(ExtractionCache).where(ExtractionCache.chat_id == chat_id).with_for_update()
+    ).one_or_none()
+
+
+def _discard_expired_locked(
+    session: Session,
+    entry: ExtractionCache | None,
+) -> ExtractionCache | None:
+    """Delete an expired row after the caller has acquired its write lock."""
+    if entry is None or not _is_expired(entry):
+        return entry
+    session.delete(entry)
+    session.flush()
+    return None
 
 
 class SQLiteKVCache:
-    """Persistent cache using SQLModel ORM.
-
-    Single table keyed by chat_id:
-        - extraction: cached extraction result (updated per request)
-        - contract: masking contract (persisted across follow-up requests)
-    """
+    """Persistent encrypted cache keyed by chat ID."""
 
     # ── Extraction ───────────────────────────────────────────────────────
 
     def get_extraction(self, chat_id: str) -> dict | None:
-        """Get cached extraction by chat_id."""
+        """Get and decrypt a cached extraction by chat_id."""
         with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
+            entry = _load_active_entry(session, chat_id)
             if entry and entry.extraction:
-                return json.loads(entry.extraction)
+                return json.loads(decrypt_field(entry.extraction))
         return None
 
-    def put_extraction(self, chat_id: str, text: str, extraction: dict) -> None:
-        """Cache extraction result. Inserts or updates."""
-        text_hash = _text_hash(text)
+    def put_extraction(self, chat_id: str, extraction: dict) -> None:
+        """Cache an encrypted extraction result."""
+        serialized = json.dumps(extraction, ensure_ascii=False)
+        encrypted = encrypt_field(serialized)
         with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
+            entry = _load_locked_entry(session, chat_id)
+            entry = _discard_expired_locked(session, entry)
             if entry:
-                entry.text_hash = text_hash
-                entry.extraction = json.dumps(extraction, ensure_ascii=False)
-                entry.updated_at = datetime.utcnow()
+                entry.extraction = encrypted
+                entry.updated_at = datetime.now(UTC).replace(tzinfo=None)
             else:
                 entry = ExtractionCache(
                     chat_id=chat_id,
-                    text_hash=text_hash,
-                    extraction=json.dumps(extraction, ensure_ascii=False),
+                    extraction=encrypted,
                 )
                 session.add(entry)
             session.commit()
 
-    # ── Contract ─────────────────────────────────────────────────────────
+    # ── Conversation context ─────────────────────────────────────────────
 
-    def get_contract(self, chat_id: str) -> dict | None:
-        """Get masking contract by chat_id."""
+    def get_context(self, chat_id: str) -> list[dict[str, str]]:
+        """Load and decrypt the complete privacy-analysis context."""
         with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
-            if entry and entry.contract:
-                return json.loads(entry.contract)
-        return None
+            entry = _load_active_entry(session, chat_id)
+            if not entry or not entry.context:
+                return []
+            context = json.loads(decrypt_field(entry.context))
+        if not isinstance(context, list) or any(
+            not isinstance(segment, dict)
+            or not isinstance(segment.get("label"), str)
+            or not isinstance(segment.get("text"), str)
+            for segment in context
+        ):
+            raise ValueError("Persisted privacy context is invalid")
+        return context
 
-    def put_contract(self, chat_id: str, contract: dict) -> None:
-        """Store or update masking contract for chat_id."""
+    def put_context(
+        self,
+        chat_id: str,
+        context: list[dict[str, str]],
+    ) -> None:
+        """Encrypt and persist the complete privacy-analysis context."""
+        serialized = json.dumps(context, ensure_ascii=False)
+        encrypted = encrypt_field(serialized)
         with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
+            entry = _load_locked_entry(session, chat_id)
+            entry = _discard_expired_locked(session, entry)
             if entry:
-                entry.contract = json.dumps(contract, ensure_ascii=False)
-                entry.updated_at = datetime.utcnow()
+                entry.context = encrypted
+                entry.updated_at = datetime.now(UTC).replace(tzinfo=None)
             else:
                 entry = ExtractionCache(
                     chat_id=chat_id,
-                    text_hash="",
-                    contract=json.dumps(contract, ensure_ascii=False),
+                    context=encrypted,
                 )
                 session.add(entry)
             session.commit()
 
-    # ── Combined ─────────────────────────────────────────────────────────
-
-    def get(self, chat_id: str) -> dict | None:
-        """Get full cache entry (extraction + contract) by chat_id."""
+    def merge_context(
+        self,
+        chat_id: str,
+        current: list[dict[str, str]],
+        merge: Callable[
+            [list[dict[str, str]], list[dict[str, str]]],
+            list[Any],
+        ],
+    ) -> None:
+        """Atomically merge a request delta with the latest persisted context."""
         with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
-            if entry:
-                return {
-                    "extraction": json.loads(entry.extraction) if entry.extraction else None,
-                    "contract": json.loads(entry.contract) if entry.contract else None,
-                }
-        return None
-
-    def put(self, chat_id: str, text: str, extraction: dict, contract: dict | None = None) -> None:
-        """Store extraction and optional contract for chat_id."""
-        text_hash = _text_hash(text)
-        with Session(engine) as session:
-            entry = session.get(ExtractionCache, chat_id)
-            if entry:
-                entry.text_hash = text_hash
-                entry.extraction = json.dumps(extraction, ensure_ascii=False)
-                if contract is not None:
-                    entry.contract = json.dumps(contract, ensure_ascii=False)
-                entry.updated_at = datetime.utcnow()
-            else:
-                entry = ExtractionCache(
-                    chat_id=chat_id,
-                    text_hash=text_hash,
-                    extraction=json.dumps(extraction, ensure_ascii=False),
-                    contract=json.dumps(contract, ensure_ascii=False) if contract else None,
+            entry = _load_locked_entry(session, chat_id)
+            entry = _discard_expired_locked(session, entry)
+            previous = json.loads(decrypt_field(entry.context)) if entry and entry.context else []
+            merged = [
+                (
+                    segment
+                    if isinstance(segment, dict)
+                    else {
+                        "label": segment.label,
+                        "text": segment.text,
+                    }
                 )
-                session.add(entry)
+                for segment in merge(previous, current)
+            ]
+            encrypted = encrypt_field(json.dumps(merged, ensure_ascii=False))
+            if entry:
+                entry.context = encrypted
+                entry.updated_at = datetime.now(UTC).replace(tzinfo=None)
+            else:
+                session.add(
+                    ExtractionCache(
+                        chat_id=chat_id,
+                        context=encrypted,
+                    )
+                )
             session.commit()
 
     # ── Maintenance ──────────────────────────────────────────────────────
@@ -124,43 +195,6 @@ class SQLiteKVCache:
                 session.commit()
                 return True
         return False
-
-    def clear(self) -> int:
-        """Clear all entries. Returns count removed."""
-        with Session(engine) as session:
-            entries = session.exec(select(ExtractionCache)).all()
-            count = len(entries)
-            for entry in entries:
-                session.delete(entry)
-            session.commit()
-            return count
-
-    def cleanup(self, max_age_hours: int = 24) -> int:
-        """Remove entries older than max_age_hours. Returns count removed."""
-        from datetime import timedelta
-        cutoff = datetime.utcnow() - timedelta(hours=max_age_hours)
-        with Session(engine) as session:
-            entries = session.exec(
-                select(ExtractionCache).where(ExtractionCache.updated_at < cutoff)
-            ).all()
-            count = len(entries)
-            for entry in entries:
-                session.delete(entry)
-            session.commit()
-            return count
-
-    @property
-    def stats(self) -> dict:
-        with Session(engine) as session:
-            entries = session.exec(select(ExtractionCache)).all()
-            total = len(entries)
-            with_extraction = sum(1 for e in entries if e.extraction)
-            with_contract = sum(1 for e in entries if e.contract)
-            return {
-                "total": total,
-                "with_extraction": with_extraction,
-                "with_contract": with_contract,
-            }
 
 
 # Singleton

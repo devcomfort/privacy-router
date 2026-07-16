@@ -1,0 +1,394 @@
+{
+  "E2B": {
+    "model_id": "google/gemma-4-E2B-it",
+    "disk_gib": 9.6,
+    "baseline_acc": 65.0,
+    "results": [
+      {
+        "label": "seqs=16",
+        "seqs": 16,
+        "acc": 65.0,
+        "tps": 2.48,
+        "avg_lat": 2.59,
+        "errors": 0,
+        "total_s": 8.1,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=32",
+        "seqs": 32,
+        "acc": 65.0,
+        "tps": 4.37,
+        "avg_lat": 2.53,
+        "errors": 0,
+        "total_s": 4.6,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=48",
+        "seqs": 48,
+        "acc": 65.0,
+        "tps": 4.6,
+        "avg_lat": 2.34,
+        "errors": 0,
+        "total_s": 4.3,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=64",
+        "seqs": 64,
+        "acc": 65.0,
+        "tps": 4.63,
+        "avg_lat": 2.26,
+        "errors": 0,
+        "total_s": 4.3,
+        "valid": true,
+        "throughput_only": false
+      }
+    ]
+  },
+  "E4B": {
+    "model_id": "google/gemma-4-E4B-it",
+    "disk_gib": 14.9,
+    "baseline_acc": 60.0,
+    "results": [
+      {
+        "label": "seqs=16",
+        "seqs": 16,
+        "acc": 60.0,
+        "tps": 2.35,
+        "avg_lat": 4.42,
+        "errors": 0,
+        "total_s": 8.5,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=24",
+        "seqs": 24,
+        "acc": 60.0,
+        "tps": 2.81,
+        "avg_lat": 4.95,
+        "errors": 0,
+        "total_s": 7.1,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=32",
+        "seqs": 32,
+        "acc": 60.0,
+        "tps": 2.82,
+        "avg_lat": 4.87,
+        "errors": 0,
+        "total_s": 7.1,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=48",
+        "seqs": 48,
+        "acc": 60.0,
+        "tps": 2.81,
+        "avg_lat": 4.9,
+        "errors": 0,
+        "total_s": 7.1,
+        "valid": true,
+        "throughput_only": false
+      }
+    ]
+  },
+  "Gemma-26B": {
+    "model_id": "google/gemma-4-26B-A4B-it",
+    "disk_gib": 48.1,
+    "baseline_acc": 60.0,
+    "results": [
+      {
+        "label": "seqs=4",
+        "seqs": 4,
+        "acc": 60.0,
+        "tps": 0.57,
+        "avg_lat": 6.57,
+        "errors": 0,
+        "total_s": 35.1,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=8",
+        "seqs": 8,
+        "acc": 60.0,
+        "tps": 0.93,
+        "avg_lat": 7.4,
+        "errors": 0,
+        "total_s": 21.5,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=12",
+        "seqs": 12,
+        "acc": 60.0,
+        "tps": 0.97,
+        "avg_lat": 10.2,
+        "errors": 0,
+        "total_s": 20.6,
+        "valid": true,
+        "throughput_only": false
+      },
+      {
+        "label": "seqs=16",
+        "seqs": 16,
+        "acc": 60.0,
+        "tps": 1.23,
+        "avg_lat": 9.68,
+        "errors": 0,
+        "total_s": 16.3,
+        "valid": true,
+        "throughput_only": false
+      }
+    ]
+  },
+  "Qwen3.5-9B": {
+    "model_id": "Qwen/Qwen3.5-9B",
+    "disk_gib": 18.0,
+    "results": [
+      {
+        "total_s": 233.8,
+        "avg_lat": 78.38,
+        "acc": 0.0,
+        "tps": 0.09,
+        "errors": 20,
+        "label": "seqs=8",
+        "seqs": 8
+      },
+      {
+        "total_s": 161.7,
+        "avg_lat": 81.39,
+        "acc": 5.0,
+        "tps": 0.12,
+        "errors": 19,
+        "label": "seqs=12",
+        "seqs": 12
+      },
+      {
+        "total_s": 160.1,
+        "avg_lat": 82.76,
+        "acc": 0.0,
+        "tps": 0.12,
+        "errors": 20,
+        "label": "seqs=16",
+        "seqs": 16
+      },
+      {
+        "total_s": 91.0,
+        "avg_lat": 90.82,
+        "acc": 0.0,
+        "tps": 0.22,
+        "errors": 19,
+        "label": "seqs=24",
+        "seqs": 24
+      }
+    ],
+    "baseline_acc": 0.0
+  },
+  "Qwen3-4B": {
+    "model_id": "Qwen/Qwen3-4B",
+    "disk_gib": 7.5,
+    "results": [
+      {
+        "total_s": 80.2,
+        "avg_lat": 38.06,
+        "acc": 35.0,
+        "tps": 0.25,
+        "errors": 10,
+        "label": "seqs=16",
+        "seqs": 16
+      },
+      {
+        "total_s": 48.5,
+        "avg_lat": 38.75,
+        "acc": 30.0,
+        "tps": 0.41,
+        "errors": 11,
+        "label": "seqs=24",
+        "seqs": 24
+      },
+      {
+        "total_s": 48.1,
+        "avg_lat": 37.56,
+        "acc": 35.0,
+        "tps": 0.42,
+        "errors": 10,
+        "label": "seqs=32",
+        "seqs": 32
+      },
+      {
+        "total_s": 47.7,
+        "avg_lat": 36.03,
+        "acc": 40.0,
+        "tps": 0.42,
+        "errors": 8,
+        "label": "seqs=48",
+        "seqs": 48
+      }
+    ],
+    "baseline_acc": 35.0
+  },
+  "Gemma-12B": {
+    "model_id": "google/gemma-4-12B-it",
+    "disk_gib": 22.3,
+    "results": [
+      {
+        "total_s": 46.7,
+        "avg_lat": 12.95,
+        "acc": 60.0,
+        "tps": 0.43,
+        "errors": 0,
+        "label": "seqs=8",
+        "seqs": 8
+      },
+      {
+        "total_s": 36.8,
+        "avg_lat": 13.79,
+        "acc": 60.0,
+        "tps": 0.54,
+        "errors": 0,
+        "label": "seqs=12",
+        "seqs": 12
+      },
+      {
+        "total_s": 32.6,
+        "avg_lat": 14.26,
+        "acc": 60.0,
+        "tps": 0.61,
+        "errors": 0,
+        "label": "seqs=16",
+        "seqs": 16
+      },
+      {
+        "total_s": 29.0,
+        "avg_lat": 14.11,
+        "acc": 60.0,
+        "tps": 0.69,
+        "errors": 0,
+        "label": "seqs=24",
+        "seqs": 24
+      }
+    ],
+    "baseline_acc": 60.0
+  },
+  "EXAONE-1.2B": {
+    "model_id": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "disk_gib": 2.4,
+    "results": [
+      {
+        "total_s": 6.0,
+        "avg_lat": 2.65,
+        "acc": 80.0,
+        "tps": 3.31,
+        "errors": 0,
+        "label": "seqs=16",
+        "seqs": 16
+      },
+      {
+        "total_s": 4.1,
+        "avg_lat": 2.8,
+        "acc": 80.0,
+        "tps": 4.86,
+        "errors": 0,
+        "label": "seqs=32",
+        "seqs": 32
+      },
+      {
+        "total_s": 4.1,
+        "avg_lat": 2.74,
+        "acc": 80.0,
+        "tps": 4.9,
+        "errors": 0,
+        "label": "seqs=48",
+        "seqs": 48
+      },
+      {
+        "total_s": 4.1,
+        "avg_lat": 2.73,
+        "acc": 85.0,
+        "tps": 4.9,
+        "errors": 0,
+        "label": "seqs=64",
+        "seqs": 64
+      }
+    ],
+    "baseline_acc": 80.0
+  },
+  "Granite-8B": {
+    "model_id": "ibm-granite/granite-4.1-8b",
+    "disk_gib": 16.4,
+    "results": [
+      {
+        "total_s": 47.0,
+        "avg_lat": 14.67,
+        "acc": 90.0,
+        "tps": 0.43,
+        "errors": 0,
+        "label": "seqs=8",
+        "seqs": 8
+      },
+      {
+        "total_s": 37.8,
+        "avg_lat": 15.7,
+        "acc": 90.0,
+        "tps": 0.53,
+        "errors": 0,
+        "label": "seqs=12",
+        "seqs": 12
+      },
+      {
+        "total_s": 30.5,
+        "avg_lat": 15.97,
+        "acc": 90.0,
+        "tps": 0.66,
+        "errors": 0,
+        "label": "seqs=16",
+        "seqs": 16
+      },
+      {
+        "total_s": 28.9,
+        "avg_lat": 16.38,
+        "acc": 90.0,
+        "tps": 0.69,
+        "errors": 0,
+        "label": "seqs=24",
+        "seqs": 24
+      }
+    ],
+    "baseline_acc": 90.0
+  },
+  "Ministral-3B": {
+    "model_id": "mistralai/Ministral-3-3B-Instruct-2512",
+    "disk_gib": 8.7,
+    "baseline_acc": null,
+    "results": [
+      {
+        "label": "all",
+        "error": "PixtralForConditionalGeneration incompatible (MistralCommonImageProcessor missing fetch_images)",
+        "skip": true
+      }
+    ]
+  },
+  "Qwen3.6-MoE": {
+    "model_id": "Qwen/Qwen3.6-35B-A3B",
+    "disk_gib": 2.2,
+    "baseline_acc": null,
+    "results": [
+      {
+        "label": "all",
+        "error": "partial_download_2/26_shards",
+        "skip": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "case_name": "전화번호포함(creation)",
+  "input_text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+  "expected": {
+    "action": "selective_mask",
+    "sensitive": true
+  },
+  "raw_response": "{\n  \"sensitivity\": {\n    \"is_sensitive\": true,\n    \"rationale\": \"이메일 주소와 전화번호와 같은 개인 식별 정보(PII)가 포함되어 있습니다.\"\n  },\n  \"records\": [\n    {\n      \"category\": \"EMAIL_ADDRESS\",\n      \"span\": \"hong@example.com\",\n      \"confidence\": 0.99,\n      \"reasoning\": \"이메일 주소 패턴 일치\",\n      \"is_essential\": false\n    },\n    {\n      \"category\": \"PHONE_NUMBER\",\n      \"span\": \"010-1234-5678\",\n      \"confidence\": 0.98,\n      \"reasoning\": \"전화번호 패턴 일치\",\n      \"is_essential\": false\n    }\n  ]\n}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "이메일 주소와 전화번호와 같은 개인 식별 정보(PII)가 포함되어 있습니다."
+    },
+    "records": [
+      {
+        "category": "EMAIL_ADDRESS",
+        "span": "hong@example.com",
+        "confidence": 0.99,
+        "reasoning": "이메일 주소 패턴 일치",
+        "is_essential": false
+      },
+      {
+        "category": "PHONE_NUMBER",
+        "span": "010-1234-5678",
+        "confidence": 0.98,
+        "reasoning": "전화번호 패턴 일치",
+        "is_essential": false
+      }
+    ]
+  },
+  "actual": {
+    "action": "selective_mask",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

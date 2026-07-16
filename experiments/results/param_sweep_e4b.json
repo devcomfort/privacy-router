@@ -1,0 +1,65 @@
+{
+  "tok=512_top=0.7": {
+    "overall": 79.2,
+    "morph": 83.3,
+    "ctx": 70.4,
+    "errors": 0,
+    "time": 66.7
+  },
+  "tok=512_top=0.9": {
+    "overall": 78.3,
+    "morph": 83.3,
+    "ctx": 68.5,
+    "errors": 0,
+    "time": 66.2
+  },
+  "tok=512_top=1.0": {
+    "overall": 79.2,
+    "morph": 83.3,
+    "ctx": 70.4,
+    "errors": 0,
+    "time": 66.5
+  },
+  "tok=1024_top=0.7": {
+    "overall": 80.0,
+    "morph": 83.3,
+    "ctx": 72.2,
+    "errors": 0,
+    "time": 65.8
+  },
+  "tok=1024_top=0.9": {
+    "overall": 79.2,
+    "morph": 83.3,
+    "ctx": 70.4,
+    "errors": 0,
+    "time": 65.5
+  },
+  "tok=1024_top=1.0": {
+    "overall": 79.2,
+    "morph": 83.3,
+    "ctx": 70.4,
+    "errors": 0,
+    "time": 65.7
+  },
+  "tok=2048_top=0.7": {
+    "overall": 0.0,
+    "morph": 0.0,
+    "ctx": 0.0,
+    "errors": 120,
+    "time": 0.7
+  },
+  "tok=2048_top=0.9": {
+    "overall": 0.0,
+    "morph": 0.0,
+    "ctx": 0.0,
+    "errors": 120,
+    "time": 0.8
+  },
+  "tok=2048_top=1.0": {
+    "overall": 0.0,
+    "morph": 0.0,
+    "ctx": 0.0,
+    "errors": 120,
+    "time": 0.7
+  }
+}

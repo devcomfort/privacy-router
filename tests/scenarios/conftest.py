@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import pytest
 
+from server.api import create_api_key
+
 BASE_URL = "http://localhost:8787"
 
 
@@ -25,9 +27,8 @@ def auth_headers() -> dict[str, str]:
     The key is created directly in PostgreSQL (same DB as Docker container).
     """
     import db.models  # noqa: F401
-    from db.session import init_db, get_session
     from db.models import ApiKey, Provider
-    from server.api.auth import create_api_key
+    from db.session import get_session, init_db
 
     init_db()
 
@@ -36,9 +37,7 @@ def auth_headers() -> dict[str, str]:
     try:
         provider = session.get(Provider, "test-provider")
         if not provider:
-            provider = Provider(
-                id="test-provider", name="test", provider_type="openrouter", is_active=True
-            )
+            provider = Provider(id="test-provider", name="test", provider_type="openrouter", is_active=True)
             session.add(provider)
             session.commit()
         key = ApiKey(

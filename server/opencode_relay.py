@@ -22,6 +22,7 @@ from contextlib import suppress
 from typing import Any
 
 import httpx
+import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -86,9 +87,7 @@ def _send_prompt(
 def _extract_content(response: dict) -> str:
     """Extract text content from OpenCode response."""
     parts = response.get("parts", [])
-    return "\n".join(
-        p.get("text", "") for p in parts if isinstance(p, dict) and p.get("type") == "text"
-    )
+    return "\n".join(p.get("text", "") for p in parts if isinstance(p, dict) and p.get("type") == "text")
 
 
 def _to_openai(content: str, model: str, session_id: str) -> dict:
@@ -150,8 +149,6 @@ async def health() -> dict:
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     print(f"OpenCode Go Relay starting on :{RELAY_PORT}")
     print(f"OpenCode API: {OPENCODE_BASE_URL}")
     uvicorn.run(app, host="0.0.0.0", port=RELAY_PORT)

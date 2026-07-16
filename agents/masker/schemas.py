@@ -8,6 +8,8 @@ resolvable during hydration, or the operation fails fast.
 
 from __future__ import annotations
 
+import re
+from typing import ClassVar
 
 from pydantic import BaseModel, Field
 
@@ -45,13 +47,68 @@ class MaskingContract(BaseModel):
         examples=[3],
     )
 
-    def validate_response(self, text: str) -> list[str]:
-        """Validate that every placeholder in *text* is resolvable.
+    _TOKEN_RE: ClassVar[re.Pattern[str]] = re.compile(
+        r"(?<![A-Za-z0-9_])"
+        r"(?P<token>"
+        r"\[[A-Za-z][A-Za-z0-9_]{1,63}#[A-Za-z0-9_-]{1,64}\]"
+        r"|[A-Za-z][A-Za-z0-9_]{1,63}#[A-Za-z0-9_-]{1,64}"
+        r")"
+        r"(?![A-Za-z0-9_#-])"
+    )
 
-        With contract-key-based matching, hydration is always safe:
-        keys that appear get replaced, others stay as-is.
+    @property
+    def canonical_placeholder_map(self) -> dict[str, str]:
+        """Return contract keys in canonical bare ``CATEGORY#suffix`` form."""
+        return {placeholder.strip("[]"): original for placeholder, original in self.placeholder_map.items()}
+
+    @property
+    def registered_placeholders(self) -> list[str]:
+        """Return canonical contract keys in deterministic order."""
+        return list(self.canonical_placeholder_map)
+
+    def find_placeholder_tokens(self, text: str) -> list[str]:
+        """Find canonical or legacy placeholder-like tokens in ``text``.
+
+        Uppercase categories are treated as placeholder candidates. Mixed-case
+        categories are candidates only when they case-fold to a category
+        already present in this contract, which avoids interpreting ordinary
+        strings such as ``Issue#deadbeef`` as privacy placeholders.
         """
-        return []
+        categories = {key.partition("#")[0].upper() for key in self.canonical_placeholder_map}
+        found: list[str] = []
+        for match in self._TOKEN_RE.finditer(text):
+            token = match.group("token")
+            category = token.strip("[]").partition("#")[0]
+            if category == category.upper() or category.upper() in categories:
+                found.append(token)
+        return found
+
+    def validate_response(self, text: str) -> list[str]:
+        """Return placeholder-like tokens not registered by this contract."""
+        registered = set(self.canonical_placeholder_map)
+        return [token for token in self.find_placeholder_tokens(text) if token.strip("[]") not in registered]
+
+    def replace_registered(self, text: str) -> tuple[str, int]:
+        """Hydrate exact registered tokens without replacing token prefixes."""
+        hydrated = text
+        replacements = 0
+        items = sorted(
+            self.canonical_placeholder_map.items(),
+            key=lambda item: len(item[0]),
+            reverse=True,
+        )
+        for placeholder, original in items:
+            pattern = re.compile(
+                rf"(?<![A-Za-z0-9_])"
+                rf"(?:\[{re.escape(placeholder)}\]|{re.escape(placeholder)})"
+                rf"(?![A-Za-z0-9_#-])"
+            )
+            hydrated, count = pattern.subn(
+                lambda _match, value=original: value,
+                hydrated,
+            )
+            replacements += count
+        return hydrated, replacements
 
 
 class MaskingResult(BaseModel):

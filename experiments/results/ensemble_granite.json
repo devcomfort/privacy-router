@@ -1,0 +1,2526 @@
+[
+  {
+    "id": "l1_per_m_KO_000",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "주민등록번호와 개인 식별 정보 포함"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "901212-1234567",
+          "is_essential": false
+        },
+        {
+          "category": "PERSONAL_INFORMATION",
+          "span": "내 이름과 생년월일",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_001",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "여권 번호와 개인 신분 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PASSPORT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2023년 5월 10일",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2033년 5월 9일",
+          "is_essential": false
+        },
+        {
+          "category": "NATIONALITY",
+          "span": "대한민국",
+          "is_essential": false
+        },
+        {
+          "category": "ISSUING_AGENCY",
+          "span": "외교부",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_002",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호, 유효기간, CVV 포함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "6011-1111-1111-1117",
+          "is_essential": false
+        },
+        {
+          "category": "EXPIRY_DATE",
+          "span": "09/26",
+          "is_essential": false
+        },
+        {
+          "category": "CVV",
+          "span": "789",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_003",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "PII 포함"
+      },
+      "records": [
+        {
+          "category": "SOCIAL_SECURITY_NUMBER",
+          "span": "123-45-6789",
+          "is_essential": false
+        },
+        {
+          "category": "FULL_NAME",
+          "span": "Sarah Lee",
+          "is_essential": false
+        },
+        {
+          "category": "DATE_OF_BIRTH",
+          "span": "March 15 1990",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_PREMIUM_HISTORY",
+          "span": "complete history of insurance premium payments over the past five years with monthly breakdowns",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_004",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "여권 번호 포함"
+      },
+      "records": [
+        {
+          "category": "PASSPORT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_005",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호, 만료일, CVV가 포함된 민감 정보"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "6011-1111-1111-1117",
+          "is_essential": false
+        },
+        {
+          "category": "CREDIT_CARD_EXPIRATION",
+          "span": "09/26",
+          "is_essential": false
+        },
+        {
+          "category": "CREDIT_CARD_CVV",
+          "span": "789",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_006",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자의 정신과 상담 기록과 약물 처방 정보가 포함되어 있어 기밀 유지가 매우 중요합니다."
+      },
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "세르트랄린 50mg",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "우울증 진단과 약물 처방 이력",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "기밀 유지가 매우 중요해",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_007",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계좌번호 포함하여 개인 금융 정보 분석 요청"
+      },
+      "records": [
+        {
+          "category": "BANK_ACCOUNT_NUMBER",
+          "span": "210-567-890123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_008",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "성폭력 피해 상담 기록과 관련된 개인 식별 정보 및 법적 절차가 포함된 내용"
+      },
+      "records": [
+        {
+          "category": "SENSITIVE_PERSONAL_INFORMATION",
+          "span": "성폭력 피해 상담 기록",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "경찰 신고, 병원 진단서, 법률 상담",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "접근금지 명령",
+          "is_essential": false
+        },
+        {
+          "category": "RELATIONSHIP_DESCRIPTION",
+          "span": "가해자는 직장 상사이며",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_009",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자 상담 기록과 정신 건강 정보가 포함되어 있어 민감 정보"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "psychiatric counseling records",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "depression diagnosis",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "Sertraline 50mg medication prescription history",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "weekly cognitive behavioral therapy progress",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIALITY_MARKER",
+          "span": "Confidentiality is critical as this contains deeply personal mental health information",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_010",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계좌 번호 포함하여 개인 금융 정보가 민감"
+      },
+      "records": [
+        {
+          "category": "BANK_ACCOUNT_NUMBER",
+          "span": "210-567-890123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_011",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "성폭력 사건 관련 개인 식별 정보와 법적 절차 포함"
+      },
+      "records": [
+        {
+          "category": "PERSONAL_IDENTIFYING_INFORMATION",
+          "span": "workplace supervisor",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_DOCUMENT",
+          "span": "restraining order",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "March 15, 2024",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_012",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 URL과 급여 데이터 분석 요청 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        },
+        {
+          "category": "SENSITIVE_DATA",
+          "span": "전체 직원 급여 데이터",
+          "is_essential": false
+        },
+        {
+          "category": "SENSITIVE_DATA",
+          "span": "부서별 평균 연봉과 상위 10% 보상 패키지",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_013",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "API 키 포함하여 민감 정보"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_014",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "DB 접속 정보(호스트, 포트, 사용자명, 비밀번호) 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "비밀번호 Pr0d!Sec#2025",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "db.internal.corp.com",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_015",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 URL과 비밀 보고서 요청 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        },
+        {
+          "category": "CONFIDENTIAL_REPORT",
+          "span": "confidential report marked for executive eyes only",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_016",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "API 키 포함하여 민감 정보"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_017",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "credentials 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Pr0d!Sec#2025",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "db.internal.corp.com",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_018",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A 대상 기업의 인수가격이 극비로 공개 시 자본시장법 위반 가능성이 있음"
+      },
+      "records": [
+        {
+          "category": "M&A_PRICE",
+          "span": "500억원",
+          "is_essential": true
+        },
+        {
+          "category": "M&A_PRICE",
+          "span": "300억원",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_019",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비공개 협상 내용 및 금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "3nm 공정 웨이퍼 단가가 장당 18,000달러로 합의되었고, 월 생산량은 5,000장이야.",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "독점 공급 기간 2년, 품질 보증 기준, 위약금 조항도 포함해줘.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_020",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기밀 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CONFIDENTIAL_INFORMATION",
+          "span": "전력 효율 35% 우위, 수율 차이 8%p 이점",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_021",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A acquisition prices and financial projections are sensitive business information"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$400M",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$50M",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$240M",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_022",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 전략 및 협상 내용 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRETS",
+          "span": "$18,000 per wafer for their 3nm process with monthly capacity of 5,000 wafers",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_SECRETS",
+          "span": "confidential negotiations with Samsung Foundry",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_023",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기업 비밀 및 기밀 통계 포함"
+      },
+      "records": [
+        {
+          "category": "CONFIDENTIAL_STATISTIC",
+          "span": "35% power efficiency advantage",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_STATISTIC",
+          "span": "8 percentage point yield differential",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_STATISTIC",
+          "span": "strictly confidential",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_024",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "SSH 접속 정보와 비밀번호 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Str0ng!Pass#2024",
+          "is_essential": true
+        },
+        {
+          "category": "IP_ADDRESS",
+          "span": "192.168.1.100",
+          "is_essential": false
+        },
+        {
+          "category": "USERNAME",
+          "span": "lab_admin",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_025",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "이메일 주소 포함"
+      },
+      "records": [
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "kim.dh@example.com",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "lee@stanford.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "chen@tsinghua.edu.cn",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_026",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 출원 번호와 발명자 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "박민수",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2024년 6월 15일",
+          "is_essential": false
+        },
+        {
+          "category": "INVENTION_TITLE",
+          "span": "프라이버시 보호 AI 시스템",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_027",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "SSH credentials and server access details are sensitive information that must be protected.",
+        "records": [
+          {
+            "category": "CREDENTIAL",
+            "span": "Str0ng!Pass#2024",
+            "is_essential": true
+          },
+          {
+            "category": "IP_ADDRESS",
+            "span": "192.168.1.100",
+            "is_essential": false
+          },
+          {
+            "category": "USERNAME",
+            "span": "lab_admin",
+            "is_essential": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "l1_res_m_EN_028",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "이메일 주소 포함"
+      },
+      "records": [
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "smith.j@mit.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "lee@stanford.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_ADDRESS",
+          "span": "chen@tsinghua.edu.cn",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_029",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 출원 번호와 발명가 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "INVENTOR_NAME",
+          "span": "Jessica Wang",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "June 15 2024",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_030",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "미공개 연구 내용 포함"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "새로운 양자 오류 정정 코드",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_031",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l1_res_c_KO_032",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "5억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "4.2억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "8천만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_033",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "미공개 연구 및 기밀 정보 포함"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "novel quantum error correction code",
+          "is_essential": true
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "strictly confidential",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_034",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l1_res_c_EN_035",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_per_m_KO_036",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자번호와 의료 진단 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "PT-2024-0892",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_DIAGNOSIS",
+          "span": "고혈압과 당뇨 전단계 진단",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_037",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "주민등록번호와 부양가족 정보 포함"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "880515-2345678",
+          "is_essential": false
+        },
+        {
+          "category": "DEPENDENT_COUNT",
+          "span": "3명",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_038",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "보험번호와 금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-5678",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "800만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "500만원",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2024년 9월 3일",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_039",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자 식별자와 건강 검진 결과 포함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "PT-2024-0892",
+          "is_essential": false
+        },
+        {
+          "category": "HEALTH_CHECKUP_DATA",
+          "span": "Blood pressure 145/95mmHg, fasting glucose 180mg/dL, LDL cholesterol 165mg/dL",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_040",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "세금 신고에 포함된 개인 식별 정보와 금액이 포함되어 있습니다."
+      },
+      "records": [
+        {
+          "category": "TAX_ID",
+          "span": "234-56-7890",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_041",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "보험 번호와 금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-9012",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$6,500",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$4,000",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_042",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연봉 및 스톡옵션 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "8,500만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1억원",
+          "is_essential": false
+        },
+        {
+          "category": "EMPLOYEE_INFORMATION",
+          "span": "삼성전자 반도체事业부",
+          "is_essential": false
+        },
+        {
+          "category": "EMPLOYEE_INFORMATION",
+          "span": "5년차",
+          "is_essential": false
+        },
+        {
+          "category": "EMPLOYEE_INFORMATION",
+          "span": "연 200% 스톡옵션",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_043",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인적인 가족 및 상담 관련 내용 포함"
+      },
+      "records": [
+        {
+          "category": "PERSONAL_RELATIONSHIP_DETAILS",
+          "span": "배우자와의 관계 상담을 받고 싶어. 결혼 7년차이고, 육아 스트레스로 갈등이 심해. 최근 6개월간 부부 상담 3회, 개인 상담 5회 받았는데, 상담사 선생님께 전달할 메모를 작성해줘. 두 자녀는 5세와 3세야.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_044",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자번호와 보험 유형이 포함된 의료 관련 정보"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_TYPE",
+          "span": "건강보험 일반피부양자",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_045",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연봉과 스톡옵션 가치가 포함된 민감 정보"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$70,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$85,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_DESCRIPTION",
+          "span": "200% annual bonus",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_046",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인적인 가족 정보와 상담 기록이 포함되어 있습니다."
+      },
+      "records": [
+        {
+          "category": "PERSONAL_INFORMATION",
+          "span": "two children ages 5 and 3",
+          "is_essential": false
+        },
+        {
+          "category": "RELATIONSHIP_DURATION",
+          "span": "Married 7 years",
+          "is_essential": false
+        },
+        {
+          "category": "THERAPY_SESSION_DETAILS",
+          "span": "Three couples sessions and 5 individual sessions in past 6 months",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_047",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자번호와 보험 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "insurance general dependent",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_048",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "VPN 서버 주소, 인증서 CN, 인증 토큰 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "vpn.corp.internal",
+          "is_essential": false
+        },
+        {
+          "category": "CERTIFICATE_CN",
+          "span": "employee-2024-kdh",
+          "is_essential": false
+        },
+        {
+          "category": "AUTH_TOKEN",
+          "span": "eyJhbGciOiJIUzI1NiJ9.abc123",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_049",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직원 급여 정보와 사번 포함"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        },
+        {
+          "category": "SALARY_AMOUNT",
+          "span": "5,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "BONUS_AMOUNT",
+          "span": "1,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "STOCK_OPTIONS",
+          "span": "3,000주",
+          "is_essential": false
+        },
+        {
+          "category": "EXERCISE_PRICE",
+          "span": "25,000원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_050",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "AWS 계정 ID와 EC2 인스턴스 ID가 포함되어 있어 보안상의 이유로 마스킹 필요"
+      },
+      "records": [
+        {
+          "category": "AWS_ACCOUNT_ID",
+          "span": "555544443333",
+          "is_essential": false
+        },
+        {
+          "category": "EC2_INSTANCE_ID",
+          "span": "i-0ghi345def678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_051",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "VPN 서버와 인증 토큰 포함",
+        "records": [
+          {
+            "category": "INTERNAL_URL",
+            "span": "vpn.corp.internal",
+            "is_essential": true
+          },
+          {
+            "category": "CERTIFICATE_COMMON_NAME",
+            "span": "employee-2024-kdh",
+            "is_essential": false
+          },
+          {
+            "category": "AUTH_TOKEN",
+            "span": "eyJhbGciOiJIUzI1NiJ9.def456",
+            "is_essential": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_052",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직원 ID와 급여 정보 포함"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$43,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$20",
+          "is_essential": false
+        },
+        {
+          "category": "QUANTITY",
+          "span": "3,000 shares",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_053",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "AWS 계정 번호와 인스턴스 ID가 포함된 비민감 비즈니스 분석 요청"
+      },
+      "records": [
+        {
+          "category": "AWS_ACCOUNT_NUMBER",
+          "span": "555544443333",
+          "is_essential": false
+        },
+        {
+          "category": "AWS_INSTANCE_ID",
+          "span": "i-0ghi345def678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_054",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "조직 인력 계획 및 퇴직금 추정 요청으로 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_COUNT_CHANGE",
+          "span": "엔지니어링팀 5명 감축, 마케팅팀 3명 증원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_ESTIMATE",
+          "span": "예상 퇴직금 총액과 신규 채용 비용",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "경영진 승인 전까지 절대 비밀로 해야 해",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_055",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호와 손해배상 추정액 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "20억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_056",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계약 규모와 협상 조건이 포함된 비즈니스 정보"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "50억원",
+          "is_essential": false
+        },
+        {
+          "category": "NEGOTIATION_CONDITION",
+          "span": "제안할 인상률 12%",
+          "is_essential": false
+        },
+        {
+          "category": "NEGOTIATION_CONDITION",
+          "span": "최대 허용 할인율 8%까지 협상 가능해",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_057",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 전략 및 인력 조정 계획이 포함되어 있어 기밀 처리 필요"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_STRATEGY",
+          "span": "workforce restructuring, Engineering reduction of 5, marketing expansion of 3 positions, severance costs, new hire expenses, updated org chart",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_058",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호와 손해액이 포함된 민감 정보"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$16M",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_059",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$40M",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_PERCENTAGE",
+          "span": "12%",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_PERCENTAGE",
+          "span": "8%",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_060",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "ORCID 포함하여 저자 정보가 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0002-1234-5678",
+          "is_essential": false
+        },
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_061",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "임상시험 IRB 승인 번호 포함"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-KAIST-0567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_062",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "카드 번호 포함하여 보안 처리 필요"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "5361-XXXX-XXXX-8901",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_063",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "ORCID 포함"
+      },
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        },
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_064",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB 번호 포함"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-GIST-0234",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_065",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호 포함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "4111-XXXX-XXXX-2345",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_066",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 성과와 실적이 포함되어 있지만, 이는 일반적인 공개 정보이며 특정 개인 식별 정보나 비밀 데이터는 포함되지 않음"
+      },
+      "records": [
+        {
+          "category": "RESEARCH_ACHIEVEMENT",
+          "span": "올해 SCI 논문 3편, 특허 출원 2건, 학회 발표 5회, 지도 학생 중 2명이 박사 학위 취득했고, 연구비 수주 실적은 총 8억원이야",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_067",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_KO_068",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기업명, 지원금액, 연구 주제, 기술 이전 조건 등 기업 및 연구 관련 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "COMPANY_NAME",
+          "span": "삼성전자",
+          "is_essential": false
+        },
+        {
+          "category": "FUNDING_AMOUNT",
+          "span": "3억원",
+          "is_essential": false
+        },
+        {
+          "category": "RESEARCH_TOPIC",
+          "span": "차세대 DRAM 공정 최적화",
+          "is_essential": false
+        },
+        {
+          "category": "TECH_TRANSFER_CONDITIONS",
+          "span": "기술이전 조건과 지분율 협의 내용",
+          "is_essential": false
+        },
+        {
+          "category": "NDA_CLAUSES",
+          "span": "NDA 조항",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_069",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 성과와 재정 정보가 포함되어 있지만, 이는 일반적인 연구 평가 내용이며 대체 가능"
+      },
+      "records": [
+        {
+          "category": "FUNDING_AMOUNT",
+          "span": "$640K",
+          "is_essential": false
+        },
+        {
+          "category": "RESEARCH_PERFORMANCE",
+          "span": "3 SCI publications, 2 patent filings, 5 conference presentations",
+          "is_essential": false
+        },
+        {
+          "category": "DEGREE_GRADUATION",
+          "span": "Two PhD students graduated",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_070",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_EN_071",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 전략 및 협상 내용 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "major semiconductor company",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$240K",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_CLAUSE",
+          "span": "NDA clause summary",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_072",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "차량 번호 포함"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "123가 4567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_073",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "배송장 번호와 수령인, 배송지 정보 포함"
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "9876543210987",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "이서연",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "서울시 강남구 테헤란로 123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_074",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "인스타그램 및 트위터 계정 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@kdonghyeon",
+          "is_essential": false
+        },
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@donghyeon_lab",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_075",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "면허 번호 포함"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "XYZ-5678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_076",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "배송 트레이닝 번호와 수령인 정보 포함"
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "1234567890123",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "David Kim",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "123 Tech Avenue San Francisco",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_077",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_KO_078",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_KO_079",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "금전적 정보와 주거 상황이 포함되어 있지만, 이는 일반적인 상황 분석에 필요한 데이터이며, 개인 식별 정보는 포함되지 않음"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "2억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "80만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "5천만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "3천만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_KO_080",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_EN_081",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_EN_082",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "금전적 정보와 임대·구매·이주 관련 상황이 포함되어 있지만, 이는 일반적인 재정 분석에 필요한 맥락이며, 개인 식별 정보는 포함되지 않음"
+      },
+      "records": [
+        {
+          "category": "CURRENCY_AMOUNT",
+          "span": "$1,500",
+          "is_essential": false
+        },
+        {
+          "category": "CURRENCY_AMOUNT",
+          "span": "$150K",
+          "is_essential": false
+        },
+        {
+          "category": "CURRENCY_AMOUNT",
+          "span": "$40K",
+          "is_essential": false
+        },
+        {
+          "category": "CURRENCY_AMOUNT",
+          "span": "$25K",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_EN_083",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_084",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "팀장 김영희라는 개인정보와 첨부파일 project_schedule_v3.xlsx가 포함되어 있지만, 이는 작업 요청의 문맥이며 마스킹 가능"
+      },
+      "records": [
+        {
+          "category": "PERSON_NAME",
+          "span": "김영희",
+          "is_essential": false
+        },
+        {
+          "category": "FILE_NAME",
+          "span": "project_schedule_v3.xlsx",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_085",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_086",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "미팅 대상 및 내용에 기업 비공개 정보 포함"
+      },
+      "records": [
+        {
+          "category": "COMPANY_NAME",
+          "span": "Sony 반도체事业부",
+          "is_essential": false
+        },
+        {
+          "category": "CONTRACT_CONTENT",
+          "span": "이미지 센서 공급 계약",
+          "is_essential": false
+        },
+        {
+          "category": "TRAVEL_EXPENSE",
+          "span": "출장비 총 280만원(항공 80만, 숙박 120만, 식대 80만)",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_087",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_088",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_089",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 비밀 및 금액 정보 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "Sony Semiconductor about image sensor supply contract",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$2,200",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$650",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$950",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$600",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_090",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_091",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_092",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_093",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_094",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_095",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_KO_096",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB 승인번호와 동의서 확인 상태가 포함된 실험 참가자 정보"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB 승인번호",
+          "is_essential": false
+        },
+        {
+          "category": "CONSENT_STATUS",
+          "span": "동의서 확인 상태",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_KO_097",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_KO_098",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_EN_099",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB approval number and consent verification status are sensitive information related to research ethics and participant privacy.",
+        "records": [
+          {
+            "category": "IRB_NUMBER",
+            "span": "IRB approval number",
+            "is_essential": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "l3_res_m_EN_100",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_EN_101",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_102",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_103",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_104",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_105",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_106",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_107",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_KO_108",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_KO_109",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_EN_110",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_EN_111",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_112",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_113",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_114",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_115",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_KO_116",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_KO_117",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_EN_118",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_EN_119",
+    "model": "ibm-granite/granite-4.1-8b",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "민감 정보 없음"
+      },
+      "records": []
+    }
+  }
+]

@@ -1,0 +1,60 @@
+{
+  "experiment_versions": [
+    {
+      "version": "v1-old-pipeline",
+      "status": "archived",
+      "archive_dir": "archive/experiments-v1-old-pipeline/",
+      "description": "Direct action extraction (Extractor outputs action directly)",
+      "test_cases": 25,
+      "dataset": "original_25",
+      "models_tested": 7,
+      "results": "48-68% overall accuracy",
+      "issue": "Prompt-schema mismatch caused 48% drop on E2B"
+    },
+    {
+      "version": "v1-contaminated",
+      "status": "archived",
+      "archive_dir": "archive/experiments-v1-contaminated/",
+      "description": "Empty tree_search stubs + threeharm-prompt multi_model_comparison",
+      "issue": "Uses removed threeharm prompt, empty/incomplete data"
+    },
+    {
+      "version": "v2-corrected-pipeline",
+      "status": "valid",
+      "results_file": "experiments/results/local_benchmark_v2_corrected.json",
+      "description": "Corrected Extractor→Judge pipeline (sensitivity/records → rule-based Judge)",
+      "test_cases": 25,
+      "dataset": "original_25",
+      "models_tested": 3,
+      "results": "76% overall (all 3 models), 87.5% morph, 60-70% ctx"
+    },
+    {
+      "version": "v3-benchmark-v2",
+      "status": "pending",
+      "dataset_file": "experiments/datasets/benchmark_v2.json",
+      "description": "120 cases across 4 sensitivity × 3 context × 2 type × 2 lang matrix",
+      "test_cases": 120,
+      "dataset": "benchmark_v2",
+      "models_tested": 0,
+      "results": "NOT YET RUN"
+    }
+  ],
+  "contaminated_files": [
+    "multi_model_comparison.json (threeharm prompt, 3 trials)",
+    "tree_search_20260622-0317/0319/0323/0325.json (empty stubs)"
+  ],
+  "optuna_trials": {
+    "version": "v1-tuning",
+    "status": "valid (historical)",
+    "files": "experiments/results/gemma-4-E4B-it-*.json (5 files)",
+    "best": "fewshot_v2 @ 88.2% (temp=0.6, top_p=0.75, max_tokens=2048)",
+    "test_cases": 17,
+    "note": "Used old ground-truth, but fewshot_v2 prompt is still the active prompt"
+  },
+  "tree_search": {
+    "version": "v1-tree-search",
+    "status": "valid (historical)",
+    "files": "experiments/results/tree_search_20260622-0328~0354.json (4 files)",
+    "note": "Prompt variant exploration, led to fewshot_v2 selection"
+  }
+}

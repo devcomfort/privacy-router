@@ -1,0 +1,38 @@
+{
+  "case_name": "다중span+혼합동사",
+  "input_text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"전화번호 및 내부 비즈니스 결정 정보 포함\"}, \"records\": [{\"category\": \"PHONE_NUMBER\", \"span\": \"010-1234-5678\", \"confidence\": 0.98, \"reasoning\": \"전화번호 패턴 일치\", \"is_essential\": false}, {\"category\": \"BUSINESS_SECRET\", \"span\": \"TSMC 3nm 공정 결정\", \"confidence\": 0.95, \"reasoning\": \"내부적인 기술/전략 결정 사항 언급\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "전화번호 및 내부 비즈니스 결정 정보 포함"
+    },
+    "records": [
+      {
+        "category": "PHONE_NUMBER",
+        "span": "010-1234-5678",
+        "confidence": 0.98,
+        "reasoning": "전화번호 패턴 일치",
+        "is_essential": false
+      },
+      {
+        "category": "BUSINESS_SECRET",
+        "span": "TSMC 3nm 공정 결정",
+        "confidence": 0.95,
+        "reasoning": "내부적인 기술/전략 결정 사항 언급",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

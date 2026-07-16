@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Generate demo usage logs via the Privacy Router API.
+"""Generate scripted demo artifacts through the Privacy Router API.
 
 Usage:
     python scripts/generate_demo_logs.py [--api-url http://localhost:8787] [--api-key pr-...]
 
-Generates 7 days of example usage logs and saves them to usage-log/.
+The fixed scenarios are useful for documentation and demos. Generated output is
+not runtime telemetry, a production-availability measurement, or a model-quality study.
 """
 
 import argparse
 import json
 import urllib.request
-from datetime import datetime, timedelta
 from pathlib import Path
 
-# Demo scenarios matching the 7-day usage log in README
+# Fixed scenario corpus for repeatable demo coverage; it is not runtime telemetry.
 SCENARIOS = [
     {
         "day": 1,
@@ -87,7 +87,7 @@ SCENARIOS = [
             "삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 결정했다.",
             "새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
             "이메일을 작성해주세요.",  # non-sensitive
-            "내 주민등록번호가 뭐야?",  # sensitive query
+            "주민등록번호 920303-2345678이 맞는지 확인해줘.",  # sensitive query
             "오늘 회의 내용을 정리해주세요.",
             "새로운 강화학습 알고리즘의 성능을 평가해주세요.",
             "이 코드를 리뷰해주세요.",  # non-sensitive
@@ -127,31 +127,34 @@ def classify(api_url: str, api_key: str, text: str) -> dict:
         return json.loads(resp.read())
 
 
-def generate_log(scenario: dict, api_url: str, api_key: str) -> str:
-    """Generate a markdown log for a scenario."""
+def generate_log(scenario: dict, api_url: str, api_key: str) -> tuple[str, int]:
+    """Generate a markdown log and return its classification failure count."""
     day = scenario["day"]
     title = scenario["title"]
     desc = scenario["description"]
     prompts = scenario["prompts"]
 
-    date = (datetime(2026, 6, 9) + timedelta(days=day - 1)).strftime("%Y-%m-%d")
-
     lines = [
-        f"# Day {day}: {title}",
-        f"",
-        f"## 환경",
-        f"- **Date**: {date}",
+        f"# Scripted Demo Classification — Scenario {day}: {title}",
+        "",
+        "> **Scripted demo classification run.** Fixed prompts below exercise the supplied Privacy Router endpoint.",
+        "> This output is not runtime telemetry, organic agent usage, a production-availability measurement, or a model-quality study.",
+        "",
+        "## Scenario metadata",
+        f"- **Scenario index**: {day}",
         f"- **API**: {api_url}/api/v1/classify",
-        f"- **시나리오**: {desc}",
-        f"",
-        f"---",
-        f"",
+        f"- **Scenario**: {desc}",
+        "",
+        "---",
+        "",
     ]
 
     total_sensitive = 0
     total_records = 0
     total_masked = 0
     total_local = 0
+    total_failed = 0
+    results = []
 
     for i, prompt in enumerate(prompts, 1):
         try:
@@ -163,93 +166,115 @@ def generate_log(scenario: dict, api_url: str, api_key: str) -> str:
             if is_sensitive:
                 total_sensitive += 1
                 total_records += len(records)
-                if policy == "mask_and_send":
+                if policy == "selective_mask":
                     total_masked += 1
-                elif policy == "route_to_local":
+                elif policy == "block":
                     total_local += 1
         except Exception as e:
+            total_failed += 1
             result = {"is_sensitive": False, "records": [], "policy_action": "error", "error": str(e)}
+        results.append(result)
 
-        lines.extend([
-            f"## Exchange {i}: {prompt[:50]}",
-            f"",
-            f"**사용자 입력**:",
-            f"> {prompt}",
-            f"",
-            f"**Classify API 응답**:",
-            f"```json",
-            json.dumps(result, ensure_ascii=False, indent=2),
-            f"```",
-            f"",
-            f"**분석**:",
-            f"- `is_sensitive: {result.get('is_sensitive', False)}`",
-            f"- `records: {len(result.get('records', []))}`",
-            f"- `policy_action: {result.get('policy_action', 'unknown')}`",
-            f"",
-            f"---",
-            f"",
-        ])
+        lines.extend(
+            [
+                f"## Exchange {i}: {prompt[:50]}",
+                "",
+                "**사용자 입력**:",
+                f"> {prompt}",
+                "",
+                "**Classify API 응답**:",
+                "```json",
+                json.dumps(result, ensure_ascii=False, indent=2),
+                "```",
+                "",
+                "**분석**:",
+                f"- `is_sensitive: {result.get('is_sensitive', False)}`",
+                f"- `records: {len(result.get('records', []))}`",
+                f"- `policy_action: {result.get('policy_action', 'unknown')}`",
+                "",
+                "---",
+                "",
+            ]
+        )
 
     # Summary table
-    lines.extend([
-        f"## 요약",
-        f"",
-        f"| Exchange | 입력 | is_sensitive | records | policy_action |",
-        f"|----------|------|-------------|---------|---------------|",
-    ])
+    lines.extend(
+        [
+            "## 요약",
+            "",
+            "| Exchange | 입력 | is_sensitive | records | policy_action |",
+            "|----------|------|-------------|---------|---------------|",
+        ]
+    )
 
-    for i, prompt in enumerate(prompts, 1):
-        try:
-            result = classify(api_url, api_key, prompt)
-            lines.append(
-                f"| {i} | {prompt[:30]} | {result.get('is_sensitive', False)} | "
-                f"{len(result.get('records', []))} | {result.get('policy_action', 'unknown')} |"
-            )
-        except:
+    for i, (prompt, result) in enumerate(zip(prompts, results, strict=False), 1):
+        if result.get("policy_action") == "error":
             lines.append(f"| {i} | {prompt[:30]} | error | - | - |")
+            continue
+        lines.append(
+            f"| {i} | {prompt[:30]} | {result.get('is_sensitive', False)} | "
+            f"{len(result.get('records', []))} | {result.get('policy_action', 'unknown')} |"
+        )
 
-    lines.extend([
-        f"",
-        f"**통계**:",
-        f"- 총 프롬프트: {len(prompts)}",
-        f"- 민감 정보 탐지: {total_sensitive}",
-        f"- 탐지된 레코드: {total_records}",
-        f"- 마스킹 후 전송: {total_masked}",
-        f"- 로컬 라우팅: {total_local}",
-        f"",
-    ])
+    lines.extend(
+        [
+            "",
+            "**통계**:",
+            f"- 총 프롬프트: {len(prompts)}",
+            f"- 민감 정보 탐지: {total_sensitive}",
+            f"- 탐지된 레코드: {total_records}",
+            f"- `selective_mask`: {total_masked}",
+            f"- `block`: {total_local}",
+            f"- classification failures: {total_failed}",
+            "",
+        ]
+    )
 
-    return "\n".join(lines)
+    return "\n".join(lines), total_failed
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate demo usage logs")
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate scripted demo artifacts")
     parser.add_argument("--api-url", default="http://localhost:8787", help="Privacy Router API URL")
     parser.add_argument("--api-key", required=True, help="API key for authentication")
-    parser.add_argument("--output", default="usage-log", help="Output directory")
+    parser.add_argument(
+        "--output",
+        default="usage-log/generated-demo",
+        help="Output directory for scripted demo artifacts",
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output)
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"=== Demo Log Generator ===")
+    print("=== Scripted Demo Classification Generator ===")
     print(f"API: {args.api_url}")
     print(f"Output: {output_dir}")
     print()
 
+    total_failed = 0
     for scenario in SCENARIOS:
         day = scenario["day"]
         title = scenario["title"]
-        print(f"Day {day}: {title}...", end=" ", flush=True)
+        print(f"Scenario {day}: {title}...", end=" ", flush=True)
 
-        log = generate_log(scenario, args.api_url, args.api_key)
-        filename = f"day-{day}-{title.lower().replace(' ', '-')}.md"
+        log, failure_count = generate_log(scenario, args.api_url, args.api_key)
+        total_failed += failure_count
+        filename = f"scenario-{day}-{title.lower().replace(' ', '-')}.md"
         (output_dir / filename).write_text(log)
-        print("✅")
+        if failure_count:
+            print(f"FAILED ({failure_count} failed classification(s))")
+        else:
+            print("OK")
 
     print()
-    print(f"=== Generated {len(SCENARIOS)} logs in {output_dir}/ ===")
+    if total_failed:
+        print(f"=== FAILED: {total_failed} classification call(s) failed; generated files are diagnostic only. ===")
+        return 1
+
+    print(f"=== Generated {len(SCENARIOS)} scripted demo classification artifacts in {output_dir}/ ===")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

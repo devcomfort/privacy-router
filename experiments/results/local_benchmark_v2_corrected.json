@@ -1,0 +1,32 @@
+{
+  "version": "v2-corrected-pipeline",
+  "created": "2026-06-23",
+  "description": "Corrected Extractor→Judge pipeline results on 25 cases",
+  "pipeline": "Extractor(LLM) → sensitivity/records → Judge(rule-based) → action",
+  "models": {
+    "gemma-4-E2B-it": {
+      "overall_pct": 76.0,
+      "morph_pct": 87.5,
+      "ctx_pct": 60.0,
+      "pipeline": "extractor-judge",
+      "test_cases": 25,
+      "dataset": "original_25"
+    },
+    "gemma-4-E4B-it": {
+      "overall_pct": 76.0,
+      "morph_pct": 87.5,
+      "ctx_pct": 60.0,
+      "pipeline": "extractor-judge",
+      "test_cases": 25,
+      "dataset": "original_25"
+    },
+    "gemma-4-12B-it": {
+      "overall_pct": 76.0,
+      "morph_pct": 87.5,
+      "ctx_pct": 70.0,
+      "pipeline": "extractor-judge",
+      "test_cases": 25,
+      "dataset": "original_25"
+    }
+  }
+}

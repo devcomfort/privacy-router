@@ -1,0 +1,74 @@
+{
+  "no_ngram": {
+    "concurrency": 1,
+    "n": 20,
+    "total_s": 93.1,
+    "avg_lat": 4.59,
+    "accuracy": 60.0,
+    "throughput": 0.21
+  },
+  "with_ngram": {
+    "concurrency": 1,
+    "n": 20,
+    "total_s": 81.4,
+    "avg_lat": 4.07,
+    "accuracy": 60.0,
+    "throughput": 0.25
+  },
+  "conc_1": {
+    "concurrency": 1,
+    "n": 20,
+    "total_s": 91.2,
+    "avg_lat": 4.56,
+    "accuracy": 60.0,
+    "throughput": 0.22
+  },
+  "conc_4": {
+    "concurrency": 4,
+    "n": 20,
+    "total_s": 21.1,
+    "avg_lat": 3.84,
+    "accuracy": 60.0,
+    "throughput": 0.95
+  },
+  "conc_8": {
+    "concurrency": 8,
+    "n": 20,
+    "total_s": 12.7,
+    "avg_lat": 3.91,
+    "accuracy": 60.0,
+    "throughput": 1.58
+  },
+  "conc_16": {
+    "concurrency": 16,
+    "n": 20,
+    "total_s": 8.0,
+    "avg_lat": 4.04,
+    "accuracy": 60.0,
+    "throughput": 2.49
+  },
+  "model_E2B": {
+    "concurrency": 4,
+    "n": 20,
+    "total_s": 10.4,
+    "avg_lat": 1.83,
+    "accuracy": 65.0,
+    "throughput": 1.92
+  },
+  "model_E4B": {
+    "concurrency": 4,
+    "n": 20,
+    "total_s": 21.7,
+    "avg_lat": 3.97,
+    "accuracy": 60.0,
+    "throughput": 0.92
+  },
+  "model_EXAONE": {
+    "concurrency": 4,
+    "n": 20,
+    "total_s": 13.1,
+    "avg_lat": 2.27,
+    "accuracy": 0.0,
+    "throughput": 1.52
+  }
+}

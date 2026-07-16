@@ -1,0 +1,90 @@
+{
+  "version": "1.0.0",
+  "created": "2026-06-24",
+  "description": "Privacy Router test cases — Corporate Secrets + Contextual + English",
+  "context": "corporate",
+  "type": "contextual",
+  "language": "en",
+  "cases": [
+    {
+      "id": "corp_ctx_en_lvl1_case1",
+      "text": "I'm drafting an internal memo for our M&A team about the upcoming acquisition of DataVault Inc. Our CFO Sarah Chen approved a maximum bid of $240 million, and the board meeting is scheduled for July 15th to finalize the term sheet. Can you help me structure the key talking points for the executive presentation, including the projected synergies of $38 million in annual cost savings by consolidating their cloud infrastructure into ours?",
+      "sensitivity_level": 1,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The message contains a specific M&A target (DataVault Inc.), a confidential maximum bid figure ($240M), a named executive (CFO Sarah Chen), a board meeting date, and projected synergy numbers. The user is directly asking for help structuring a presentation around this sensitive data — the information is the core subject of the query, not incidental background. Masking would destroy the entire meaning of the request."
+    },
+    {
+      "id": "corp_ctx_en_lvl1_case2",
+      "text": "Our company's AWS root account credentials are admin@novatech.io with password NvT#2026!Secure. I need you to help me write a runbook for our DevOps team that documents the incident response procedure when unauthorized access is detected on our production Kubernetes clusters. The runbook should include the steps for rotating these credentials and notifying the security operations center.",
+      "sensitivity_level": 1,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The message contains explicit cloud infrastructure credentials (email and password) for a root AWS account. Even though the user's actual request (writing an incident response runbook) is reasonable, the credentials themselves are extremely dangerous to transmit. The sensitive information is embedded in the request but the credentials are so high-risk that even masking is insufficient — they must never leave the local environment."
+    },
+    {
+      "id": "corp_ctx_en_lvl2_case1",
+      "text": "I'm working on Project Nightfall, which is our internal codename for the next-generation neural processing unit we're developing to compete with Apple's M-series chips. The tape-out is planned for Q1 2027 using TSMC's N3P node, and we're targeting a 40% improvement in performance-per-watt over our current Orion architecture. Can you help me write a competitive analysis comparing our projected specs against publicly available benchmarks for the M4 Pro and Snapdragon X Elite?",
+      "sensitivity_level": 2,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "The message reveals an internal project codename (Project Nightfall), a specific foundry process node (TSMC N3P), a confidential tape-out timeline (Q1 2027), internal performance targets (40% improvement), and a reference architecture codename (Orion). Only someone familiar with the company's semiconductor roadmap would recognize these as trade secrets. The user's actual task — competitive analysis against public benchmarks — can still be accomplished after masking the internal codenames and specific targets."
+    },
+    {
+      "id": "corp_ctx_en_lvl2_case2",
+      "text": "I'm trying to debug a performance issue in our internal data pipeline. The job runs on our Spark cluster at spark-master.internal.corp.acme.com:7077 and pulls customer transaction data from our PostgreSQL instance at db-replica-03.internal.corp.acme.com. The pipeline processes about 2.3 million transactions per day from our enterprise clients, and the latency has spiked from 400ms to 1.8 seconds since we deployed the new fraud detection model last Tuesday. Can you help me identify common causes of Spark shuffle bottlenecks?",
+      "sensitivity_level": 2,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "The message contains internal infrastructure hostnames (spark-master.internal.corp.acme.com, db-replica-03.internal.corp.acme.com), internal system architecture details, and business metrics (2.3M daily transactions, specific latency figures). An insider would recognize these as exposing internal network topology and operational scale. However, the user's core question — diagnosing Spark shuffle bottlenecks — is a general technical question that can be answered after masking the internal hostnames and specific metrics."
+    },
+    {
+      "id": "corp_ctx_en_lvl3_case1",
+      "text": "I'm exploring whether we should pivot our B2B SaaS platform toward an AI-powered document processing vertical. The market seems to be moving that direction given what competitors like UiPath and Hyperscience have been doing. I want to brainstorm what a differentiated approach would look like — specifically around multi-modal document understanding that combines OCR with large language models. Can you help me think through the technical architecture for this kind of product?",
+      "sensitivity_level": 3,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "The message discusses a potential strategic direction (pivoting to AI document processing) and references publicly known competitors. While the strategic intention could be considered sensitive in some contexts, the ideas discussed are general industry trends and publicly available information about the competitive landscape. The technical architecture question is generic enough that no proprietary information is being disclosed. Experts would likely disagree on whether this constitutes a trade secret since the 'pivot' is merely being explored, not decided."
+    },
+    {
+      "id": "corp_ctx_en_lvl3_case2",
+      "text": "We've been running some internal A/B tests on our checkout flow and the preliminary results show a 12% improvement in conversion when we use a single-page checkout versus the current multi-step process. I'm not sure if this is statistically significant yet since we only have two weeks of data, but the product team is eager to present this at the quarterly review. Can you help me write a statistical significance test in Python so I can determine whether we should recommend this change to leadership?",
+      "sensitivity_level": 3,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "The message contains preliminary business metrics (12% conversion improvement) from internal A/B testing that have not been validated or publicly shared. These could be considered sensitive competitive intelligence if disclosed, but the user themselves notes the results are preliminary and possibly not significant. The ambiguity lies in whether unfinished internal experiment data counts as a trade secret. However, since the specific percentage and product details are embedded in the request, selective masking of the metric allows the statistical analysis task to proceed."
+    },
+    {
+      "id": "corp_ctx_en_lvl4_case1",
+      "text": "I'm a product manager at a mid-size e-commerce company and we're looking to improve our customer support operations. Can you give me an overview of the main approaches to implementing an AI-powered chatbot for handling customer inquiries? I'm interested in understanding the tradeoffs between rule-based systems, retrieval-augmented generation, and fine-tuned models. We handle about 10,000 support tickets per month across categories like order tracking, returns, and product questions.",
+      "sensitivity_level": 4,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "The message contains no sensitive information. The user describes a generic business scenario (e-commerce customer support) with publicly available information about AI chatbot approaches. The ticket volume (10,000/month) and support categories are routine operational details with no competitive value. This is a straightforward knowledge request that can be sent to any external LLM without risk."
+    },
+    {
+      "id": "corp_ctx_en_lvl4_case2",
+      "text": "I need help writing a job description for a senior data engineer position on my team. The role involves building and maintaining ETL pipelines, working with tools like Apache Airflow, dbt, and Snowflake, and collaborating with analysts to ensure data quality. We're a healthcare technology company, so familiarity with HIPAA compliance would be a plus but not required. The position is remote-friendly with a salary range we're still finalizing with HR.",
+      "sensitivity_level": 4,
+      "context": "corporate",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "The message contains only publicly shareable information: a generic job description request with standard data engineering skills (Airflow, dbt, Snowflake), a general industry vertical (healthcare tech), and a common compliance framework (HIPAA). The salary range is explicitly noted as not yet determined, so no confidential compensation data is present. There is no sensitive corporate information to protect."
+    }
+  ]
+}

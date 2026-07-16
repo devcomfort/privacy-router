@@ -8,8 +8,8 @@ const translations: Record<Locale, Record<string, string>> = { en, ko };
 
 export const locale = writable<Locale>(
 	typeof localStorage !== 'undefined'
-		? (localStorage.getItem('locale') as Locale) ?? 'ko'
-		: 'ko'
+		? (localStorage.getItem('locale') as Locale) ?? 'en'
+		: 'en'
 );
 
 locale.subscribe((val) => {

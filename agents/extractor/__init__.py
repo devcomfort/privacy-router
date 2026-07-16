@@ -25,13 +25,20 @@ Examples
 True
 """
 
+from .critic import Critic
 from .extractor import Extractor, extract
-from .schemas import ExtractionRecord, ExtractionResult, Sensitivity
+from .extractor_core import ExtractorCore, PrivacyAnalysisUnavailable, normalize_category
+from .schemas import ExtractionRecord, ExtractionResult, Sensitivity, redact_extraction_records
 
 __all__ = [
+    "Critic",
+    "ExtractorCore",
+    "PrivacyAnalysisUnavailable",
     "Extractor",
     "ExtractionResult",
     "ExtractionRecord",
     "Sensitivity",
+    "normalize_category",
+    "redact_extraction_records",
     "extract",
 ]

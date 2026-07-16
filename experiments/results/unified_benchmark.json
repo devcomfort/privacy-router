@@ -1,0 +1,366 @@
+{
+  "E2B": {
+    "model_id": "google/gemma-4-E2B-it",
+    "seqs": 32,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 62.5,
+      "morphological": 59.3,
+      "contextual": 57.4,
+      "errors": 0,
+      "tps": 10.15,
+      "total_s": 11.8
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 8.21
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 8.55
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 62.8,
+        "avg_score": 3.14,
+        "success_rate": 100.0,
+        "tps": 4.07
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 6.0,
+        "avg_score": 0.3,
+        "success_rate": 100.0,
+        "tps": 6.91
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 69.2,
+        "avg_score": 3.46,
+        "success_rate": 100.0,
+        "tps": 7.28
+      }
+    }
+  },
+  "E4B": {
+    "model_id": "google/gemma-4-E4B-it",
+    "seqs": 24,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 71.7,
+      "morphological": 74.1,
+      "contextual": 64.8,
+      "errors": 0,
+      "tps": 4.77,
+      "total_s": 25.2
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 4.31
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 3.59
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 62.0,
+        "avg_score": 3.1,
+        "success_rate": 100.0,
+        "tps": 6.47
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 16.0,
+        "avg_score": 0.8,
+        "success_rate": 100.0,
+        "tps": 2.71
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 70.0,
+        "avg_score": 3.5,
+        "success_rate": 100.0,
+        "tps": 6.0
+      }
+    }
+  },
+  "Gemma-12B": {
+    "model_id": "google/gemma-4-12B-it",
+    "seqs": 16,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 74.2,
+      "morphological": 74.1,
+      "contextual": 68.5,
+      "errors": 0,
+      "tps": 1.48,
+      "total_s": 81.1
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 88.0,
+        "tps": 0.28
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 24.0,
+        "tps": 0.26
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 58.0,
+        "avg_score": 2.9,
+        "success_rate": 100.0,
+        "tps": 0.81
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 10.0,
+        "avg_score": 0.5,
+        "success_rate": 36.0,
+        "tps": 0.25
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 58.0,
+        "avg_score": 2.9,
+        "success_rate": 100.0,
+        "tps": 1.61
+      }
+    }
+  },
+  "Gemma-26B": {
+    "model_id": "google/gemma-4-26B-A4B-it",
+    "seqs": 16,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 71.7,
+      "morphological": 70.4,
+      "contextual": 66.7,
+      "errors": 0,
+      "tps": 2.09,
+      "total_s": 57.5
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.35
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.41
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 60.0,
+        "avg_score": 3.0,
+        "success_rate": 100.0,
+        "tps": 0.95
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 12.0,
+        "avg_score": 0.6,
+        "success_rate": 100.0,
+        "tps": 0.36
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 42.0,
+        "avg_score": 2.1,
+        "success_rate": 100.0,
+        "tps": 1.58
+      }
+    }
+  },
+  "EXAONE-1.2B": {
+    "model_id": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "seqs": 32,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 51.7,
+      "morphological": 42.6,
+      "contextual": 51.9,
+      "errors": 3,
+      "tps": 10.07,
+      "total_s": 11.9
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 11.47
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 11.8
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 62.8,
+        "avg_score": 3.14,
+        "success_rate": 100.0,
+        "tps": 15.53
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 6.0,
+        "avg_score": 0.3,
+        "success_rate": 100.0,
+        "tps": 14.0
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 57.2,
+        "avg_score": 2.86,
+        "success_rate": 100.0,
+        "tps": 31.25
+      }
+    }
+  },
+  "Granite-8B": {
+    "model_id": "ibm-granite/granite-4.1-8b",
+    "seqs": 16,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 67.5,
+      "morphological": 59.3,
+      "contextual": 68.5,
+      "errors": 0,
+      "tps": 1.44,
+      "total_s": 83.1
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.4
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.43
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 62.8,
+        "avg_score": 3.14,
+        "success_rate": 100.0,
+        "tps": 0.89
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 14.0,
+        "avg_score": 0.7,
+        "success_rate": 100.0,
+        "tps": 0.4
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 66.4,
+        "avg_score": 3.32,
+        "success_rate": 100.0,
+        "tps": 1.29
+      }
+    }
+  },
+  "Qwen3-4B": {
+    "model_id": "Qwen/Qwen3-4B",
+    "seqs": 16,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 45.8,
+      "morphological": 50.0,
+      "contextual": 29.6,
+      "errors": 26,
+      "tps": 0.51,
+      "total_s": 235.9
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.62
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.62
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 62.8,
+        "avg_score": 3.14,
+        "success_rate": 100.0,
+        "tps": 0.66
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 22.0,
+        "avg_score": 1.1,
+        "success_rate": 100.0,
+        "tps": 0.6
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 61.2,
+        "avg_score": 3.06,
+        "success_rate": 100.0,
+        "tps": 0.75
+      }
+    },
+    "removed": true,
+    "removal_reason": "See model_inventory.json"
+  },
+  "Qwen3.5-9B": {
+    "model_id": "Qwen/Qwen3.5-9B",
+    "seqs": 16,
+    "gpu_util": 0.48,
+    "our_benchmark": {
+      "overall": 13.3,
+      "morphological": 3.7,
+      "contextual": 5.6,
+      "errors": 99,
+      "tps": 0.18,
+      "total_s": 664.1
+    },
+    "legal_bench": {
+      "cat1_citation_retrieval": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 100.0,
+        "tps": 0.54
+      },
+      "cat2_citation_completeness": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 0.0,
+        "tps": 16.12
+      },
+      "cat3_citation_verification": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 0.0,
+        "tps": 1132.96
+      },
+      "cat4-1_case_matching": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 0.0,
+        "tps": 1735.1
+      },
+      "cat4-2_case_verification": {
+        "score_normalized": 0.0,
+        "avg_score": 0.0,
+        "success_rate": 0.0,
+        "tps": 1616.46
+      }
+    },
+    "removed": true,
+    "removal_reason": "See model_inventory.json"
+  }
+}

@@ -30,31 +30,20 @@ If you find something, extract it. If nothing remains, say so.
 
 ---
 
-## Categories — same as the first pass
+## Category naming — same contract as the first pass
 
-| Category | Use when |
-|----------|---------|
-| `RESIDENT_REGISTRATION_NUMBER` | Korean RRN |
-| `MOBILE_PHONE_NUMBER` | Phone number |
-| `EMAIL_ADDRESS` | Email address |
-| `PASSPORT_NUMBER` | Passport number |
-| `PERSON_NAME` | Real name in identifying context |
-| `STUDENT_AFFILIATION` | Name + school |
-| `EMPLOYEE_AFFILIATION` | Name + company |
-| `INSTITUTION_NAME` | Institution name narrowing identity |
-| `COMPANY_NAME` | Company name in sensitive context |
-| `UNPUBLISHED_RESEARCH_CONCEPT` | Novel unpublished research idea |
-| `UNPUBLISHED_RESEARCH_METHODOLOGY` | Specific unpublished method/technique |
-| `UNPUBLISHED_RESEARCH_DATA` | Unpublished experimental results |
-| `UNPUBLISHED_RESEARCH_STATUS` | Pre-publication status |
-| `INTERNAL_BUSINESS_DECISION` | Internal strategic choice |
-| `INTERNAL_STRATEGY_RATIONALE` | Reason behind a business decision |
-| `INTERNAL_PROJECT_NAME` | Internal code name |
-| `FABRICATION_PROCESS_DECISION` | Manufacturing process choice |
-| `PROJECT_BUDGET_AMOUNT` | Project budget figure |
-| `PROJECT_LABOR_COST_AMOUNT` | Labor/personnel cost |
-| `SALARY_AMOUNT` | Individual salary |
-| `INTERNAL_SYSTEM_URL` | Internal tool URL |
+Categories use an **open vocabulary**, but labels describe semantic types, never sensitive values.
+1. Reuse an already-tagged category when the missed span has the same semantic type.
+2. Use these common names when they match exactly: `PERSON_NAME`, `INSTITUTION_NAME`, `RESIDENT_REGISTRATION_NUMBER` (Korean RRN), `PERSONAL_IDENTIFIER_NUMBER` (other personal identifiers and phone numbers), `EMAIL_ADDRESS`, `INTERNAL_URL`, `API_CREDENTIAL`, `INTERNAL_PROJECT_NAME`, `PROJECT_BUDGET_AMOUNT`, `PROJECT_LABOR_BUDGET_AMOUNT`, `SALARY_INFORMATION`, `MEDICAL_DIAGNOSIS`, `FABRICATION_PROCESS_DECISION`, `SUPPLIER_SELECTION_DECISION`, `INTERNAL_COST_DISCOUNT`, `COMPETITOR_NAME`, `COMPETITIVE_LEAD_TIME`, `UNPUBLISHED_RESEARCH_CONCEPT`, `UNPUBLISHED_RESEARCH_METHODOLOGY`, `UNPUBLISHED_BENCHMARK_RESULT`, and `PATENT_FILING_TIMELINE`.
+3. If none matches, derive the shortest reusable industry-standard `SCREAMING_SNAKE_CASE` type.
+4. Never copy proper names, people, companies, project names, numbers, dates, hashes, identifiers, owners, or reasons from the span into the category.
+5. Do not rename already-tagged spans or force a genuinely new semantic type into an inaccurate common name.
+
+Forbidden → valid:
+- `PROJECT_AURORA_SECRET` → `INTERNAL_PROJECT_NAME`
+- `ACQUISITION_TARGET_APOLLO` → `ACQUISITION_TARGET`
+- `KIM_MINJUN_PHONE_NUMBER` → `PERSONAL_IDENTIFIER_NUMBER`
+- `API_KEY_SK_AB12` → `API_CREDENTIAL`
 
 ---
 

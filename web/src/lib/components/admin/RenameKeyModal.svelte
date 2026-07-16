@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { keys as keysApi } from '$lib/api';
 	import { Modal, Input, Button } from '$lib/components/ui';
 	import { t } from '$lib/i18n';
 	import { get } from 'svelte/store';
@@ -15,6 +16,7 @@
 
 	let name = $state('');
 	let loading = $state(false);
+	let error = $state('');
 
 	$effect(() => {
 		if (open) name = currentName;
@@ -22,16 +24,13 @@
 
 	async function handleSave() {
 		loading = true;
+		error = '';
 		try {
-			const res = await fetch(`/api/v1/keys/${keyId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name })
-			});
-			if (res.ok) {
-				onsaved();
-				onclose();
-			}
+			await keysApi.update(keyId, { name });
+			onsaved();
+			onclose();
+		} catch (e) {
+			error = e instanceof Error ? e.message : String(e);
 		} finally {
 			loading = false;
 		}
@@ -46,6 +45,9 @@
 
 <Modal bind:open {onclose} title={$t("modal.rename.title")}>
 	<Input bind:value={name} label={$t("modal.rename.name")} placeholder={$t("modal.rename.name")} />
+	{#if error}
+		<p class="mt-2 text-sm text-red-400">{error}</p>
+	{/if}
 
 	{#snippet footer()}
 		<Button variant="secondary" onclick={onclose}>{$t("modal.rename.cancel")}</Button>

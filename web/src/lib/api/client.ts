@@ -13,6 +13,8 @@ import type {
 
 const BASE = '';
 
+let adminKey = '';
+
 class ApiError extends Error {
 	constructor(
 		public status: number,
@@ -23,54 +25,71 @@ class ApiError extends Error {
 	}
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	const res = await fetch(`${BASE}${path}`, {
-		...init,
-		headers: {
-			'Content-Type': 'application/json',
-			...init?.headers
-		}
-	});
+async function request<T>(path: string, init?: RequestInit, admin = false): Promise<T> {
+	const headers = new Headers(init?.headers);
+	if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+	if (admin && adminKey) headers.set('X-Privacy-Router-Admin-Key', adminKey);
+
+	const res = await fetch(`${BASE}${path}`, { ...init, headers });
 	if (!res.ok) {
 		const body = await res.text();
-		throw new ApiError(res.status, body);
+		let message = body || res.statusText;
+		try {
+			const parsed = JSON.parse(body) as { detail?: unknown };
+			if (typeof parsed.detail === 'string') message = parsed.detail;
+		} catch {
+			// Keep the response text when the server did not return JSON.
+		}
+		throw new ApiError(res.status, message);
 	}
+	if (res.status === 204) return undefined as T;
 	return res.json() as Promise<T>;
 }
+
+function adminRequest<T>(path: string, init?: RequestInit): Promise<T> {
+	return request<T>(path, init, true);
+}
+
+export const adminAuth = {
+	setKey: (key: string) => {
+		adminKey = key;
+	},
+	clear: () => {
+		adminKey = '';
+	}
+};
 
 // ── Keys ─────────────────────────────────────────────────────────────────
 
 export const keys = {
-	list: () => request<KeyOut[]>('/api/v1/keys'),
+	list: () => adminRequest<KeyOut[]>('/api/v1/keys'),
 
 	create: (name: string) =>
-		request<KeyCreated>('/api/v1/keys', {
+		adminRequest<KeyCreated>('/api/v1/keys', {
 			method: 'POST',
 			body: JSON.stringify({ name })
 		}),
 
 	update: (id: string, patch: KeyUpdate) =>
-		request<KeyOut>(`/api/v1/keys/${id}`, {
+		adminRequest<KeyOut>(`/api/v1/keys/${id}`, {
 			method: 'PATCH',
 			body: JSON.stringify(patch)
 		}),
 
 	renew: (id: string) =>
-		request<KeyCreated>(`/api/v1/keys/${id}/renew`, { method: 'POST' }),
+		adminRequest<KeyCreated>(`/api/v1/keys/${id}/renew`, { method: 'POST' }),
 
 	delete: (id: string) =>
-		fetch(`${BASE}/api/v1/keys/${id}`, { method: 'DELETE' }).then((r) => {
-			if (!r.ok) throw new ApiError(r.status, r.statusText);
-		}),
+		adminRequest<void>(`/api/v1/keys/${id}`, { method: 'DELETE' }),
 
 	bulkToggle: (ids: string[], is_active: boolean) =>
-		request<BulkActionResult>('/api/v1/keys/bulk-toggle', {
+		adminRequest<BulkActionResult>('/api/v1/keys/bulk-toggle', {
 			method: 'POST',
 			body: JSON.stringify({ ids, is_active } satisfies BulkKeyToggle)
 		}),
 
 	bulkDelete: (ids: string[]) =>
-		request<BulkActionResult>('/api/v1/keys/bulk-delete', {
+		adminRequest<BulkActionResult>('/api/v1/keys/bulk-delete', {
 			method: 'POST',
 			body: JSON.stringify({ ids })
 		})
@@ -79,10 +98,10 @@ export const keys = {
 // ── Settings ─────────────────────────────────────────────────────────────
 
 export const settings = {
-	get: () => request<RouterSettings>('/api/settings'),
+	get: () => adminRequest<RouterSettings>('/api/settings'),
 
 	save: (s: RouterSettings) =>
-		request<{ status: string }>('/api/settings', {
+		adminRequest<{ status: string }>('/api/settings', {
 			method: 'POST',
 			body: JSON.stringify(s)
 		})

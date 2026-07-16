@@ -6,13 +6,10 @@ so the router can serve as a drop-in proxy.
 
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 from agents.extractor.schemas import ExtractionRecord, Sensitivity
 from agents.judge.schemas import Judgment
-
 
 
 class RouteResult(BaseModel):
@@ -48,6 +45,17 @@ class RouteResult(BaseModel):
         ...,
         description="Human-readable description of the routing decision (Korean).",
         examples=["민감 정보 마스킹 후 외부 API로 전송, 응답 재수화"],
+    )
+
+
+class PlaceholderRepairDecision(BaseModel):
+    """One candidate replacement for a malformed placeholder token."""
+
+    placeholder: str | None = Field(
+        default=None,
+        description=(
+            "Exact registered placeholder that the observed token represents, or null when the mapping is ambiguous."
+        ),
     )
 
 
@@ -156,7 +164,9 @@ class ChatChoice(BaseModel):
     """
 
     index: int = Field(default=0, description="Choice index.", examples=[0])
-    message: ChatMessage = Field(..., description="Response message.", examples=[ChatMessage(role="assistant", content="처리 완료")])
+    message: ChatMessage = Field(
+        ..., description="Response message.", examples=[ChatMessage(role="assistant", content="처리 완료")]
+    )
     finish_reason: str = Field(default="stop", description="Completion stop reason.", examples=["stop"])
 
 
@@ -216,13 +226,15 @@ class ChatResponse(BaseModel):
     created: int = Field(..., description="Unix timestamp of creation.", examples=[1717200000])
     model: str = Field(..., description="Model identifier.", examples=["privacy-router"])
     choices: list[ChatChoice] = Field(..., description="Completion choices.")
-    usage: ChatUsage = Field(
-        default_factory=ChatUsage, description="Token usage."
-    )
+    usage: ChatUsage = Field(default_factory=ChatUsage, description="Token usage.")
     route_result: RouteResult | None = Field(
         default=None,
         description="Privacy Router routing metadata.",
-        examples=[RouteResult(endpoint="external_api", requires_masking=True, description="민감 정보 마스킹 후 외부 API로 전송")],
+        examples=[
+            RouteResult(
+                endpoint="external_api", requires_masking=True, description="민감 정보 마스킹 후 외부 API로 전송"
+            )
+        ],
     )
 
 
@@ -252,19 +264,38 @@ class PipelineResult(BaseModel):
     """
 
     sensitivity: Sensitivity = Field(
-        ..., description="Sensitivity assessment.", examples=[Sensitivity(is_sensitive=True, rationale="주민등록번호 탐지")]
+        ...,
+        description="Sensitivity assessment.",
+        examples=[Sensitivity(is_sensitive=True, rationale="주민등록번호 탐지")],
     )
     judgment: Judgment = Field(
-        ..., description="Policy judgment.", examples=[Judgment(meaningful_after_masking={"is_meaningful_after_masking": True, "rationale": "test"}, policy_action="mask_and_send", strategy="마스킹 후 전송", rationale="test")]
+        ...,
+        description="Policy judgment.",
+        examples=[
+            Judgment(
+                meaningful_after_masking={"is_meaningful_after_masking": True, "rationale": "test"},
+                policy_action="selective_mask",
+                strategy="마스킹 후 전송",
+                rationale="test",
+            )
+        ],
     )
     route: RouteResult = Field(
-        ..., description="Routing result.", examples=[RouteResult(endpoint="external_api", requires_masking=True, description="마스킹 후 전송")]
+        ...,
+        description="Routing result.",
+        examples=[RouteResult(endpoint="external_api", requires_masking=True, description="마스킹 후 전송")],
     )
-    response: str | None = Field(
-        default=None, description="Final LLM response text.", examples=["이메일 초안: ..."]
-    )
+    response: str | None = Field(default=None, description="Final LLM response text.", examples=["이메일 초안: ..."])
     records: list[ExtractionRecord] = Field(
-        default_factory=list, description="Extraction records with detection_type and reasoning.", examples=[[ExtractionRecord(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21)]]
+        default_factory=list,
+        description="Extraction records with detection_type and reasoning.",
+        examples=[
+            [
+                ExtractionRecord(
+                    category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21
+                )
+            ]
+        ],
     )
     per_record_eval: dict | None = Field(
         default=None,
@@ -272,5 +303,5 @@ class PipelineResult(BaseModel):
     )
     mask_indices: list[int] = Field(
         default_factory=list,
-        description="Indices of records to mask (for mask_and_send).",
+        description="Indices of records to mask for the selective_mask action.",
     )

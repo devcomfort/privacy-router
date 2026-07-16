@@ -53,6 +53,13 @@ AI 에이전트(Hermes, OpenClaw 등)가 사용자 프롬프트를 외부 LLM AP
   \item 컨텍스트 기반 민감도(미공개 연구 아이디어, 사업 전략) 탐지 불가
   \item 고정 비용 구조로 소규모 연구실에 부담
 \end{itemize}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{../assets/generated/context-sensitive-detection.png}
+  \caption{문맥 기반 민감 정보의 개념도. 연구·사업·개인 프롬프트는 표면적 형식이 유사해도 서로 다른 보호가 필요할 수 있다. 본 이미지는 설명용이며, 평가 결과는 뒤에서 제시한다.}
+  \label{fig:context-sensitive-detection}
+\end{figure}
+
 
 \subsection{대상 사용자}
 
@@ -87,6 +94,13 @@ User Text -> Extractor -> Sensitivity + Records
          -> Judge -> Meaningfulness + Policy Action
          -> Router -> Execution Path
 \end{verbatim}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{../assets/generated/two-tier-routing.png}
+  \caption{Two-Tier 라우팅 경계의 개념도. Router는 마스킹된 비핵심 요청을 외부 모델로 보내고, 민감 문맥이 필요한 요청은 로컬 처리 경로에 유지한다.}
+  \label{fig:two-tier-routing}
+\end{figure}
+
 
 \subsection{Extractor}
 

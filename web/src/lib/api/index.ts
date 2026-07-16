@@ -1,1 +1,1 @@
-export { keys, settings, chat } from './client';
+export { adminAuth, keys, settings, chat } from './client';

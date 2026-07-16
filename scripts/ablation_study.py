@@ -15,7 +15,6 @@ For each model:
 import json
 import os
 import sys
-
 from datetime import datetime
 from pathlib import Path
 
@@ -24,21 +23,21 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ.setdefault("OPENAI_API_KEY", "dummy")
 
-from scripts.eval_all import MODELS, CASES, run_single, aggregate_model
-from scripts.tune_params import run_optuna_tuning, BASELINE_PROFILE
+from scripts.eval_all import CASES, MODELS, aggregate_model, run_single  # noqa: E402
+from scripts.tune_params import BASELINE_PROFILE, run_optuna_tuning  # noqa: E402
 
 # Configuration
 PROMPTS = {
     "fixed": {
         "name": "Fixed Categories (11 categories)",
         "path": str(ROOT / "agents" / "extractor" / "extract.fixed.prompt"),
-        "description": "Predefined 11 categories, no Socratic reasoning"
+        "description": "Predefined 11 categories, no Socratic reasoning",
     },
     "socratic": {
         "name": "Socratic Category Derivation",
         "path": str(ROOT / "agents" / "extractor" / "extract.prompt"),
-        "description": "AI derives category names via Socratic questions"
-    }
+        "description": "AI derives category names via Socratic questions",
+    },
 }
 
 MODELS_TO_TEST = [
@@ -60,9 +59,9 @@ def ensure_dir(path):
 
 def run_baseline_for_prompt(model_key: str, prompt_key: str, n_trials: int = 3) -> dict:
     """Run baseline measurement with default parameters for a specific prompt."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"BASELINE: {model_key} + {prompt_key} ({n_trials} trials)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     prompt_path = PROMPTS[prompt_key]["path"]
 
@@ -92,7 +91,7 @@ def run_baseline_for_prompt(model_key: str, prompt_key: str, n_trials: int = 3) 
             "n_trials": n_trials,
             "aggregated": agg,
             "case_results": case_results,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     finally:
         # Restore original prompt
@@ -101,9 +100,9 @@ def run_baseline_for_prompt(model_key: str, prompt_key: str, n_trials: int = 3) 
 
 def run_tuning_for_prompt(model_key: str, prompt_key: str, n_trials: int = 50) -> dict:
     """Run parameter tuning with Optuna for a specific prompt."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"TUNING: {model_key} + {prompt_key} ({n_trials} trials)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     model_info = MODELS[model_key]
     prompt_path = PROMPTS[prompt_key]["path"]
@@ -122,7 +121,7 @@ def run_tuning_for_prompt(model_key: str, prompt_key: str, n_trials: int = 50) -
             n_trials=n_trials,
             timeout=3600,
             patience=20,
-            target_score=1.0
+            target_score=1.0,
         )
 
         return {
@@ -130,7 +129,7 @@ def run_tuning_for_prompt(model_key: str, prompt_key: str, n_trials: int = 50) -
             "prompt": prompt_key,
             "type": "tuning",
             "tuning": tuning_result,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     finally:
         # Restore original prompt
@@ -149,10 +148,11 @@ def run_ablation_study(n_trials: int = 50, n_baseline_trials: int = 3):
         "n_trials": n_trials,
         "n_baseline_trials": n_baseline_trials,
         "start_time": datetime.now().isoformat(),
-        "results": []
+        "results": [],
     }
 
-    for prompt_key in PROMPTS:
+    for model_key in MODELS_TO_TEST:
+        for prompt_key in PROMPTS:
             # Run baseline
             baseline = run_baseline_for_prompt(model_key, prompt_key, n_baseline_trials)
             all_results.append(baseline)
@@ -191,7 +191,7 @@ def generate_report(summary: dict) -> dict:
         "title": "Ablation Study: Fixed Categories vs Socratic Derivation",
         "date": datetime.now().strftime("%Y-%m-%d"),
         "models": {},
-        "overall_comparison": {}
+        "overall_comparison": {},
     }
 
     for model_key in MODELS_TO_TEST:
@@ -218,7 +218,7 @@ def generate_report(summary: dict) -> dict:
                     "tuned_score": tuned_score,
                     "improvement": tuned_score - baseline_score,
                     "n_trials": tuning["tuning"]["n_trials"],
-                    "best_params": tuning["tuning"]["best_params"]
+                    "best_params": tuning["tuning"]["best_params"],
                 }
 
         if len(model_results) == 2:
@@ -229,7 +229,7 @@ def generate_report(summary: dict) -> dict:
                 "fixed": fixed,
                 "socratic": socratic,
                 "winner": "socratic" if socratic["tuned_score"] > fixed["tuned_score"] else "fixed",
-                "score_diff": socratic["tuned_score"] - fixed["tuned_score"]
+                "score_diff": socratic["tuned_score"] - fixed["tuned_score"],
             }
 
     # Overall comparison
@@ -261,16 +261,13 @@ if __name__ == "__main__":
     if args.models:
         MODELS_TO_TEST[:] = args.models
 
-    print(f"Starting ablation study")
+    print("Starting ablation study")
     print(f"Models: {MODELS_TO_TEST}")
     print("=" * 60)
     print(f"Baseline trials: {args.baseline_trials}")
     print(f"Skip tuning: {args.skip_tuning}")
 
-    summary = run_ablation_study(
-        n_trials=args.trials,
-        n_baseline_trials=args.baseline_trials
-    )
+    summary = run_ablation_study(n_trials=args.trials, n_baseline_trials=args.baseline_trials)
     report = generate_report(summary)
 
     # Save report
@@ -280,9 +277,9 @@ if __name__ == "__main__":
     print(f"\nSaved report: {report_path}")
 
     # Print summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("ABLATION STUDY RESULTS")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     if report["overall_comparison"]:
         print(f"Fixed categories mean: {report['overall_comparison']['fixed_mean']:.1%}")
         print(f"Socratic mean: {report['overall_comparison']['socratic_mean']:.1%}")

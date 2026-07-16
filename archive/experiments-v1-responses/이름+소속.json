@@ -1,0 +1,31 @@
+{
+  "case_name": "이름+소속",
+  "input_text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+  "expected": {
+    "action": "selective_mask",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"미공개 연구 아이디어 언급\"}, \"records\": [{\"category\": \"UNPUBLISHED_RESEARCH_CONCEPT\", \"span\": \"contextual distillation이라는 연구\", \"confidence\": 0.9, \"reasoning\": \"구상 중인 연구 주제 언급\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "미공개 연구 아이디어 언급"
+    },
+    "records": [
+      {
+        "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+        "span": "contextual distillation이라는 연구",
+        "confidence": 0.9,
+        "reasoning": "구상 중인 연구 주제 언급",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": false,
+  "failure_reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+  "error": null
+}

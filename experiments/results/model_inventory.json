@@ -1,0 +1,212 @@
+[
+  {
+    "repo_id": "LGAI-EXAONE/EXAONE-4.5-33B",
+    "tag": "EXAONE-4.5-33B",
+    "size_gib": 64.0,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/diffusiongemma-26B-A4B-it",
+    "tag": "diffusiongemma-26B-A4B-it",
+    "size_gib": 48.13,
+    "status": "skip",
+    "reason": "Diffusion model (not text generation)",
+    "shards": 11,
+    "expected_shards": 11,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-26B-A4B-it",
+    "tag": "gemma-4-26B-A4B-it",
+    "size_gib": 48.1,
+    "status": "ok",
+    "reason": "vLLM compatible",
+    "shards": 2,
+    "expected_shards": 2,
+    "has_config": true
+  },
+  {
+    "repo_id": "LGAI-EXAONE/EXAONE-4.5-33B-FP8",
+    "tag": "EXAONE-4.5-33B-FP8",
+    "size_gib": 38.48,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-12B-it",
+    "tag": "gemma-4-12B-it",
+    "size_gib": 22.31,
+    "status": "ok",
+    "reason": "vLLM compatible",
+    "shards": 1,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "Qwen/Qwen3.5-9B",
+    "tag": "Qwen3.5-9B",
+    "size_gib": 18.0,
+    "status": "skip",
+    "reason": "Removed: 13.3% accuracy, 99/120 errors. Mamba architecture incompatible with V2 runner, V1 runner produces poor results.",
+    "shards": 4,
+    "expected_shards": 4,
+    "has_config": true
+  },
+  {
+    "repo_id": "ibm-granite/granite-4.1-8b",
+    "tag": "granite-4.1-8b",
+    "size_gib": 16.38,
+    "status": "ok",
+    "reason": "vLLM compatible",
+    "shards": 4,
+    "expected_shards": 4,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-E4B-it",
+    "tag": "gemma-4-E4B-it",
+    "size_gib": 14.92,
+    "status": "ok",
+    "reason": "vLLM compatible",
+    "shards": 1,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-12B-it-qat-w4a16-ct",
+    "tag": "gemma-4-12B-it-qat-w4a16-ct",
+    "size_gib": 9.59,
+    "status": "skip",
+    "reason": "QAT W4A16 quantized (untested)",
+    "shards": 1,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-E2B-it",
+    "tag": "gemma-4-E2B-it",
+    "size_gib": 9.57,
+    "status": "ok",
+    "reason": "vLLM compatible",
+    "shards": 1,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "mistralai/Ministral-3-3B-Instruct-2512",
+    "tag": "Ministral-3-3B-Instruct-2512",
+    "size_gib": 8.73,
+    "status": "skip",
+    "reason": "PixtralForConditionalGeneration override: config has vision_config, vLLM auto-detects multimodal arch",
+    "shards": 2,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "Qwen/Qwen3-4B",
+    "tag": "Qwen3-4B",
+    "size_gib": 7.51,
+    "status": "skip",
+    "reason": "Removed: 45.8% accuracy, 26/120 errors. Poor JSON parsing, reasoning blocks interfere with structured output.",
+    "shards": 3,
+    "expected_shards": 3,
+    "has_config": true
+  },
+  {
+    "repo_id": "LGAI-EXAONE/EXAONE-4.0-1.2B-GGUF",
+    "tag": "EXAONE-4.0-1.2B-GGUF",
+    "size_gib": 6.96,
+    "status": "skip",
+    "reason": "No config.json",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": false
+  },
+  {
+    "repo_id": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "tag": "EXAONE-4.0-1.2B",
+    "size_gib": 2.39,
+    "status": "ok",
+    "reason": "vLLM compatible but 51.7% accuracy (3 errors). Instructor JSON parsing issues at scale.",
+    "shards": 1,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "Qwen/Qwen3.6-35B-A3B",
+    "tag": "Qwen3.6-35B-A3B",
+    "size_gib": 2.24,
+    "status": "skip",
+    "reason": "Partial download: 2/26 shards",
+    "shards": 2,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "unsloth/gemma-4-E4B-it-GGUF",
+    "tag": "gemma-4-E4B-it-GGUF",
+    "size_gib": 0.41,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/IFEval",
+    "tag": "IFEval",
+    "size_gib": 0.0,
+    "status": "skip",
+    "reason": "No config.json",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": false
+  },
+  {
+    "repo_id": "unsloth/gemma-4-E2B-it-GGUF",
+    "tag": "gemma-4-E2B-it-GGUF",
+    "size_gib": 0.0,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "cyankiwi/gemma-4-12B-it-AWQ-INT4",
+    "tag": "gemma-4-12B-it-AWQ-INT4",
+    "size_gib": 0.0,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "google/gemma-4-12B-it-qat-q4_0-unquantized",
+    "tag": "gemma-4-12B-it-qat-q4_0-unquantized",
+    "size_gib": 0.0,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  },
+  {
+    "repo_id": "LGAI-EXAONE/EXAONE-4.5-32B",
+    "tag": "EXAONE-4.5-32B",
+    "size_gib": 0.0,
+    "status": "skip",
+    "reason": "No weight files",
+    "shards": 0,
+    "expected_shards": null,
+    "has_config": true
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "prompt_key": "baseline",
+  "model_key": "gemini-3.1-flash-lite",
+  "model_id": "openrouter/google/gemini-3.1-flash-lite",
+  "case_name": "다중span+혼합동사",
+  "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+  "expected_action": "block",
+  "tags": [
+    "identity",
+    "competitive",
+    "interrogation"
+  ],
+  "trial": 1,
+  "timestamp": "2026-06-21T19:55:58.886227+00:00",
+  "llm_input": "Output ONLY a single JSON object. No markdown, no text outside the JSON.\n\nYou detect sensitive information in text. Follow the rules below exactly.\n\n---\n\n## 1. Definitions (용어 정의)\n\n| Term | Definition |\n|------|------------|\n| **민감 정보** | 기밀 가치가 조금이라도 있는 정보. 의심스러우면 마스킹 |\n| **span** | 민감 정보를 독립적으로 식별할 수 있는 최소 텍스트 단위 |\n| **is_essential** | 마스킹 시 질의 의미 손실 여부. true=마스킹 불가, false=마스킹 가능 |\n| **category** | 소크라테스 방법으로 유도한 민감 정보의 고유 이름 |\n| **마스킹** | 민감 정보를 [MASKED]로 치환하는 것 |\n\n---\n\n## 2. 민감도 원칙 (Sensitivity Principle)\n\n> **\"이 정보에 기밀 가치가 조금이라도 있으면 마스킹합니다.\"**\n\n의심스러우면 마스킹하세요. 일반적 개념이나 기관명이라도 민감한 맥락에 있으면 태깅합니다.\n\n**태깅 대상**: 구체적 수치, 미공개 연구/방법론, 기관/회사명, 프로젝트명, 자격증명, 연구 아이디어/가설, 실험 결과, 미발표 논문 내용\n**태깅 불필요**: 완전히 공개된 정보 (날씨, 프로그래밍 문법, 일반 상식)\n\n### 연구 비밀 탐지 규칙\n\n다음과 같은 맥락에서 \"새로운 아이디어\", \"구상 중\", \"접근하려 합니다\" 등의 표현이 나오면 **반드시 민감 정보로 태깅**하세요:\n\n| 원문 | 탐지 여부 | 이유 |\n|------|----------|------|\n| \"Attention 메커니즘을 완전히 대체할 수 있는 새로운 아이디어를 구상 중이다\" | ✅ 탐지 | 미공개 연구 아이디어 |\n| \"Transformer의 병목을 해결할 수 있는 방향으로 접근하려 합니다\" | ✅ 탐지 | 미공개 연구 방향 |\n| \"새로운 강화학습 알고리즘을 설계해주세요\" | ✅ 탐지 | 미공개 알고리즘 설계 |\n| \"이 실험 결과를 분석해주세요\" | ✅ 탐지 | 미공개 실험 데이터 |\n| \"이 논문의 관련 연구 섹션을 검토해주세요\" | ❌ 미탐지 | 공개된 논문 리뷰 요청 |\n| \"참고文献 목록을 정리해주세요\" | ❌ 미탐지 | 공개된 참고文献 정리 |\n\n**핵심**: \"새로운\", \"구상 중\", \"접근하려\", \"설계해주세요\" + AI/ML/연구 관련 키워드가 함께出现하면 민감 정보입니다.\n\n### 전화번호 탐지 규칙\n\n한국 전화번호 패턴(`010-XXXX-XXXX`, `010XXXXXXXX`)은 **항상 민감 정보**로 태깅하세요:\n\n| 원문 | 탐지 여부 | 카테고리 |\n|------|----------|----------|\n| \"연락처 010-1234-5678로 확인 부탁드립니다\" | ✅ 탐지 | `CONTACT_NUMBER` |\n| \"010-1234-5678로 전화해주세요\" | ✅ 탐지 | `CONTACT_NUMBER` |\n| \"전화번호는 01012345678입니다\" | ✅ 탐지 | `CONTACT_NUMBER` |\n\n---\n\n## 3. Span Rules (추출 규칙)\n\n### 핵심 원칙\n\nspan은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입니다.\n\n### 포함 (실체)\n\n- 고유명사: \"광주과학기술원\", \"삼성 파운드리\"\n- 숫자/수치: \"901212-1234567\", \"94.2%\", \"1,200억원\"\n- 기술 용어: \"contextual distillation\", \"TSMC 3nm 공정\"\n\n### 제외 (문법적 요소)\n\n- 조사: 에, 에서, 을, 를, 이, 가, 은, 는\n- 수식어: 새로운, 높은, 긴\n- 동사 파생형: 선택하기로, 달성한, 재학 중인\n\n### 예시\n\n| 원문 | ✅ 올바른 span | ❌ 잘못된 span |\n|------|--------------|--------------|\n| \"광주과학기술원에 재학 중인 김동현\" | \"광주과학기술원\", \"김동현\" | \"광주과학기술원에 재학 중인 김동현\" |\n| \"TSMC 3nm 공정 채택 결정\" | \"TSMC 3nm 공정\" | \"TSMC 3nm 공정 채택 결정\" |\n| \"단가가 15% 저렴해서\" | \"단가 15% 저렴\" | \"단가가 15% 저렴해서\" |\n\n---\n\n## 4. Socratic Category Derivation (소크라테스 카테고리 유도)\n\n각 span에 대해 다음 질문을 스스로에게 던지고, 답변을 종합하여 **카테고리 이름**을 만드세요:\n\n### 질문 1: 이 정보의 핵심 속성은 무엇인가?\n\n> \"이 정보가 가진 가장 두드러진 특성은?\"\n\n### 질문 2: 이 정보가 왜 민감한가?\n\n> \"이 정보가 노출되면 어떤 피해가 있는가?\"\n### 여러 엔티티 분리 규칙\n\n하나의 문자열에 여러 민감 정보가 포함되어 있으면 **각각 별도 span**으로 추출합니다:\n\n| 원문 | ✅ 올바른 span | ❌ 잘못된 span |\n|------|--------------|--------------|\n| \"김동현, 이철수, 박영희\" | \"김동현\", \"이철수\", \"박영희\" | \"김동현, 이철수, 박영희\" |\n| \"주민등록번호 901212-1234567, 850101-1234567\" | \"901212-1234567\", \"850101-1234567\" | \"901212-1234567, 850101-1234567\" |\n| \"김동현(gist.ac.kr), 이철수(unist.ac.kr)\" | \"김동현\", \"gist.ac.kr\", \"이철수\", \"unist.ac.kr\" | \"김동현(gist.ac.kr)\" |\n### 질문 3: 이 정보를 한 단어로 표현하면?\n\n> \"이 정보의 본질을 가장 잘 나타내는 이름은?\"\n\n### 카테고리 이름 생성 규칙\n\n1. **SCREAMING_SNAKE_CASE**로 작성 (예: `PERSONAL_IDENTIFIER_NUMBER`, `UNPUBLISHED_RESEARCH_CONCEPT`)\n2. **구체적으로** 작성 (예:",
+  "llm_output_content": null,
+  "extracted_records": [
+    {
+      "category": "PERSON_NAME",
+      "span": "김철수",
+      "confidence": 0.98,
+      "detection_type": "contextual",
+      "reasoning": "개인 식별이 가능한 실명입니다.",
+      "is_essential": false
+    },
+    {
+      "category": "CONTACT_NUMBER",
+      "span": "010-1234-5678",
+      "confidence": 1.0,
+      "detection_type": "contextual",
+      "reasoning": "개인 연락처 정보입니다.",
+      "is_essential": false
+    },
+    {
+      "category": "FABRICATION_PROCESS_DECISION",
+      "span": "TSMC 3nm 공정 결정",
+      "confidence": 0.95,
+      "detection_type": "contextual",
+      "reasoning": "기업의 전략적 의사결정 및 기술 관련 미공개 정보입니다.",
+      "is_essential": false
+    }
+  ],
+  "sensitivity": {
+    "is_sensitive": true,
+    "rationale": "개인 식별 정보(이름, 전화번호)와 기업의 미공개 공정 결정 정보가 포함되어 있습니다."
+  },
+  "actual_action": "selective_mask",
+  "target_ok": true,
+  "context_ok": false,
+  "ok": false,
+  "time_s": 3.7,
+  "error": null
+}

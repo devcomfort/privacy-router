@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# ── Start vLLM server for local model inference ──────────────────────────────
+# ── Start the local models used by the default Privacy Router profile ─────────
 # Usage:
-#   scripts/start_vllm.sh gemma4              # Gemma 4 26B (Docker, port 8000)
-#   scripts/start_vllm.sh exaone              # EXAONE 4.5 33B FP8 (Docker, port 8001)
-#   scripts/start_vllm.sh --model Qwen3-4B    # Direct mode (legacy, port 8000)
+#   scripts/start_vllm.sh all                 # EXAONE decision + Gemma generation
+#   scripts/start_vllm.sh exaone              # EXAONE 4.0 1.2B (port 8010)
+#   scripts/start_vllm.sh gemma4              # Gemma 4 26B A4B (port 8011)
+#   scripts/start_vllm.sh --model <hf_id> [port]  # Direct mode
 #
 # Docker mode (default): uses docker-compose.vllm.yml
 #   - Proper signal handling → no orphan processes
@@ -19,32 +20,42 @@ COMPOSE_FILES="-f ${PROJECT_DIR}/docker-compose.yml -f ${PROJECT_DIR}/docker-com
 
 usage() {
     echo "Usage:"
-    echo "  $0 gemma4                  Start Gemma 4 26B A4B (port 8000)"
-    echo "  $0 exaone                  Start EXAONE 4.5 33B FP8 (port 8001)"
-    echo "  $0 --model <hf_id>         Direct vLLM mode (legacy)"
+    echo "  $0 all                     Start the complete local profile"
+    echo "  $0 exaone                  Start EXAONE 4.0 1.2B (port 8010)"
+    echo "  $0 gemma4                  Start Gemma 4 26B A4B (port 8011)"
+    echo "  $0 --model <hf_id> [port]  Direct vLLM mode"
     echo ""
-    echo "Stop: docker compose $COMPOSE_FILES --profile <name> down"
+    echo "Stop: docker compose $COMPOSE_FILES --profile exaone --profile gemma4 down"
     exit 1
 }
 
 case "${1:-}" in
+    all)
+        echo "Starting the complete local Privacy Router profile..."
+        echo "  Decision: http://localhost:8010/v1 (EXAONE 4.0 1.2B)"
+        echo "  Local:    http://localhost:8011/v1 (Gemma 4 26B A4B)"
+        echo ""
+        exec docker compose $COMPOSE_FILES \
+            --profile exaone --profile gemma4 \
+            up vllm-exaone vllm-gemma4
+        ;;
     gemma4)
-        echo "Starting Gemma 4 26B A4B via Docker..."
-        echo "  API: http://localhost:8000/v1"
+        echo "Starting Gemma 4 26B A4B local generation..."
+        echo "  API: http://localhost:8011/v1"
         echo "  Stop: docker compose $COMPOSE_FILES --profile gemma4 down"
         echo ""
         exec docker compose $COMPOSE_FILES --profile gemma4 up vllm-gemma4
         ;;
     exaone)
-        echo "Starting EXAONE 4.5 33B FP8 via Docker..."
-        echo "  API: http://localhost:8001/v1"
+        echo "Starting EXAONE 4.0 1.2B decision extraction..."
+        echo "  API: http://localhost:8010/v1"
         echo "  Stop: docker compose $COMPOSE_FILES --profile exaone down"
         echo ""
         exec docker compose $COMPOSE_FILES --profile exaone up vllm-exaone
         ;;
     --model)
         # Legacy direct mode
-        MODEL="${2:-Qwen/Qwen3-4B}"
+        MODEL="${2:-google/gemma-4-E4B-it}"
         PORT="${3:-8000}"
         VENV_PYTHON="${PROJECT_DIR}/.venv/bin/python"
         if [ ! -x "$VENV_PYTHON" ]; then

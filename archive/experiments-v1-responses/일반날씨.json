@@ -1,0 +1,23 @@
+{
+  "case_name": "일반날씨",
+  "input_text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+  "expected": {
+    "action": "allow",
+    "sensitive": false
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": false, \"rationale\": \"민감 정보 없음\"}, \"records\": []}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": false,
+      "rationale": "민감 정보 없음"
+    },
+    "records": []
+  },
+  "actual": {
+    "action": "allow",
+    "sensitive": false
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

@@ -1,0 +1,18 @@
+{
+  "E2B": {
+    "our_benchmark": {
+      "overall": 62.5,
+      "morphological": 59.3,
+      "contextual": 57.4,
+      "tps": 9.86
+    }
+  },
+  "E4B": {
+    "our_benchmark": {
+      "overall": 73.3,
+      "morphological": 75.9,
+      "contextual": 66.7,
+      "tps": 4.84
+    }
+  }
+}

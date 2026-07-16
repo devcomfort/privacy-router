@@ -1,34 +1,35 @@
 # vLLM Local Model Server — Privacy Router
 # =============================================================================
 # Usage:
-#   # Run Gemma 4 26B only (default):
-#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml --profile gemma4 up -d
-#
-#   # Run EXAONE 4.5 33B only:
-#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml --profile exaone up -d
-#
-#   # ⚠️ Both simultaneously (tight memory — reduce max-model-len):
+#   # Run the complete local profile (decision + local generation):
 #   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
-#     --profile gemma4 --profile exaone up -d
+#     --profile exaone --profile gemma4 up -d vllm-exaone vllm-gemma4
 #
-#   # Stop (graceful shutdown, no orphan processes):
-#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml --profile gemma4 down
+#   # Run one role only:
+#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
+#     --profile exaone up -d vllm-exaone
+#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
+#     --profile gemma4 up -d vllm-gemma4
+#
+#   # Stop:
+#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
+#     --profile exaone --profile gemma4 down
 #
 # Notes:
-#   - GB10 unified memory: 121.6 GB shared CPU+GPU
-#   - DO NOT run both models without adjusting gpu-memory-utilization
-#   - HuggingFace cache is mounted read-only from host
-#   - Models use text-only mode (--limit-mm-per-prompt) to avoid vision encoder bugs
+#   - Both selected models fit simultaneously on the GB10.
+#   - Host ports 8010/8011 avoid the common development ports 8000/8001.
+#   - HuggingFace cache is mounted read-only from the host.
+#   - Models use text-only mode to avoid loading unused multimodal encoders.
 # =============================================================================
 
 services:
-  # ── Gemma 4 26B A4B (MoE, ~52 GB weights) ────────────────────────────────
+  # ── Local generation: Gemma 4 26B A4B (MoE, ~52 GB weights) ──────────────
   vllm-gemma4:
     image: vllm/vllm-openai:nightly
     profiles:
       - gemma4
     ports:
-      - "8000:8000"
+      - "8011:8000"
     volumes:
       - ${HF_CACHE:-/home/donghyeon/.cache/huggingface}:/root/.cache/huggingface:ro
     environment:
@@ -39,14 +40,18 @@ services:
     command:
       - "--model"
       - "google/gemma-4-26B-A4B-it"
+      - "--served-model-name"
+      - "google/gemma-4-26b-local"
       - "--host"
       - "0.0.0.0"
       - "--port"
       - "8000"
       - "--dtype"
       - "bfloat16"
+      - "--kv-cache-memory-bytes"
+      - "4G"
       - "--gpu-memory-utilization"
-      - "0.42"
+      - "0.80"
       - "--max-model-len"
       - "16384"
       - "--trust-remote-code"
@@ -72,26 +77,30 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
 
-  # ── EXAONE 4.5 33B FP8 (~39 GB weights) ──────────────────────────────────
+  # ── Decision extraction: EXAONE 4.0 1.2B (~2.4 GB weights) ───────────────
   vllm-exaone:
     image: vllm/vllm-openai:nightly
     profiles:
       - exaone
     ports:
-      - "8001:8000"
+      - "8010:8000"
     volumes:
-      - ${EXAONE_MODEL:-/home/donghyeon/.cache/huggingface/hub/models--LGAI-EXAONE--EXAONE-4.5-33B-FP8/snapshots/exaone-4.5-33b-fp8}:/models/exaone:ro
+      - ${HF_CACHE:-/home/donghyeon/.cache/huggingface}:/root/.cache/huggingface:ro
     environment:
       NCCL_P2P_DISABLE: "1"
     command:
       - "--model"
-      - "/models/exaone"
+      - "LGAI-EXAONE/EXAONE-4.0-1.2B"
+      - "--served-model-name"
+      - "LGAI-EXAONE/EXAONE-4.0-1.2B"
       - "--host"
       - "0.0.0.0"
       - "--port"
       - "8000"
       - "--dtype"
       - "auto"
+      - "--kv-cache-memory-bytes"
+      - "1G"
       - "--gpu-memory-utilization"
       - "0.35"
       - "--max-model-len"

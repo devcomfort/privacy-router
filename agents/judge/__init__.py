@@ -28,7 +28,7 @@ Examples
 'allow'
 """
 
-from .judge import Judge, judge
+from .judge import Judge, judge, resolve_policy_action
 from .schemas import Judgment, MeaningfulnessAssessment
 
 __all__ = [
@@ -36,4 +36,5 @@ __all__ = [
     "Judgment",
     "MeaningfulnessAssessment",
     "judge",
+    "resolve_policy_action",
 ]

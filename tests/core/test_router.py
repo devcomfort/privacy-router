@@ -1,98 +1,280 @@
-"""Unit tests for Router and PrivacyRouter — config-based, no DB, no HTTP.
-
-Tests the actual routing logic using .privacy-router.config.yaml.
-No mocking — real config, real rule evaluation.
-"""
+"""Deterministic unit tests for Router, PrivacyRouter, and runtime config."""
 
 from __future__ import annotations
 
-import db.models  # noqa: F401, E402
-from db.session import init_db  # noqa: E402
+import uuid
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime, timedelta
+from threading import Barrier
+from unittest.mock import MagicMock
+
+import pytest
+
+from agents import ExtractionRecord, ExtractionResult, Sensitivity
+from agents.router import PrivacyRouter, Router, get_cache
+from config import load_config, resolve_model
+from db import ExtractionCache, get_session, init_db
 
 init_db()
 
-from agents.router.router import PrivacyRouter, Router  # noqa: E402
-import pytest  # noqa: E402
+
+def _expire_cache_entry(chat_id: str) -> None:
+    with get_session() as session:
+        entry = session.get(ExtractionCache, chat_id)
+        assert entry is not None
+        entry.updated_at = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=25)
+        session.add(entry)
+        session.commit()
+
+
+def test_cache_round_trips_encrypted_session_context():
+    chat_id = f"context-test-{uuid.uuid4().hex}"
+    cache = get_cache()
+    context = [
+        {"label": "message[0].content", "text": "Project Aurora is confidential"},
+        {"label": "message[1].content", "text": "Can I send it?"},
+    ]
+
+    try:
+        cache.put_context(chat_id, context)
+
+        assert cache.get_context(chat_id) == context
+        with get_session() as session:
+            entry = session.get(ExtractionCache, chat_id)
+            assert entry is not None
+            assert entry.context is not None
+            assert "Project Aurora" not in entry.context
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_atomically_merges_concurrent_session_deltas():
+    chat_id = f"context-merge-test-{uuid.uuid4().hex}"
+    cache = get_cache()
+    barrier = Barrier(2)
+
+    def merge(previous, current):
+        known = {(segment["label"], segment["text"]) for segment in previous}
+        return previous + [segment for segment in current if (segment["label"], segment["text"]) not in known]
+
+    def persist(label: str, text: str) -> None:
+        barrier.wait()
+        cache.merge_context(
+            chat_id,
+            [{"label": label, "text": text}],
+            merge,
+        )
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [
+                pool.submit(persist, "message[0].content", "FIRST_TURN"),
+                pool.submit(persist, "message[1].content", "SECOND_TURN"),
+            ]
+            for future in futures:
+                future.result()
+
+        assert {segment["text"] for segment in cache.get_context(chat_id)} == {
+            "FIRST_TURN",
+            "SECOND_TURN",
+        }
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_discards_expired_extraction():
+    chat_id = f"expired-extraction-{uuid.uuid4().hex}"
+    cache = get_cache()
+    try:
+        cache.put_extraction(chat_id, {"result": "private text"})
+        _expire_cache_entry(chat_id)
+
+        assert cache.get_extraction(chat_id) is None
+        with get_session() as session:
+            assert session.get(ExtractionCache, chat_id) is None
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_discards_expired_context():
+    chat_id = f"expired-context-{uuid.uuid4().hex}"
+    cache = get_cache()
+    try:
+        cache.put_context(chat_id, [{"label": "message[0]", "text": "OLD_SECRET"}])
+        _expire_cache_entry(chat_id)
+
+        assert cache.get_context(chat_id) == []
+        with get_session() as session:
+            assert session.get(ExtractionCache, chat_id) is None
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_merge_does_not_revive_expired_context():
+    chat_id = f"expired-merge-{uuid.uuid4().hex}"
+    cache = get_cache()
+    try:
+        cache.put_context(chat_id, [{"label": "message[0]", "text": "OLD_SECRET"}])
+        _expire_cache_entry(chat_id)
+
+        cache.merge_context(
+            chat_id,
+            [{"label": "message[1]", "text": "NEW_CONTEXT"}],
+            lambda previous, current: [*previous, *current],
+        )
+
+        assert cache.get_context(chat_id) == [{"label": "message[1]", "text": "NEW_CONTEXT"}]
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_put_extraction_does_not_revive_expired_context():
+    chat_id = f"expired-put-extraction-{uuid.uuid4().hex}"
+    cache = get_cache()
+    try:
+        cache.put_context(chat_id, [{"label": "message[0]", "text": "OLD_SECRET"}])
+        _expire_cache_entry(chat_id)
+
+        cache.put_extraction(chat_id, {"result": "new"})
+
+        assert cache.get_context(chat_id) == []
+        assert cache.get_extraction(chat_id) == {"result": "new"}
+    finally:
+        cache.delete(chat_id)
+
+
+def test_cache_put_context_does_not_revive_expired_extraction():
+    chat_id = f"expired-put-context-{uuid.uuid4().hex}"
+    cache = get_cache()
+    try:
+        cache.put_extraction(chat_id, {"result": "OLD_SECRET"})
+        _expire_cache_entry(chat_id)
+
+        cache.put_context(chat_id, [{"label": "message[0]", "text": "NEW_CONTEXT"}])
+
+        assert cache.get_extraction(chat_id) is None
+        assert cache.get_context(chat_id) == [{"label": "message[0]", "text": "NEW_CONTEXT"}]
+    finally:
+        cache.delete(chat_id)
 
 
 class TestRouterResolve:
     """Test Router.resolve() — policy_action → RouteResult mapping."""
 
-    def test_route_to_external(self):
+    def test_allow(self):
         router = Router()
-        result = router.resolve("route_to_external")
+        result = router.resolve("allow")
         assert result.endpoint == "external_api"
         assert result.requires_masking is False
 
-    def test_mask_and_send(self):
+    def test_selective_mask(self):
         router = Router()
-        result = router.resolve("mask_and_send")
+        result = router.resolve("selective_mask")
         assert result.endpoint == "external_api"
         assert result.requires_masking is True
 
-    def test_prompt_user(self):
-        router = Router()
-        result = router.resolve("prompt_user")
-        assert result.endpoint == "prompt"
-        assert result.requires_masking is False
-
     def test_unknown_action_raises(self):
         router = Router()
-        import pytest
         with pytest.raises(ValueError, match="Unknown policy_action"):
             router.resolve("nonexistent")
 
 
 class TestPrivacyRouterProcess:
-    """Test PrivacyRouter.process() — full pipeline with real SLM calls.
+    """Test the full deterministic pipeline with mocked Decision Model output."""
 
-    These tests make real API calls to the Extractor SLM via OpenRouter.
-    No mocking.
-    """
+    @staticmethod
+    def _process(monkeypatch, text: str, extraction: ExtractionResult):
+        mock_cls = MagicMock()
+        mock_cls.return_value.extract.return_value = extraction
+        monkeypatch.setattr("agents.router.router.Extractor", mock_cls)
+        return PrivacyRouter().process(text)
 
-    def test_non_sensitive(self):
-        pr = PrivacyRouter()
-        result = pr.process("오늘 서울 날씨는 맑습니다")
+    def test_non_sensitive(self, monkeypatch):
+        extraction = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=False, rationale="clean"),
+            records=[],
+        )
+        result = self._process(monkeypatch, "오늘 서울 날씨는 맑습니다", extraction)
         assert result.sensitivity.is_sensitive is False
         assert result.route.endpoint == "external_api"
         assert result.route.requires_masking is False
-        assert len(result.records) == 0
-    def test_sensitive_pii_essential(self):
-        """주민번호 확인 요청 — is_essential=true → route_to_local 또는 prompt_user"""
-        pr = PrivacyRouter()
-        result = pr.process("내 주민등록번호가 뭐야?")
-        assert result.sensitivity.is_sensitive is True
-        assert len(result.records) > 0
-        # 주민번호 자체가 질의 대상이므로 essential
-        assert any(r.is_essential for r in result.records)
-        # local 모델이 설정되어 있으면 route_to_local, 아니면 prompt_user
-        assert result.route.endpoint in ("local_api", "prompt")
+        assert result.judgment.policy_action == "allow"
+        assert result.records == []
 
-    def test_sensitive_pii_maskable(self):
-        """주민번호 포함 이메일 작성 — is_essential=false → mask_and_send"""
-        pr = PrivacyRouter()
-        result = pr.process("주민등록번호 901212-1234567을 포함한 이메일을 작성해줘")
+    def test_sensitive_pii_essential(self, monkeypatch):
+        """An essential PII target uses the canonical block action."""
+        extraction = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="PII target"),
+            records=[
+                ExtractionRecord(
+                    category="RESIDENT_REGISTRATION_NUMBER",
+                    span="주민등록번호",
+                    confidence=0.99,
+                    start=2,
+                    end=9,
+                    is_essential=True,
+                )
+            ],
+        )
+        result = self._process(monkeypatch, "내 주민등록번호가 뭐야?", extraction)
         assert result.sensitivity.is_sensitive is True
-        assert len(result.records) > 0
-        # 이메일 작성은 가능하므로 mask_and_send 또는 route_to_local
-        assert result.route.endpoint in ("external_api", "local_api")
-        assert result.route.requires_masking is True or result.route.endpoint == "local_api"
+        assert any(record.is_essential for record in result.records)
+        assert result.judgment.policy_action == "block"
+        assert result.route.endpoint == "local_api"
 
-    def test_business_secret(self):
-        """사업비밀 — is_essential=true → route_to_local 또는 prompt_user"""
-        pr = PrivacyRouter()
-        result = pr.process("TSMC 3nm 공정을 채택하기로 결정했다")
+    def test_sensitive_pii_maskable(self, monkeypatch):
+        """A maskable PII context uses the canonical selective_mask action."""
+        extraction = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="PII context"),
+            records=[
+                ExtractionRecord(
+                    category="RESIDENT_REGISTRATION_NUMBER",
+                    span="901212-1234567",
+                    confidence=0.99,
+                    start=7,
+                    end=21,
+                    is_essential=False,
+                )
+            ],
+        )
+        result = self._process(
+            monkeypatch,
+            "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘",
+            extraction,
+        )
         assert result.sensitivity.is_sensitive is True
-        assert result.route.endpoint in ("local_api", "prompt", "external_api")
+        assert result.judgment.policy_action == "selective_mask"
+        assert result.route.endpoint == "external_api"
+        assert result.route.requires_masking is True
+
+    def test_business_secret(self, monkeypatch):
+        """A non-essential business secret is maskable."""
+        extraction = ExtractionResult(
+            sensitivity=Sensitivity(is_sensitive=True, rationale="business secret"),
+            records=[
+                ExtractionRecord(
+                    category="FABRICATION_PROCESS_DECISION",
+                    span="TSMC 3nm 공정",
+                    confidence=0.95,
+                    start=0,
+                    end=11,
+                    is_essential=False,
+                )
+            ],
+        )
+        result = self._process(
+            monkeypatch,
+            "TSMC 3nm 공정을 채택하기로 결정했다",
+            extraction,
+        )
+        assert result.sensitivity.is_sensitive is True
+        assert result.judgment.policy_action == "selective_mask"
 
     def test_config_model_used(self):
-        """PrivacyRouter가 config에서 모델을 읽는지 확인"""
+        """PrivacyRouter uses the configured Decision Model."""
         pr = PrivacyRouter()
-        assert pr._extractor_model is not None
-        # config의 extractor.model과 일치해야 함
-        from config import load_config
         cfg = load_config()
-        assert pr._extractor_model == cfg.extractor.model
+        assert pr._decision_model == cfg.decision.model
 
 
 class TestConfigResolution:
@@ -100,32 +282,39 @@ class TestConfigResolution:
 
     def test_config_loads(self):
         from config import load_config
+
         cfg = load_config()
         assert cfg is not None
         assert len(cfg.models) > 0
 
-    def test_extractor_model_exists(self):
-        from config import load_config, resolve_model
-        cfg = load_config()
-        spec = resolve_model(cfg, cfg.extractor.model)
-        assert spec is not None
-        assert spec.id == cfg.extractor.model
+    def test_decision_model_exists(self):
+        from config import load_config
 
-    def test_generator_model_exists(self):
-        from config import load_config, resolve_model
         cfg = load_config()
-        spec = resolve_model(cfg, cfg.generator.model)
+        spec = resolve_model(cfg, cfg.decision.model)
         assert spec is not None
+        assert spec.id == cfg.decision.model
+        assert spec.location == "local"
+
+    def test_external_model_exists(self):
+        from config import load_config
+
+        cfg = load_config()
+        spec = resolve_model(cfg, cfg.external.model)
+        assert spec is not None
+        assert spec.location == "external"
 
     def test_all_models_resolvable(self):
-        from config import load_config, resolve_model
+        from config import load_config
+
         cfg = load_config()
         for model in cfg.models:
             spec = resolve_model(cfg, model.id)
             assert spec is not None, f"Model {model.id} not resolvable"
 
     def test_resolve_model_not_found_raises(self):
-        from config import load_config, resolve_model
+        from config import load_config
+
         cfg = load_config()
         with pytest.raises(KeyError, match="not found in config.models"):
             resolve_model(cfg, "nonexistent/model")
@@ -136,24 +325,28 @@ class TestConfigEnvInterpolation:
 
     def test_resolve_env_var_present(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.setenv("TEST_SECRET", "hello123")
         result = _resolve_env_vars({"key": "${TEST_SECRET}"})
         assert result == {"key": "hello123"}
 
     def test_resolve_env_var_with_default(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.delenv("MISSING_VAR", raising=False)
         result = _resolve_env_vars({"key": "${MISSING_VAR:fallback_value}"})
         assert result == {"key": "fallback_value"}
 
     def test_resolve_env_var_no_default_keeps_placeholder(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.delenv("TOTALLY_MISSING", raising=False)
         result = _resolve_env_vars({"key": "${TOTALLY_MISSING}"})
         assert result == {"key": "${TOTALLY_MISSING}"}
 
     def test_resolve_nested_dict(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.setenv("MY_KEY", "resolved")
         data = {"outer": {"inner": "${MY_KEY}"}, "list": ["${MY_KEY}", "plain"]}
         result = _resolve_env_vars(data)
@@ -161,12 +354,14 @@ class TestConfigEnvInterpolation:
 
     def test_resolve_non_string_passthrough(self):
         from config.loader import _resolve_env_vars
+
         data = {"num": 42, "flag": True, "nothing": None}
         result = _resolve_env_vars(data)
         assert result == {"num": 42, "flag": True, "nothing": None}
 
     def test_resolve_list_of_dicts(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.setenv("API_KEY", "sk-test-123")
         data = [{"api_key": "${API_KEY}"}, {"other": "value"}]
         result = _resolve_env_vars(data)
@@ -174,6 +369,7 @@ class TestConfigEnvInterpolation:
 
     def test_resolve_multiple_vars_in_one_string(self, monkeypatch):
         from config.loader import _resolve_env_vars
+
         monkeypatch.setenv("HOST", "localhost")
         monkeypatch.setenv("PORT", "8080")
         result = _resolve_env_vars({"url": "http://${HOST}:${PORT}/api"})
@@ -181,6 +377,7 @@ class TestConfigEnvInterpolation:
 
     def test_resolve_empty_string(self):
         from config.loader import _resolve_env_vars
+
         result = _resolve_env_vars({"key": ""})
         assert result == {"key": ""}
 
@@ -190,11 +387,13 @@ class TestConfigMissingFile:
 
     def test_missing_config_file_raises(self):
         from config.loader import load_config
+
         with pytest.raises(FileNotFoundError, match="Config file not found"):
             load_config("/nonexistent/path/config.yaml")
 
     def test_read_yaml_non_dict_raises(self, tmp_path):
         from config.loader import _read_yaml
+
         bad_yaml = tmp_path / "bad.yaml"
         bad_yaml.write_text("- item1\n- item2\n")
         with pytest.raises(ValueError, match="must contain a YAML mapping"):
@@ -203,33 +402,33 @@ class TestConfigMissingFile:
     def test_load_config_with_env_vars_in_yaml(self, tmp_path, monkeypatch):
         """End-to-end: config file with env vars gets resolved."""
         from config.loader import load_config
+
         monkeypatch.setenv("PR_MODEL_ID", "openrouter/test/model")
         config_content = """
 models:
+  - id: openai/local-analysis
+    api_base: http://127.0.0.1:8000/v1
+    location: local
+    tier: small
+    cost_per_1m_tokens: 0.0
   - id: ${PR_MODEL_ID}
     location: external
     tier: small
     cost_per_1m_tokens: 0.10
 
-extractor:
-  model: ${PR_MODEL_ID}
+decision:
+  model: openai/local-analysis
   config:
     temperature: 0.0
     max_tokens: 4096
 
-judge:
-  model: ${PR_MODEL_ID}
-  config:
-    temperature: 0.0
-    max_tokens: 2048
-
-generator:
-  model: ${PR_MODEL_ID}
+local:
+  model: openai/local-analysis
   config:
     temperature: 0.7
     max_tokens: 512
 
-local:
+external:
   model: ${PR_MODEL_ID}
   config:
     temperature: 0.7
@@ -238,39 +437,39 @@ local:
         config_file = tmp_path / "test-config.yaml"
         config_file.write_text(config_content)
         cfg = load_config(config_file)
-        assert cfg.models[0].id == "openrouter/test/model"
-        assert cfg.extractor.model == "openrouter/test/model"
+        assert cfg.external.model == "openrouter/test/model"
+        assert cfg.decision.model == "openai/local-analysis"
 
     def test_load_config_with_defaults_in_yaml(self, tmp_path, monkeypatch):
         """Config with env var defaults when vars are unset."""
         from config.loader import load_config
+
         monkeypatch.delenv("PR_FALLBACK_MODEL", raising=False)
         config_content = """
 models:
+  - id: openai/local-analysis
+    api_base: http://127.0.0.1:8000/v1
+    location: local
+    tier: small
+    cost_per_1m_tokens: 0.0
   - id: ${PR_FALLBACK_MODEL:openrouter/fallback/model}
     location: external
     tier: small
     cost_per_1m_tokens: 0.10
 
-extractor:
-  model: ${PR_FALLBACK_MODEL:openrouter/fallback/model}
+decision:
+  model: openai/local-analysis
   config:
     temperature: 0.0
     max_tokens: 4096
 
-judge:
-  model: ${PR_FALLBACK_MODEL:openrouter/fallback/model}
-  config:
-    temperature: 0.0
-    max_tokens: 2048
-
-generator:
-  model: ${PR_FALLBACK_MODEL:openrouter/fallback/model}
+local:
+  model: openai/local-analysis
   config:
     temperature: 0.7
     max_tokens: 512
 
-local:
+external:
   model: ${PR_FALLBACK_MODEL:openrouter/fallback/model}
   config:
     temperature: 0.7
@@ -279,4 +478,4 @@ local:
         config_file = tmp_path / "test-config.yaml"
         config_file.write_text(config_content)
         cfg = load_config(config_file)
-        assert cfg.models[0].id == "openrouter/fallback/model"
+        assert cfg.external.model == "openrouter/fallback/model"

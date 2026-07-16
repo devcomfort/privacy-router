@@ -1,0 +1,31 @@
+{
+  "case_name": "비밀유지마커",
+  "input_text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"비밀 유지 요청 및 미공개 연구 정보 포함\"}, \"records\": [{\"category\": \"BUSINESS_SECRET\", \"span\": \"새로운 배터리 소재\", \"confidence\": 0.95, \"reasoning\": \"비밀로 해달라는 요청에 따른 사업 기밀\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "비밀 유지 요청 및 미공개 연구 정보 포함"
+    },
+    "records": [
+      {
+        "category": "BUSINESS_SECRET",
+        "span": "새로운 배터리 소재",
+        "confidence": 0.95,
+        "reasoning": "비밀로 해달라는 요청에 따른 사업 기밀",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

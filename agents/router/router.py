@@ -18,6 +18,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from agents.extractor import Extractor
+from agents.judge import Judge
+from agents.masker import Masker
+from config import load_config, resolve_local_api_base
 
 from .schemas import (
     ChatMessage,
@@ -36,43 +40,31 @@ class Router:
     Examples
     --------
     >>> router = Router()
-    >>> router.resolve("mask_and_send")
+    >>> router.resolve("selective_mask")
     RouteResult(endpoint='external_api', requires_masking=True, ...)
     """
 
     # ── Decision table (tool-use style actions) ─────────────────────────
 
     _ACTIONS: dict[str, RouteResult] = {
-        "route_to_external": RouteResult(
+        "allow": RouteResult(
             endpoint="external_api",
             requires_masking=False,
             description="민감 정보 없음 — 외부 LLM으로 직접 전송",
         ),
-        "route_to_local": RouteResult(
+        "block": RouteResult(
             endpoint="local_api",
             requires_masking=False,
             description="민감 정보가 핵심 — 로컬 LLM으로 처리",
-        ),
-        "mask_and_send": RouteResult(
-            endpoint="external_api",
-            requires_masking=True,
-            description="모든 레코드 마스킹 후 외부 LLM으로 전송, 응답 재수화",
         ),
         "selective_mask": RouteResult(
             endpoint="external_api",
             requires_masking=True,
             description="비-essential 레코드만 마스킹 후 외부 LLM으로 전송",
         ),
-        "prompt_user": RouteResult(
-            endpoint="prompt",
-            requires_masking=False,
-            description="마스킹 시 질문 의미 상실 — 사용자 확인 필요 (409)",
-        ),
-        "block": RouteResult(
-            endpoint="blocked",
-            requires_masking=False,
-            description="극단적 보안 위험 — 완전 차단",
-        ),
+    }
+    _ACTION_PATHS: dict[str, tuple[str, bool]] = {
+        name: (route.endpoint, route.requires_masking) for name, route in _ACTIONS.items()
     }
 
     # ── Public API ───────────────────────────────────────────────────────────
@@ -83,9 +75,7 @@ class Router:
         Parameters
         ----------
         policy_action : str
-            One of ``"route_to_external"``, ``"route_to_local"``,
-            ``"mask_and_send"``, ``"selective_mask"``,
-            ``"prompt_user"``, or ``"block"``.
+            One of ``"allow"``, ``"block"``, or ``"selective_mask"``.
 
         Returns
         -------
@@ -100,14 +90,11 @@ class Router:
         Examples
         --------
         >>> router = Router()
-        >>> router.resolve("mask_and_send")
+        >>> router.resolve("selective_mask")
         RouteResult(endpoint='external_api', requires_masking=True, ...)
         """
         if policy_action not in self._ACTIONS:
-            raise ValueError(
-                f"Unknown policy_action: {policy_action!r}. "
-                f"Expected one of: {list(self._ACTIONS.keys())}"
-            )
+            raise ValueError(f"Unknown policy_action: {policy_action!r}. Expected one of: {list(self._ACTIONS.keys())}")
         return self._ACTIONS[policy_action]
 
     def execute(
@@ -150,14 +137,17 @@ class Router:
         >>> router.execute("hello", "allow", [], call_external=fake_llm)
         'echo: hello'
         """
-        path = self.resolve(policy_action)
+        try:
+            endpoint, requires_masking = self._ACTION_PATHS[policy_action]
+        except KeyError as exc:
+            raise ValueError(
+                f"Unknown policy_action: {policy_action!r}. Expected one of: {list(self._ACTIONS.keys())}"
+            ) from exc
 
-        if path.endpoint == "external_api":
+        if endpoint == "external_api":
             if call_external is None:
                 raise ValueError("call_external is required for external_api")
-            if path.requires_masking:
-                from agents.masker import Masker
-
+            if requires_masking:
                 masker = Masker()
                 result = masker.mask(text, records)
                 response = call_external(result.masked_text)
@@ -165,16 +155,6 @@ class Router:
                 return hydrated.hydrated_text
             return call_external(text)
 
-        if path.endpoint == "prompt":
-            raise ValueError(
-                "⚠️ 확인이 필요합니다. X-Privacy-Router-Confirm: true 헤더로 재요청하세요."
-            )
-
-        # local_api — original text, no masking
-        if path.endpoint == "blocked":
-            return "[BLOCKED] 로컬 API가 구성되지 않아 민감 정보를 처리할 수 없습니다."
-
-        # local_api — original text, no masking
         if call_local is None:
             raise ValueError("call_local is required for local_api")
         return call_local(text)
@@ -184,49 +164,28 @@ class Router:
 
 
 class PrivacyRouter:
-    """Top-level orchestrator for the full Privacy Router pipeline.
+    """Orchestrate local sensitive analysis, rule-based policy, and routing.
 
-    Chains Extractor → Judge → Router into a single call.
-
-    Parameters
-    ----------
-    extractor_model : str or None
-        Override the Extractor model.
-    judge_model : str or None
-        Override the Judge model.
-
-    Examples
-    --------
-    >>> pr = PrivacyRouter()
-    >>> result = pr.process("주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.")
-    >>> result.sensitivity.is_sensitive
-    True
-    >>> result.judgment.policy_action
-    'mask_and_send'
+    The configured Decision Model performs sensitivity analysis and exact-span
+    extraction. The Judge is deterministic code and has no model binding.
     """
 
     def __init__(
         self,
-        extractor_model: str | None = None,
-        judge_model: str | None = None,
+        decision_model: str | None = None,
         api_base: str | None = None,
+        extractor_prompt_path: str | None = None,
     ) -> None:
         self._router = Router()
-        # Resolve from config if not explicitly provided
-        try:
-            from config import load_config, resolve_model
-            cfg = load_config()
-            if extractor_model is None:
-                extractor_model = cfg.extractor.model
-            if api_base is None:
-                spec = resolve_model(cfg, extractor_model)
-                api_base = spec.api_base
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).debug("Config loading failed, using defaults: %s", exc)
-        self._extractor_model = extractor_model
-        self._judge_model = judge_model
-        self._api_base = api_base
+        cfg = load_config()
+        uses_default_model = decision_model is None
+        decision_model = decision_model or cfg.decision.model
+        configured_api_base = api_base
+        if configured_api_base is None and uses_default_model:
+            configured_api_base = cfg.decision.api_base
+        self._decision_model = decision_model
+        self._api_base = resolve_local_api_base(cfg, decision_model, configured_api_base)
+        self._extractor_prompt_path = extractor_prompt_path
 
     # ── Core pipeline ────────────────────────────────────────────────────────
 
@@ -250,31 +209,28 @@ class PrivacyRouter:
         >>> result.sensitivity.is_sensitive
         True
         """
-        from agents.extractor import Extractor
-        from agents.judge import Judge
-
-        extractor = Extractor(model=self._extractor_model, api_base=self._api_base)
+        extractor = Extractor(
+            model=self._decision_model,
+            api_base=self._api_base,
+            prompt_path=self._extractor_prompt_path,
+        )
         extraction = extractor.extract(text)
         records = extraction.records
 
         # Phase 2: Rule-based Judge
         judge = Judge()
-        records_dict = [
-            {"category": r.category, "span": r.span, "is_essential": r.is_essential}
-            for r in records
-        ]
+        records_dict = [{"category": r.category, "span": r.span, "is_essential": r.is_essential} for r in records]
         judgment = judge.classify(
-            sensitivity={"is_sensitive": extraction.sensitivity.is_sensitive, "rationale": extraction.sensitivity.rationale},
+            sensitivity={
+                "is_sensitive": extraction.sensitivity.is_sensitive,
+                "rationale": extraction.sensitivity.rationale,
+            },
             records=records_dict,
             text=text,
         )
         policy_action = judgment.policy_action
 
-        mask_indices = (
-            list(range(len(records)))
-            if policy_action in ("mask_and_send", "selective_mask")
-            else []
-        )
+        mask_indices = list(range(len(records))) if policy_action in ("selective_mask",) else []
 
         # Phase 3: Route
         route = self._router.resolve(policy_action)
@@ -314,9 +270,7 @@ class PrivacyRouter:
         import uuid
 
         # Concatenate user messages as the input text
-        user_text = " ".join(
-            m.content for m in request.messages if m.role == "user"
-        )
+        user_text = " ".join(m.content for m in request.messages if m.role == "user")
 
         # Run the pipeline
         pipeline = self.process(user_text)

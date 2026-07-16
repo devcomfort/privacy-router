@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Privacy Router Demo Agent — Simulates agent behavior with Privacy Router integration.
 
-This script demonstrates how an AI agent (Hermes/OpenClaw) would interact with
-Privacy Router to protect sensitive information while generating responses.
+This script demonstrates how Hermes Agent interacts with Privacy Router to
+protect sensitive information while generating responses.
 
 Usage:
-    python scripts/demo_agent.py [--api-key pr-...] [--model openrouter/mistralai/ministral-3b-2512]
+    python scripts/demo_agent.py [--api-key pr-...] [--model privacy-router]
 """
 
 import argparse
@@ -37,10 +37,7 @@ def generate(api_url: str, api_key: str, text: str) -> dict:
 
 def chat(api_url: str, api_key: str, text: str, model: str) -> dict:
     """Call Privacy Router chat completions endpoint."""
-    body = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": text}]
-    }).encode()
+    body = json.dumps({"model": model, "messages": [{"role": "user", "content": text}]}).encode()
     req = urllib.request.Request(f"{api_url}/v1/chat/completions", data=body, method="POST")
     req.add_header("Content-Type", "application/json")
     req.add_header("Authorization", f"Bearer {api_key}")
@@ -60,16 +57,12 @@ def process_with_privacy(api_url: str, api_key: str, text: str, model: str) -> d
        c. Routes to local LLM (sensitive, essential)
     4. Agent logs all decisions for audit trail
     """
-    log_entry = {
-        "timestamp": datetime.now().isoformat(),
-        "input": text,
-        "steps": []
-    }
+    log_entry = {"timestamp": datetime.now().isoformat(), "input": text, "steps": []}
 
     # Step 1: Classify
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Input: {text[:60]}...")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     print("\n[Step 1] Classifying with Privacy Router...")
     classify_result = classify(api_url, api_key, text)
@@ -77,17 +70,14 @@ def process_with_privacy(api_url: str, api_key: str, text: str, model: str) -> d
     records = classify_result.get("records", [])
     policy = classify_result.get("policy_action", "unknown")
 
-    log_entry["steps"].append({
-        "step": "classify",
-        "is_sensitive": is_sensitive,
-        "records": len(records),
-        "policy_action": policy
-    })
+    log_entry["steps"].append(
+        {"step": "classify", "is_sensitive": is_sensitive, "records": len(records), "policy_action": policy}
+    )
 
     print(f"  is_sensitive: {is_sensitive}")
     print(f"  records: {len(records)}")
     for r in records:
-        print(f"    - {r.get('category')}: \"{r.get('span')}\" ({r.get('confidence', 0):.0%})")
+        print(f'    - {r.get("category")}: "{r.get("span")}" ({r.get("confidence", 0):.0%})')
     print(f"  policy_action: {policy}")
 
     # Step 2: Route based on policy
@@ -96,26 +86,28 @@ def process_with_privacy(api_url: str, api_key: str, text: str, model: str) -> d
         log_entry["steps"].append({"step": "blocked", "reason": "extreme sensitivity"})
         return log_entry
 
-    if policy == "route_to_local":
+    if policy == "block":
         print("\n[Step 2] 🏠 Routing to local LLM (sensitive data is essential)")
         print("  → Data stays on-device, no external API call")
-        log_entry["steps"].append({"step": "route_to_local", "reason": "sensitive data essential"})
+        log_entry["steps"].append({"step": "block", "reason": "sensitive data essential"})
         # In real implementation, this would call a local LLM
         print("  → [Simulated] Local LLM response generated")
         return log_entry
 
-    if policy == "mask_and_send":
+    if policy == "selective_mask":
         print("\n[Step 2] 🔒 Masking sensitive data and sending to external LLM")
         chat_result = chat(api_url, api_key, text, model)
-        privacy = chat_result.get("privacy_router", {})
+        chat_result.get("privacy_router", {})
         response = chat_result.get("choices", [{}])[0].get("message", {}).get("content", "")
 
-        log_entry["steps"].append({
-            "step": "mask_and_send",
-            "records_masked": len(records),
-            "model_used": model,
-            "response_length": len(response)
-        })
+        log_entry["steps"].append(
+            {
+                "step": "selective_mask",
+                "records_masked": len(records),
+                "model_used": model,
+                "response_length": len(response),
+            }
+        )
 
         print(f"  → Masked {len(records)} record(s)")
         print(f"  → Model: {model}")
@@ -123,15 +115,11 @@ def process_with_privacy(api_url: str, api_key: str, text: str, model: str) -> d
         return log_entry
 
     # Non-sensitive: send directly
-    print(f"\n[Step 2] ✅ No sensitive data — sending directly to LLM")
+    print("\n[Step 2] ✅ No sensitive data — sending directly to LLM")
     chat_result = chat(api_url, api_key, text, model)
     response = chat_result.get("choices", [{}])[0].get("message", {}).get("content", "")
 
-    log_entry["steps"].append({
-        "step": "direct",
-        "model_used": model,
-        "response_length": len(response)
-    })
+    log_entry["steps"].append({"step": "direct", "model_used": model, "response_length": len(response)})
 
     print(f"  → Model: {model}")
     print(f"  → Response: {response[:100]}...")
@@ -142,7 +130,7 @@ def main():
     parser = argparse.ArgumentParser(description="Privacy Router Demo Agent")
     parser.add_argument("--api-url", default="http://localhost:8787", help="Privacy Router API URL")
     parser.add_argument("--api-key", required=True, help="API key for authentication")
-    parser.add_argument("--model", default="openrouter/mistralai/ministral-3b-2512", help="LLM model")
+    parser.add_argument("--model", default="privacy-router", help="Privacy Router model alias")
     parser.add_argument("--output", default="usage-log/demo-agent-log.json", help="Output log file")
     args = parser.parse_args()
 
@@ -166,9 +154,9 @@ def main():
 
     all_logs = []
     for i, scenario in enumerate(scenarios, 1):
-        print(f"\n\n{'#'*60}")
+        print(f"\n\n{'#' * 60}")
         print(f"Scenario {i}/{len(scenarios)}")
-        print(f"{'#'*60}")
+        print(f"{'#' * 60}")
         log = process_with_privacy(args.api_url, args.api_key, scenario, args.model)
         all_logs.append(log)
 
@@ -178,14 +166,14 @@ def main():
     with open(output_path, "w") as f:
         json.dump(all_logs, f, ensure_ascii=False, indent=2)
 
-    print(f"\n\n{'='*60}")
+    print(f"\n\n{'=' * 60}")
     print(f"Logs saved to {output_path}")
     print(f"Total scenarios: {len(all_logs)}")
 
     # Summary
-    sensitive_count = sum(1 for l in all_logs if l.get("steps", [{}])[0].get("is_sensitive"))
+    sensitive_count = sum(1 for log_entry in all_logs if log_entry.get("steps", [{}])[0].get("is_sensitive"))
     print(f"Sensitive: {sensitive_count}/{len(all_logs)}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

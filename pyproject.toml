@@ -15,7 +15,7 @@ dependencies = [
     "transformers>=5.10.0",
     "torch>=2.11.0",
     "torchvision>=0.26.0",
-    "instructor>=1.15.1",
+    "instructor>=1.15.3",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0",
     "platformdirs>=4.0",
@@ -24,16 +24,18 @@ dependencies = [
     "sqlmodel>=0.0.38",
     "asyncpg>=0.31.0",
     "psycopg2-binary>=2.9.9",
-
     "cryptography>=44.0.0",
     "python-pptx>=1.0.2",
     "opencv-python-headless>=4.13.0.92",
     "pymupdf>=1.27.2.3",
+    "optuna>=4.9.0",
+    "vllm>=0.23.0",
+    "ninja>=1.13.0",
 ]
 requires-python = ">= 3.13"
 
 [project.scripts]
-privacy-router = "server.cli:main"
+privacy-router = "server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -61,6 +63,10 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+filterwarnings = [
+    '''ignore:Field name "schema" in "Prompt(Input|Output)Config" shadows an attribute in parent "BaseModel":UserWarning:dotpromptz\.typing''',
+    '''ignore:There is no current event loop:DeprecationWarning:litellm\._service_logger''',
+]
 markers = [
     "core: unit tests (no external dependencies)",
     "scenario: integration tests (requires running server)",
@@ -77,3 +83,9 @@ ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["agents", "server", "db", "config"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"experiments/**/*.py" = ["D"]  # Skip docstring lint for experiment scripts

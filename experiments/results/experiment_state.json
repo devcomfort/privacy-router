@@ -1,0 +1,17 @@
+{
+  "best_overall": 81.7,
+  "best_morph": 85.2,
+  "best_ctx": 75.9,
+  "best_method": "multi-agent ensemble (3 models + consensus)",
+  "best_single": "Gemma-12B + v5 (83.3% morph, 75.9% ctx)",
+  "recent_tests": {
+    "max_model_len_8192": "81.7% — no improvement over 4096",
+    "model_specific_prompt_12B": "74.2% — worse than v5 (-7.5%p)",
+    "param_sweep": "max_tokens=1024 optimal, 2048 fails (OOM at 4096), top_p no effect"
+  },
+  "plateau": "morph 85% ceiling with current approaches",
+  "gap_to_100": {
+    "morph": 14.8,
+    "ctx": 24.1
+  }
+}

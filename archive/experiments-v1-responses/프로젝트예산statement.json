@@ -1,0 +1,38 @@
+{
+  "case_name": "프로젝트예산(statement)",
+  "input_text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"사업 예산 정보 포함\"}, \"records\": [{\"category\": \"BUSINESS_SECRET\", \"span\": \"프로젝트 블루스카이 예산은 1,200억원\", \"confidence\": 0.95, \"reasoning\": \"내부 예산 정보\", \"is_essential\": true}, {\"category\": \"BUSINESS_SECRET\", \"span\": \"인건비는 350억원\", \"confidence\": 0.90, \"reasoning\": \"내부 비용 정보\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "사업 예산 정보 포함"
+    },
+    "records": [
+      {
+        "category": "BUSINESS_SECRET",
+        "span": "프로젝트 블루스카이 예산은 1,200억원",
+        "confidence": 0.95,
+        "reasoning": "내부 예산 정보",
+        "is_essential": true
+      },
+      {
+        "category": "BUSINESS_SECRET",
+        "span": "인건비는 350억원",
+        "confidence": 0.9,
+        "reasoning": "내부 비용 정보",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

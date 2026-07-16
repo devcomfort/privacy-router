@@ -1,0 +1,236 @@
+{
+  "timestamp": "20260622-0328",
+  "model": "gemma-4-E4B-it",
+  "target": 80.0,
+  "best_prompt": "fewshot",
+  "best_score": 70.6,
+  "iterations": 1,
+  "evaluations": [
+    {
+      "prompt": "fewshot",
+      "overall_pct": 70.6,
+      "morph_pct": 75.0,
+      "ctx_pct": 55.6,
+      "failing_cases": [
+        {
+          "case": "내부URL",
+          "expected": "block",
+          "got": "selective_mask"
+        },
+        {
+          "case": "이름+소속",
+          "expected": "selective_mask",
+          "got": "block"
+        },
+        {
+          "case": "사업비밀(creation)",
+          "expected": "selective_mask",
+          "got": "block"
+        },
+        {
+          "case": "모호한실험결과(creation)",
+          "expected": "selective_mask",
+          "got": "block"
+        },
+        {
+          "case": "미공개상태",
+          "expected": "selective_mask",
+          "got": "block"
+        }
+      ],
+      "results": [
+        {
+          "case_name": "PII 포함(creation)",
+          "detection_type": "morphological",
+          "expected_action": "selective_mask",
+          "actual_action": "selective_mask",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 7.2
+        },
+        {
+          "case_name": "PII 직접(interrogation)",
+          "detection_type": "morphological",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 4.0
+        },
+        {
+          "case_name": "전화번호포함(creation)",
+          "detection_type": "morphological",
+          "expected_action": "selective_mask",
+          "actual_action": "selective_mask",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 7.5
+        },
+        {
+          "case_name": "내부URL",
+          "detection_type": "morphological",
+          "expected_action": "block",
+          "actual_action": "selective_mask",
+          "ok": false,
+          "target_ok": true,
+          "context_ok": false,
+          "error": null,
+          "time_s": 4.4
+        },
+        {
+          "case_name": "이름+소속",
+          "detection_type": "contextual",
+          "expected_action": "selective_mask",
+          "actual_action": "block",
+          "ok": false,
+          "target_ok": true,
+          "context_ok": false,
+          "error": null,
+          "time_s": 4.1
+        },
+        {
+          "case_name": "사업비밀(creation)",
+          "detection_type": "contextual",
+          "expected_action": "selective_mask",
+          "actual_action": "block",
+          "ok": false,
+          "target_ok": true,
+          "context_ok": false,
+          "error": null,
+          "time_s": 4.4
+        },
+        {
+          "case_name": "연구아이디어(consultation)",
+          "detection_type": "contextual",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 4.6
+        },
+        {
+          "case_name": "전략근거(statement)",
+          "detection_type": "contextual",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 7.6
+        },
+        {
+          "case_name": "모호한실험결과(creation)",
+          "detection_type": "contextual",
+          "expected_action": "selective_mask",
+          "actual_action": "block",
+          "ok": false,
+          "target_ok": true,
+          "context_ok": false,
+          "error": null,
+          "time_s": 4.6
+        },
+        {
+          "case_name": "연구방법론(consultation)",
+          "detection_type": "contextual",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 4.1
+        },
+        {
+          "case_name": "미공개상태",
+          "detection_type": "contextual",
+          "expected_action": "selective_mask",
+          "actual_action": "block",
+          "ok": false,
+          "target_ok": true,
+          "context_ok": false,
+          "error": null,
+          "time_s": 4.9
+        },
+        {
+          "case_name": "프로젝트예산(statement)",
+          "detection_type": "contextual",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 5.0
+        },
+        {
+          "case_name": "비밀유지마커",
+          "detection_type": "contextual",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 4.6
+        },
+        {
+          "case_name": "다중span+혼합동사",
+          "detection_type": "mixed",
+          "expected_action": "block",
+          "actual_action": "block",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 7.5
+        },
+        {
+          "case_name": "일반날씨",
+          "detection_type": "none",
+          "expected_action": "allow",
+          "actual_action": "allow",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 1.4
+        },
+        {
+          "case_name": "일반지식",
+          "detection_type": "none",
+          "expected_action": "allow",
+          "actual_action": "allow",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 1.4
+        },
+        {
+          "case_name": "일반창업조언",
+          "detection_type": "none",
+          "expected_action": "allow",
+          "actual_action": "allow",
+          "ok": true,
+          "target_ok": true,
+          "context_ok": true,
+          "error": null,
+          "time_s": 1.4
+        }
+      ]
+    },
+    {
+      "prompt": "fewshot+v2{command",
+      "error": "Prompt not found: /home/donghyeon/privacy-router/experiments/prompt_variants/extract.fewshot+v2{command.prompt"
+    }
+  ]
+}

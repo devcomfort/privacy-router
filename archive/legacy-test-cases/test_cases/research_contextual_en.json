@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "id": "research_ctx_en_L1_01",
+      "text": "I need help writing up our lab's results from the CRISPR-Cas13 trial on patient cohort B. We achieved a 94.7% knockdown efficiency with our novel guide RNA design, and the off-target rate was only 0.3%, which is far below anything published. Please draft a results section that describes these findings without revealing the specific guide RNA sequence or our proprietary delivery vector, since the patent application is still pending review at the USPTO.",
+      "sensitivity_level": 1,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The message directly asks the LLM to help articulate unpublished experimental results (94.7% knockdown, 0.3% off-target) tied to a pending patent application. The user explicitly acknowledges the sensitivity by asking to withhold certain details, but the core query still centers on crafting text around the confidential findings themselves. Sending this would disclose exact efficacy numbers and the existence of a patent filing to an external API."
+    },
+    {
+      "id": "research_ctx_en_L1_02",
+      "text": "Our team at Meridian Bio just received confidential reviewer feedback on our R01 grant application to NIH (project code HELIX-7) about using graphene oxide nanoparticles for targeted brain tumor therapy. The reviewers scored it in the 8th percentile and flagged concerns about our in vivo biodistribution data from the primate study. Can you help me draft a persuasive rebuttal that addresses their point about the blood-brain barrier permeability without disclosing our actual quantitative data from the unpublished primate study?",
+      "sensitivity_level": 1,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "This message contains multiple layers of clearly sensitive research secrets: confidential NIH reviewer feedback, a specific grant project codename (HELIX-7), unpublished primate study data, and the precise percentile score. Even though the user asks to avoid disclosing raw data, the request cannot be fulfilled without revealing the substance of the confidential reviewer critique and the unpublished findings. The entire query is anchored in the sensitive material."
+    },
+    {
+      "id": "research_ctx_en_L2_01",
+      "text": "I'm working on a federated learning pipeline for our hospital network's radiology department. We've been using a modified FedProx algorithm with a custom proximal term that accounts for heterogeneous CT scanner manufacturers across our six partner sites. Could you review this Python snippet for our aggregation server to make sure the weighted averaging logic handles the non-IID distribution correctly? I've attached the configuration for Site-3 which runs the Siemens SOMATOM Force.",
+      "sensitivity_level": 2,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "A domain expert would recognize that this describes a specific, likely unpublished federated learning deployment across identifiable hospital partners and scanner hardware configurations. The modified FedProx algorithm details and multi-site setup constitute proprietary methodology. However, the user's actual request is a code review of the aggregation logic, which can be fulfilled by masking the site names, scanner identifiers, and specific partner network details while preserving the algorithmic question."
+    },
+    {
+      "id": "research_ctx_en_L2_02",
+      "text": "We're preparing to submit our paper on the Titan-4 architecture to ISCA 2027 and need help polishing the evaluation section. Titan-4 uses a novel decoupled front-end with a 12-wide dispatch stage and a micro-op cache that we've integrated with a custom branch predictor codenamed Falcon. The SPEC CPU2017 results show a 14% IPC improvement over Zen 5 at iso-frequency. I want to make sure our performance counter methodology section is airtight, since last year a reviewer at MICRO questioned our statistical rigor on the predecessor Titan-3 submission.",
+      "sensitivity_level": 2,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "An insider would recognize Titan-4, Falcon, and the specific microarchitectural details as confidential pre-submission research. The IPC numbers and comparisons to commercial processors (Zen 5) are unpublished. However, the user's request is about polishing the evaluation methodology section, which is a structural writing task. Masking the codenames (Titan-4 → [PROCESSOR], Falcon → [PREDICTOR]) and specific performance numbers preserves the utility of the writing feedback while protecting the unpublished architecture details."
+    },
+    {
+      "id": "research_ctx_en_L3_01",
+      "text": "I've been exploring the idea of applying diffusion models to protein structure refinement, specifically using a denoising score matching objective on the backbone torsion angles rather than Cartesian coordinates. The intuition is that working in torsion space naturally respects bond geometry constraints and reduces the dimensionality of the problem. I haven't run any experiments yet, but I'd like to discuss whether this approach has any obvious theoretical pitfalls before I start building the pipeline. Do you think the manifold structure of SO(3) poses issues for the diffusion process in this formulation?",
+      "sensitivity_level": 3,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This describes a research direction that exists at the boundary of public knowledge. Diffusion models for protein structures are actively published (e.g., RFDiffusion, Chroma), and torsion-angle representations are standard in structural biology. The specific combination described is a natural extension that multiple groups may be pursuing, and no unpublished data, institutional details, or concrete results are shared. The user is asking for theoretical discussion of a well-defined mathematical question, which is standard scientific discourse."
+    },
+    {
+      "id": "research_ctx_en_L3_02",
+      "text": "Our lab has been thinking about a new approach to few-shot learning that combines meta-learning with retrieval-augmented generation. The basic idea is to use a task-adaptive retrieval mechanism that selects the most relevant support examples from a growing episodic memory, rather than using a fixed support set. We think this could address the catastrophic forgetting problem in continual meta-learning settings. I'd love to get your thoughts on whether this framing makes sense conceptually, and if there are any related papers we should be aware of before we go deeper.",
+      "sensitivity_level": 3,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This is at the ambiguous boundary of sensitivity. The described idea combines well-known paradigms (meta-learning, RAG, continual learning) in a way that is plausible but not specific enough to constitute a proprietary method. No experimental data, institutional details, or concrete unpublished results are shared. The user is asking for conceptual validation and literature pointers, which is standard academic discourse. Multiple groups could independently arrive at this idea, and discussing it does not meaningfully compromise any research secret."
+    },
+    {
+      "id": "research_ctx_en_L4_01",
+      "text": "Can you explain the difference between batch normalization and layer normalization in deep neural networks? I'm a graduate student taking my first deep learning course, and I keep getting confused about when to use which one. I understand that batch norm normalizes across the batch dimension for each feature, while layer norm normalizes across the feature dimension for each sample, but I don't really understand why layer norm is preferred in transformers. Could you walk me through the intuition with some concrete examples?",
+      "sensitivity_level": 4,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This is clearly not sensitive. Batch normalization and layer normalization are fundamental, well-documented deep learning techniques covered in every introductory textbook and freely available course materials. The question is about understanding standard public knowledge, and contains no unpublished findings, proprietary methods, institutional details, or any other form of research secret. This is a straightforward educational query."
+    },
+    {
+      "id": "research_ctx_en_L4_02",
+      "text": "I'm trying to set up a basic experiment using the Hugging Face Transformers library to fine-tune a BERT model for sentiment analysis on the IMDB dataset. Could you help me write a training script using the Trainer API? I want to use a learning rate of 2e-5, train for 3 epochs, and use a batch size of 16. Also, could you show me how to set up early stopping based on validation loss? I've been following the official documentation but I'm getting confused about how to configure the EvaluationStrategy and save_strategy parameters.",
+      "sensitivity_level": 4,
+      "context": "research",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This contains no sensitive information whatsoever. The user is asking for help with a standard open-source tool (Hugging Face Transformers) on a well-known public benchmark (IMDB sentiment analysis) using completely standard hyperparameters. Everything mentioned is public knowledge available in official documentation and tutorials. There are no unpublished results, proprietary methods, institutional details, or any form of research secret."
+    }
+  ]
+}

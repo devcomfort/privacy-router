@@ -1,0 +1,2424 @@
+[
+  {
+    "id": "l1_per_m_KO_000",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains personally identifiable information (PII) such as RRN and requires report generation with personal details"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "901212-1234567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_001",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "PII 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_002",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains credit card details and financial information"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "6011-1111-1111-1117",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "15만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_003",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "SSN 포함 및 건강 보험 관련 민감 정보"
+      },
+      "records": [
+        {
+          "category": "SSN",
+          "span": "123-45-6789",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_004",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "PII 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_005",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 정보 및 개인 식별 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "6011-1111-1111-1117",
+          "is_essential": false
+        },
+        {
+          "category": "EXPIRATION_DATE",
+          "span": "09/26",
+          "is_essential": false
+        },
+        {
+          "category": "CVV",
+          "span": "789",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_006",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "정신과 상담 기록 및 약물 처방 이력 포함"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "우울증 진단과 약물 처방 이력",
+          "is_essential": false
+        },
+        {
+          "category": "PRESCRIPTION_DATA",
+          "span": "세르트랄린 50mg",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "기밀 유지가 매우 중요해",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_007",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial details and personal data in legal context"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_DETAILS",
+          "span": "계좌번호 210-567-890123",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "이혼 소송 진행 중",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_008",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "법적 및 개인정보 보호 관련 정보 포함"
+      },
+      "records": [
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "가해자는 직장 상사이며, 현재 접근금지 명령이 내려진 상태야",
+          "is_essential": true
+        },
+        {
+          "category": "PATIENT_RECORD",
+          "span": "병원 진단서 포함",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "경찰 신고 기록",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_009",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": " deeply personal mental health information"
+      },
+      "records": [
+        {
+          "category": "MEDICAL",
+          "span": "Review my psychiatric counseling records from the past three months. Summarize the depression diagnosis, medication prescription history for Sertraline 50mg, and weekly cognitive behavioral therapy progress. Suggest topics I should prepare for the next session.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_010",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial account details and sensitive financial data"
+      },
+      "records": [
+        {
+          "category": "SSN_PATTERN",
+          "span": "210-567-890123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_011",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "법적 절차 및 개인 식별 정보 포함"
+      },
+      "records": [
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "sexual assault case documentation",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_012",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 접근 및 급여 데이터 처리 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_013",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "API 키 및 프로덕션 환경 전용 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "API 키 gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_014",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "DB 접속 정보 및 비밀번호 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "hosts db.internal.corp.com",
+          "is_essential": false
+        },
+        {
+          "category": "CREDENTIAL",
+          "span": "포트 5432, 사용자명 admin, 비밀번호 Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_015",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 접근 및 민감한 재무 데이터 처리"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_016",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": false,
+    "extraction": null
+  },
+  {
+    "id": "l1_corp_m_EN_017",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Credentials 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIALS",
+          "span": "password Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_018",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A target companies and financial figures are highly sensitive"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "타겟 기업 A의 인수가격은 500억원, 타겟 기업 B는 300억원 규모야",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_019",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 비밀 및 계약 정보 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "비공개 협상 내용, 3nm 공정 웨이퍼 단가 18,000달러, 월 생산량 5,000장",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_020",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기밀 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": " TSMC 대비 전력 효율 35% 우위, 수율 차이 8%p 이점",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_021",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A target prices와 관련된 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$400M, $240M",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_022",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Business secret negotiation terms including financial terms and capacity agreements"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "$18,000 per wafer",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_023",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비밀번호 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "35%",
+          "is_essential": true
+        },
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "8 percentage point yield differential",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_024",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains credentials and internal IP address"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "비밀번호 Str0ng!Pass#2024",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_IP",
+          "span": "192.168.1.100",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_025",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains PII (email addresses) and institutional affiliations"
+      },
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "kim.dh@example.com, lee@stanford.edu, chen@tsinghua.edu.cn",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_026",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains patent number and inventor name, which are sensitive identifiers"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "PERSONAL_INFO",
+          "span": "박민수",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_027",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Credentials 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Str0ng!Pass#2024",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_028",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "PII 포함"
+      },
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "smith.j@mit.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "lee@stanford.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "chen@tsinghua.edu.cn",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_029",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허번호 및 발명자 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "PERSONAL_INFO",
+          "span": "Jessica Wang",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_030",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 결과 및 수학적 증명과 관련된 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "RESEARCH_CONTENT",
+          "span": "새로운 양자 오류 정정 코드의 수학적 증명",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_031",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity: unpublished research, feedback specifics, and task requirements imply potential exposure of intellectual property or confidential project details."
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "논문 리뷰어 피드백을 분석해줘. 리뷰어 1은 novelty 부족을 지적했고, 리뷰어 2는 실험 재현성 문제를 제기했어. 리뷰어 3은 소수 수정 후 게재 가능이라고 평가했어.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_032",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구비 및 참여 연구원 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "5억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "4.2억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "8천만원",
+          "is_essential": false
+        },
+        {
+          "category": "PARTICIPANT_COUNT",
+          "span": "12명",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_033",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Strictly confidential research content"
+      },
+      "records": [
+        {
+          "category": "CONFIDENTIAL_RESEARCH",
+          "span": "Review the mathematical proof for our novel quantum error correction code. The core theorem states O(log n) error probability guarantee for all n-qubit states. We plan to submit to Nature next month so this is strictly confidential. Lemma 3 convergence proof appears incomplete, identify gaps and suggest fixes.",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_034",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity (reproducibility concerns, statistical methodology)"
+      },
+      "records": [
+        {
+          "category": "CONTEXTUAL_SENSITIVITY",
+          "span": "Reviewer 2 raises reproducibility concerns with statistical methodology complaints",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_035",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial details and contribution assessments may be sensitive"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$400K",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$336K",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$64K",
+          "is_essential": false
+        },
+        {
+          "category": "CONTRIBUTION_ASSESSMENT",
+          "span": "contribution assessments for all 12 participating researchers",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_036",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "건강검진 결과 및 환자 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "PT-2024-0892",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_PATTERN",
+          "span": "환자번호는 PT-2024-0892야.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_037",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains PII (주민등록번호) and financial details requiring tax calculation"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "880515-2345678",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "7,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "3,500만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "180만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_038",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial details and insurance information"
+      },
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-5678",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1,200만원, 800만원, 500만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_039",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "건강 정보 포함"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_DATA",
+          "span": "Patient ID PT-2024-0892",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_040",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial and tax-related sensitive information present"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "Tax ID number is 234-56-7890",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_041",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "보험 청구 금액 및 정책 번호 포함"
+      },
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "Policy number INS-2024-9012",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000 hospital bills, $6,500 lost income, $4,000 pain and suffering",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_042",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연봉 및 인센티브 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "8,500만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "연 200% 스톡옵션",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_043",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity due to personal relationship details and counseling history"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "결혼 7년차이고, 육아 스트레스로 갈등이 심해",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_044",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자 진료 정보 및 보험 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "건강보험 일반피부양자",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_045",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직업 변경 및 재정 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$70,000, $85,000, 200%",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_046",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "컨텍스트적 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CONTEXTUAL_SENSITIVITY",
+          "span": "married 7 years, 두 자녀 ages 5와 3, 세 couple 세션과 5 individual 세션",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_047",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Patient identifiers and insurance details are present"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "보험 일반 dependent",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_048",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 서버 주소 및 인증서 정보 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "vpn.corp.internal",
+          "is_essential": true
+        },
+        {
+          "category": "CREDENTIALS",
+          "span": "인증서 CN=employee-2024-kdh, 인증 토큰 eyJhbGciOiJIUzI1NiJ9.abc123.",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_049",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Employee payroll details include sensitive personal identifiers and financial data."
+      },
+      "records": [
+        {
+          "category": "EMP_NUMBER",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "5,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "3,000주",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "25,000원",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_DETAIL",
+          "span": "4대 보험 공제액과 실수령액 계산",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_050",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계정 ID와 EC2 인스턴스 ID가 포함되어 있어 PII에 해당하며, 이 정보는 분석에 필수적입니다."
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "계정 ID 555544443333, EC2 인스턴스 i-0ghi345def678",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_051",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 인증 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "certificate CN=employee-2024-kdh",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "vpn.corp.internal",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_052",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직원 ID 및 금융 정보 포함"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_053",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "AWS account ID 포함"
+      },
+      "records": [
+        {
+          "category": "ACCOUNT_ID",
+          "span": "555544443333",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_054",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains confidential business strategy details and financial projections"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRETS",
+          "span": "엔지니어링팀 5명 감축, 마케팅팀 3명 증원",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_055",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호 및 손해배상 추정액과 같은 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "20억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_056",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계약 규모 및 금융 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "50억원",
+          "is_essential": false
+        },
+        {
+          "category": "CREDIT_RATE",
+          "span": "12%",
+          "is_essential": false
+        },
+        {
+          "category": "DISCOUNT_RATE",
+          "span": "8%",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_057",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "사업 전략 및 기밀 정보 포함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "Must remain strictly confidential until executive approval.",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_058",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호 및 금액 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$16M",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_059",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": false,
+    "extraction": null
+  },
+  {
+    "id": "l2_res_m_KO_060",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "저자 정보 및 ORCID ID 포함"
+      },
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0002-1234-5678",
+          "is_essential": false
+        },
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_061",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB 승인 번호 포함 및 임상시험 프로토콜 검토 요청"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-KAIST-0567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_062",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "카드번호 및 금융 사용 내역 포함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "5361-XXXX-XXXX-8901",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_063",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "ORCID IDs 포함"
+      },
+      "records": [
+        {
+          "category": "ORCID_ID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_064",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB-2024-GIST-0234 is a confidential clinical trial identifier"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-GIST-0234",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_065",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "카드 번호 및 지출 정보 포함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "4111-XXXX-XXXX-2345",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_066",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 성과 평가서 작성 요청에 포함된 구체적인 수치 및 실적 정보가 민감 정보에 해당함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "올해 SCI 논문 3편",
+          "is_essential": false
+        },
+        {
+          "category": "PATENT_NUMBER",
+          "span": "특허 출원 2건",
+          "is_essential": false
+        },
+        {
+          "category": "PATENT_NUMBER",
+          "span": "연구비 수주 실적 8억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_067",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Review evaluations contain contextual sensitive information about academic publications and research findings."
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "리뷰어 1은 '혁신적이지만 실험 설계가 약함', 리뷰어 2는 '수학적 증명이 불완전', 리뷰어 3은 '우수, 소수 수정 후 게재 가능'",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_068",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains sensitive business information including financial details (3억원 지원금), participating companies (삼성전자), research topic (차세대 DRAM 공정), and confidential terms like NDA 조항"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "참여자 기업: 삼성전자, 지원금 3억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_069",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Research performance metrics and financial details"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$640K",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_070",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Reviewer feedback includes incomplete proof and design weaknesses"
+      },
+      "records": [
+        {
+          "category": "REVIEWER_FEEDBACK",
+          "span": "Reviewer 1: innovative but weak experimental design. Reviewer 2: mathematical proof incomplete. Reviewer 3: excellent, minor revisions acceptable. Draft detailed rebuttal addressing all reviewer comments point by point with evidence.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_071",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Business secrets and NDA clause"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRETS",
+          "span": "partner: major semiconductor company, funding $240K",
+          "is_essential": true
+        },
+        {
+          "category": "NDA_CLASSIFICATION",
+          "span": "NDA clause summary",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_072",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "차량번호와 과태료 내역 등 PII 및 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "123가 4567",
+          "is_essential": false
+        },
+        {
+          "category": "Fines",
+          "span": "주차 위반 과태료",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_FINDS",
+          "span": "올해 받은 모든 과태료 내역",
+          "is_essential": false
+        },
+        {
+          "category": "LOCAL_INFORMATION",
+          "span": "차량 등록증 주소 확인 및 우편 수신지 검증",
+          "is_essential": false
+        },
+        {
+          "category": "CALENDAR_ENTIRE_TASK",
+          "span": "과태료 납부 기한 표시",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_073",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains shipping tracking details including a 7-digit transport number (9876543210987), recipient name (서연), address, and delivery attempts."
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "9876543210987",
+          "is_essential": false
+        },
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "서연",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_074",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "인스타그램 및 트위터 계정 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "@kdonghyeon, @donghyeon_lab",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_075",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "차량 등록 정보 및 개인 주소 확인 필요"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "XYZ-5678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_076",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains sensitive tracking number and recipient details"
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "1234567890123",
+          "is_essential": false
+        },
+        {
+          "category": "PERSONAL_INFO",
+          "span": "David Kim",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "123 Tech Avenue San Francisco",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_077",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains personal branding identifiers (@donghyeon_lab) and marketing-related metrics that could be used for competitive analysis if exposed."
+      },
+      "records": [
+        {
+          "category": "PERSONAL_ATTRIBUTOR",
+          "span": "@donghyeon_lab",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_KO_078",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "수면 패턴 분석 및 개선 방법 제시와 관련된 맥락 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "지난 2주간 평균 수면시간 4.5시간, 야간 각성 3-4회, 수면 시작까지 평균 45분 소요야",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_KO_079",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Financial details and housing information could be used for unauthorized access if leaked."
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_DETAILS",
+          "span": "전세 2억원, 월세 80만원, 예금 5천만원, 적금 3천만원, 대출 한도",
+          "is_essential": false
+        },
+        {
+          "category": "HOUSING_INFORMATION",
+          "span": "전세 2억원, 월세 80만원 아파트 거주 중",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_CONTEXT",
+          "span": "내년 3월 계약 만료, 매매 vs 전세 연장 vs 이사 장단점 분석",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_KO_080",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains contextual sensitive information like developmental delays and treatment recommendations"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "발달 검사 결과와 치료 기관 추천",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_EN_081",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Context suggests potential exposure of sleep health metrics which could be used for analysis or comparison if disclosed"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_PATIENT_DATA",
+          "span": "Average 4.5 hours sleep, 3-4 nighttime awakenings, 45 minutes to fall asleep",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_EN_082",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "금융 및 개인 재정 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$1,500/월, $150,000",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_c_EN_083",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": false,
+    "extraction": null
+  },
+  {
+    "id": "l3_corp_m_KO_084",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 업무 관련 메시지로 PII 및 프로젝트 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "프로젝트 일정 변경 건",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_085",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "회의 주제와 참석자 수 등 맥락적 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "회의 주제는 '2025년 예산 편성'",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_086",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains financial details and dates that could be sensitive if exposed"
+      },
+      "records": [
+        {
+          "category": "DATE_AND_AMOUNT",
+          "span": "10월 15-17일 도쿄 출장, 미팅 대상: Sony 반도체사건业部, 논의 내용: 이미지 센서 공급 계약. 출장비 총 280만원(항공 80만, 숙박 120만, 식대 80만). 미팅 결과와 후속 조치도 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요."
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "280만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_087",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 파일 및 개인 연락처 포함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_FILE",
+          "span": "project_schedule_v3.xlsx",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL_NAME",
+          "span": "Jessica",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_088",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": false,
+    "extraction": null
+  },
+  {
+    "id": "l3_corp_m_EN_089",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "사업용 보고서 작성 요청 중 금액 및 일정 정보 포함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$2,200",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_090",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity: Includes internal department details, employee ID (implied), and potential PII like names/titles"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "부서: 개발팀, 직급: 대리",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_091",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "고객 만족도 조사 데이터 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "고객 만족도 조사 결과를 분석해줘. 응답 수 450건, 평균 점수 3.8/5.0. 불만 사항 TOP 3: 배송 지연(32%), 제품 하자(28%), CS 응대(19%). 개선 방안을 제안해줘. 다음 분기 목표 점수도 설정해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_092",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "경쟁사 평가 요청서에는 단가 및 납기 정보가 포함되어 있어 경제적 가치와 신뢰성에 영향을 줄 수 있는 민감 정보가 존재합니다."
+      },
+      "evaluation": {
+        "candidates": [
+          "A사",
+          "B사",
+          "C사"
+        ],
+        "criteria": [
+          "경제적 타당성 (단가 비교)",
+          "품질 및 혁신성",
+          "시장 진입 장벽 (레퍼런스 부족)",
+          "장기적 관계 가능성"
+        ],
+        "weights": {
+          "단가": 30,
+          "품질": 25,
+          "레퍼런스": 20,
+          "납기 안정성": 15
+        },
+        "recommendation": {
+          "final_choice": "B사",
+          "justification": "B사는 품질 우수성과 단가 경쟁력을 동시에 충족하며, 레퍼런스 부족 문제는 추가 정보 수집으로 보완 가능합니다. 납기 불안정성은 단기적 리스크로 판단됩니다."
+        },
+        "additional_notes": [
+          "내부 경쟁사 데이터 접근 권한 필요 시 IRB 승인 확인",
+          "신규 업체(C사)는 기술 검증을 위한 선행 연구 자료 확보 권장"
+        ]
+      }
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_093",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity: includes internal timelines, system permissions, and mentor assignments which may contain confidential details"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_SCHEDULE",
+          "span": "November 1 2024",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_094",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "고객 만족도 조사 데이터에 특정 불만 사항 및 목표 설정 포함"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_095",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual analysis reveals no explicit sensitive data (e.g., PII, credentials, or confidential markers). However, vendor names (A, B, C) may require verification for compliance."
+      },
+      "records": [
+        {
+          "category": "VENDOR_NAME",
+          "span": "Vendor A, Vendor B, Vendor C",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_KO_096",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "실험 참가자 정보 및 IRB 승인번호 포함으로 민감 정보 노출 가능성 있음"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "P001-P050",
+          "is_essential": false
+        },
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB 승인번호",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_KO_097",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains dataset licenses and usage terms which may require attribution or commercial use restrictions"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "ImageNet-21K, COCO 2017, CustomSet-v2",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_KO_098",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 참여자 수 및 기간 정보 포함"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "2024.03-2025.02",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_EN_099",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB approval number와 개인 정보 포함"
+      },
+      "records": [
+        {
+          "category": "IRB_APPROVAL_NUMBER",
+          "span": "IRB approval number",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_EN_100",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Dataset licenses and usage terms are sensitive information that must be handled with care."
+      },
+      "records": [
+        {
+          "category": "DATASET_LICENSE",
+          "span": "ImageNet-21K, COCO 2017, CustomSet-v2",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_EN_101",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contextual sensitivity (project scope, team details, progress metrics)"
+      },
+      "records": [
+        {
+          "category": "CONFIDENTIAL_TEAM_INFO",
+          "span": "1 professor, 2 PhD, 3 Master students",
+          "is_essential": true
+        },
+        {
+          "category": "PROGRESS_METRIC",
+          "span": "Current progress 65%",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_c_KO_102",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains specific numerical data (n=100) and statistical thresholds (p<0.05) which could be sensitive if exposed"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "n=100",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_c_KO_103",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 주제와 방법론 분석 요청으로 맥락적 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "대규모 언어 모델의 효율적 파인튜닝 방법론",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_c_KO_104",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains identifiable institutional and research-related details that could be protected"
+      },
+      "records": [
+        {
+          "category": "RESEARCH_ORGANIZATION",
+          "span": "GIST, ACL 2026",
+          "is_essential": false
+        },
+        {
+          "category": "BUDGET_INFORMATION",
+          "span": "참가비와 여행 경비 예산",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_c_EN_105",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains contextual sensitivity like unpublished research and business strategies"
+      },
+      "records": [
+        {
+          "category": "CONTEXTUAL_SENSITIVITY",
+          "span": "Review experimental design. A/B test: Group A (n=100) baseline, Group B (n=100) proposed model. Primary metric BLEU score, significance p<0.05. Check sample size adequacy, power analysis, and suggest confounding variable control methods. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request."
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_c_EN_106",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 주제 및 방법론 비교 요청"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_107",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Contains PII (registration fee, travel budget, affiliation names) and contextual sensitivity (conference details, research topic)"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "Conference ACL 2026",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_per_m_KO_108",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "날씨 정보 포함"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "오늘 서울의 날씨는 대체로 맑겠으며, 최저 기온 15도, 최고 기온 28도로 예상됩니다. 미세먼지 농도는 보통 수준이며, 자외선 지수는 높음 단계입니다. 오후에 소나기가 올 가능성이 있으니 우산을 챙기는 것이 좋겠습니다. 주말에는 기온이 더 올라갈 전망이에요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_per_m_KO_109",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "교통 정보 제공 요청"
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "지하철 2호선 강남역에서 홍대입구역까지의 최단 경로와 예상 소요 시간을 알려줘. 출근 시간대 혼잡도와 대안 경로도 포함해서 설명해줘. 환승 횟수와 도보 거리도 함께 비교해줘. 실시간 도착 정보도 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_per_m_EN_110",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "날씨 정보는 공개된 데이터이지만, 특정 날짜와 조건에 대한 상세한 요청이 포함되어 있어 맥락 유지가 필요할 수 있음"
+      },
+      "records": [
+        {
+          "category": "PUBLIC_WEATHER_DATA",
+          "span": "What is the weather forecast for San Francisco this week? I need to plan outdoor activities for the weekend. Include temperature ranges, precipitation probability, and wind conditions for each day from Friday through Sunday with hourly breakdowns. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_per_m_EN_111",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "공공 교통 정보 포함"
+      },
+      "records": [
+        {
+          "category": "TRANSPORT_INFO",
+          "span": "What is the best public transit route from downtown Seattle to the University of Washington campus during morning rush hour? Include estimated travel time, number of transfers, and alternative routes in case of service disruptions. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_112",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Recipe instructions may include placeholder-replaceable details like ingredient IDs or preparation steps, but general cooking instructions are typically not classified as highly sensitive unless specific confidential data is mentioned."
+      },
+      "records": [
+        {
+          "category": "SCREAMING_SNAKE_CASE",
+          "span": "간단한 김치찌개 레시피를 알려줘. 재료 준비부터 완성까지 단계별로 설명해줘.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_113",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기술적 방법론 설명이지만, 내부 데이터 처리와 관련된 내용으로 간주될 수 있음"
+      },
+      "records": [
+        {
+          "category": "TECHNICAL_PROCESSING",
+          "span": "Excel에서 VLOOKUP 함수 대신 INDEX-MATCH 조합 사용",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_114",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Recipe details may include personal preferences or dietary restrictions that could be sensitive if disclosed."
+      },
+      "records": [
+        {
+          "category": "PERSONAL_PREFERENCE",
+          "span": "dairy-free, gluten-free",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_115",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Business reporting instructions involve handling multiple data sources and creating analytical outputs, which may contain sensitive operational or financial data."
+      },
+      "records": [
+        {
+          "category": "DATA_ORGANIZATION",
+          "span": "multiple data sources",
+          "is_essential": false
+        },
+        {
+          "category": "CALCULATED_FIELDS",
+          "span": "pivot table calculations",
+          "is_essential": false
+        },
+        {
+          "category": "CUSTOM_GROUPINGS",
+          "span": "business reporting",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_res_m_KO_116",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 방법론 섹션 작성 요청에 정량적/정성적 연구 방법론 비교 등 맥락적 민감 정보 포함"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "논문의 연구 방법론 섹션 작성 방법 설명 요청",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_res_m_KO_117",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Technical content involving identifiers that could be used in analysis or security checks"
+      },
+      "records": [
+        {
+          "category": "TECHNICAL_CONTENT",
+          "span": "Python에서 리스트 컴프리헨션과 generator 표현식의 차이점에 대한 설명",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_res_m_EN_118",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "Technical content requiring processing"
+      },
+      "records": [
+        {
+          "category": "TECHNICAL_CONTENT",
+          "span": "Explain the differences between list comprehensions and generator expressions in Python. Include performance comparison, memory usage characteristics, and appropriate use case scenarios with practical code examples for data processing pipelines.",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l4_res_m_EN_119",
+    "model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 방법론에 대한 일반적인 지침 제공"
+      },
+      "records": []
+    }
+  }
+]

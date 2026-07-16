@@ -1,0 +1,31 @@
+{
+  "case_name": "미공개상태",
+  "input_text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+  "expected": {
+    "action": "selective_mask",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"미공개 연구 아이디어에 대한 언급이 포함되어 있습니다.\"}, \"records\": [{\"category\": \"UNPUBLISHED_RESEARCH_CONCEPT\", \"span\": \"아직 논문에 제출하지 않은 연구 아이디어\", \"confidence\": 0.95, \"reasoning\": \"미공개 연구 아이디어에 대한 언급\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "미공개 연구 아이디어에 대한 언급이 포함되어 있습니다."
+    },
+    "records": [
+      {
+        "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+        "span": "아직 논문에 제출하지 않은 연구 아이디어",
+        "confidence": 0.95,
+        "reasoning": "미공개 연구 아이디어에 대한 언급",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": false,
+  "failure_reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+  "error": null
+}

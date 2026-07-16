@@ -5,8 +5,7 @@ No external dependencies. Pure function tests.
 
 from __future__ import annotations
 
-
-from agents.masker.crypto import encrypt_field, decrypt_field, generate_key
+from agents.masker import decrypt_field, encrypt_field, generate_key
 
 
 class TestEncryptDecrypt:

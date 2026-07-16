@@ -1,3 +1,5 @@
+> Public sanitized copy. Raw identifier-like examples are replaced with placeholders.
+
 # Privacy Router — 전수조사 보고서
 
 **작성일**: 2026-06-16
@@ -81,7 +83,7 @@
 - **파일**: `server/api/routes/keys.py`
 - **항목**: C2 (키 관리 5개 엔드포인트 인증 누락)
 - **이유**: 로컬 단일 사용자 환경에서 계정 관리 비용이 보안 이점보다 큼
-- **ADR**: `docs/adr/ADR-001-no-auth-on-key-admin-endpoints.md`
+- **ADR**: `docs/adr/ADR-001-no-auth-on-<api-key>.md`
 
 ### ADR-002: 관리 UI용 공개 엔드포인트
 - **파일**: `server/api/routes/proxy.py`, `server/api/routes/providers.py`
@@ -135,7 +137,7 @@
 | M5 | `router/router.py:86` | 문서에 잘못된 액션 이름 |
 | M6 | `router/router.py:152` | `prompt` 엔드포인트 핸들러 없음 |
 | M7 | `router/schemas.py` (이전) | `PipelineResult` Any 사용 → **타입화로 해결** |
-| M8 | `extractor/two_phase.py:101` | Critic 레코드에 `is_essential` 누락 |
+| M8 | `extractor/two_phase.py` (이전) | 중복된 고정밀 경로를 `Extractor(precision="high")`로 통합하고 제거 → **해결** |
 | M9 | `config/schemas.py` | 문서 예제에 잘못된 tier 값 |
 
 ---
@@ -183,7 +185,7 @@
 - `agents/extractor/extractor.py`
 - `server/mcp/tools.py`
 - `docs/AUDIT_REPORT.md`
-- `docs/adr/ADR-001-no-auth-on-key-admin-endpoints.md`
+- `docs/adr/ADR-001-no-auth-on-<api-key>.md`
 - `docs/adr/ADR-002-public-admin-endpoints-for-standalone-ui.md`
 - `docs/adr/ADR-003-sqlite-as-default-database.md`
 - `docs/adr/ADR-004-keep-deprecated-test-mcp-tools.md`

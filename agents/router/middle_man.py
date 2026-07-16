@@ -3,25 +3,33 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
-from agents.extractor.schemas import ExtractionResult, ExtractionRecord
-from agents.router.schemas import PipelineResult
+from agents.extractor import ExtractionRecord, ExtractionResult, redact_extraction_records
+from agents.judge import (
+    Judgment,
+    MeaningfulnessAssessment,
+    resolve_policy_action,
+)
 
+from .router import Router
+from .schemas import PipelineResult
 
 # ── User Decision Types ─────────────────────────────────────────────────────
 
 
-class UserAction(str, Enum):
+class UserAction(StrEnum):
     """Actions the user can take on extraction results."""
+
     ACCEPT = "accept"  # Accept the default action
     OVERRIDE = "override"  # Override specific records
     STRATEGY = "strategy"  # Change routing strategy
     CANCEL = "cancel"  # Cancel the request
 
 
-class RoutingStrategy(str, Enum):
+class RoutingStrategy(StrEnum):
     """User-selectable routing strategies."""
+
     AUTO = "auto"  # Let the system decide (default)
     MASK_ALL = "mask_all"  # Mask all sensitive records
     BLOCK_ALL = "block_all"  # Block all (use local model)
@@ -31,6 +39,7 @@ class RoutingStrategy(str, Enum):
 @dataclass
 class RecordOverride:
     """User override for a specific record."""
+
     record_index: int
     is_essential: bool | None = None
     remove: bool = False
@@ -39,6 +48,7 @@ class RecordOverride:
 @dataclass
 class UserDecision:
     """User's decision on extraction results."""
+
     action: UserAction
     strategy: RoutingStrategy = RoutingStrategy.AUTO
     overrides: list[RecordOverride] = field(default_factory=list)
@@ -51,6 +61,7 @@ class UserDecision:
 @dataclass
 class ExtractionSummary:
     """Summary of extraction results for user presentation."""
+
     is_sensitive: bool
     record_count: int
     essential_count: int
@@ -84,33 +95,24 @@ class MiddleManAgent:
         confidences = [r.confidence for r in records if r.confidence > 0]
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 
-        low_conf = [
-            i for i, r in enumerate(records)
-            if r.confidence < self.confidence_threshold
-        ]
+        low_conf = [i for i, r in enumerate(records) if r.confidence < self.confidence_threshold]
 
-        # Determine default action
-        if not extraction.sensitivity.is_sensitive:
-            default_action = "allow (no sensitive info)"
-        elif essential_count > 0:
-            default_action = "block (has essential records)"
-        else:
-            default_action = "mask (non-essential only)"
+        policy_action = resolve_policy_action(
+            extraction.sensitivity.is_sensitive,
+            len(records),
+            essential_count,
+        )
+        default_action = {
+            "allow": "allow (no sensitive info)",
+            "block": "block (sensitive data requires local processing)",
+            "selective_mask": "mask (non-essential only)",
+        }[policy_action]
 
         return ExtractionSummary(
             is_sensitive=extraction.sensitivity.is_sensitive,
             record_count=len(records),
             essential_count=essential_count,
-            records=[
-                {
-                    "index": i,
-                    "category": r.category,
-                    "span": r.span,
-                    "is_essential": r.is_essential,
-                    "confidence": r.confidence,
-                }
-                for i, r in enumerate(records)
-            ],
+            records=redact_extraction_records(records),
             default_action=default_action,
             confidence_avg=avg_confidence,
             low_confidence_records=low_conf,
@@ -164,20 +166,19 @@ class MiddleManAgent:
 
         # Determine routing action
         if decision.strategy == RoutingStrategy.AUTO:
-            if not extraction.sensitivity.is_sensitive:
-                action = "route_to_external"
-            elif any(r.is_essential for r in records):
-                action = "route_to_local"
-            else:
-                action = "mask_and_send"
+            action = resolve_policy_action(
+                extraction.sensitivity.is_sensitive,
+                len(records),
+                sum(1 for record in records if record.is_essential),
+            )
         elif decision.strategy == RoutingStrategy.MASK_ALL:
-            action = "mask_and_send"
+            action = "block" if extraction.sensitivity.is_sensitive and not records else "selective_mask"
         elif decision.strategy == RoutingStrategy.BLOCK_ALL:
-            action = "route_to_local"
+            action = "block"
         elif decision.strategy == RoutingStrategy.ALLOW_ALL:
-            action = "route_to_external"
+            action = "allow"
         else:
-            action = "route_to_external"
+            action = "allow"
 
         return records, action
 
@@ -187,16 +188,14 @@ class MiddleManAgent:
         decision: UserDecision | None = None,
     ) -> PipelineResult:
         """Process extraction with optional user decision."""
-        from agents.router import Router
 
         if decision is None:
             records = extraction.records
-            if not extraction.sensitivity.is_sensitive:
-                action = "route_to_external"
-            elif any(r.is_essential for r in records):
-                action = "route_to_local"
-            else:
-                action = "mask_and_send"
+            action = resolve_policy_action(
+                extraction.sensitivity.is_sensitive,
+                len(records),
+                sum(1 for record in records if record.is_essential),
+            )
         else:
             records, action = self.apply_decision(extraction, decision)
 
@@ -206,10 +205,9 @@ class MiddleManAgent:
         essential_count = sum(1 for r in records if r.is_essential)
         rationale = f"essential: {essential_count}/{len(records)} records"
 
-        from agents.judge import Judgment, MeaningfulnessAssessment
         judgment = Judgment(
             meaningful_after_masking=MeaningfulnessAssessment(
-                is_meaningful_after_masking=(action not in ("route_to_local", "prompt_user")),
+                is_meaningful_after_masking=action != "block",
                 rationale=rationale,
             ),
             policy_action=action,
@@ -217,11 +215,7 @@ class MiddleManAgent:
             rationale=rationale,
         )
 
-        mask_indices = (
-            list(range(len(records)))
-            if action in ("mask_and_send", "selective_mask")
-            else []
-        )
+        mask_indices = list(range(len(records))) if action == "selective_mask" else []
 
         return PipelineResult(
             sensitivity=extraction.sensitivity,

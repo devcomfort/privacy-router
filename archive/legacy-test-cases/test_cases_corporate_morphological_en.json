@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "id": "corp_morph_en_l1_01",
+      "text": "I need to submit our quarterly compliance report and it lists the following employee data: John Smith, SSN 478-55-2301, joined March 2019, salary $142,500, and his corporate credit card number is 4532-8821-0093-7741 expiring 11/27 with CVV 892. Can you format this into a clean summary table for the HR audit submission?",
+      "sensitivity_level": 1,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The message directly asks the LLM to process explicit PII — SSN (478-55-2301), full credit card number with CVV, and salary — as the core task. Even masked, the surrounding context and request structure make this a compliance and data-leakage risk. The sensitive data IS the query, not incidental to it."
+    },
+    {
+      "id": "corp_morph_en_l1_02",
+      "text": "We had a security incident last week involving our production database at db-prod-master.internal.corp.net:5432. The root password was found written on a sticky note: Tr0ub4dor&3!xK9. The affected table contains 2.3 million customer records with emails, hashed passwords, and phone numbers. I need you to help me draft the breach notification letter to send to affected users at support@meridianhealth.com.",
+      "sensitivity_level": 1,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "Contains the production database hostname with port (db-prod-master.internal.corp.net:5432), an actual root password (Tr0ub4dor&3!xK9), and an internal email address (support@meridianhealth.com). The password and internal infrastructure details are explicitly sensitive morphological patterns. Even though the user's goal (drafting a notification letter) is legitimate, sending this data to an external LLM exposes critical credentials and internal network topology."
+    },
+    {
+      "id": "corp_morph_en_l2_01",
+      "text": "For the Project Falcon roadmap review, we need to finalize the Q3 deliverables. The current burn rate is $2.8M per month against our Series C runway of $41M, and we're targeting a 340% ARR growth to hit $12.5M by December. Our internal Jira board at https://jira.internal.corp.net/browse/FALCON-2024 shows 47 unresolved P0 tickets. Can you help me write a status update email to send to the board at board@falcon-private.corp?",
+      "sensitivity_level": 2,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "Contains non-public financial metrics (burn rate $2.8M/month, Series C runway $41M, ARR target $12.5M), an internal Jira URL (https://jira.internal.corp.net/browse/FALCON-2024), a project codename (Project Falcon), and an internal email (board@falcon-private.corp). These are morphologically detectable (URLs, specific numbers, email addresses). The sensitive data can be masked — replacing numbers with [REVENUE_FIGURE], URLs with [INTERNAL_URL], and emails with [INTERNAL_EMAIL] — while still allowing the LLM to draft a useful status update template."
+    },
+    {
+      "id": "corp_morph_en_l2_02",
+      "text": "I'm preparing materials for the acquisition due diligence meeting with Codename Starfish. The target company's EBITDA multiple is 8.2x on trailing revenue of $67M, and our M&A team has valued the deal at approximately $547M including $89M in assumed debt. The internal memo reference is M&A-2024-0047 and it was authored by Sarah Chen (employee ID EMP-44219). Help me create a presentation outline for the executive committee review.",
+      "sensitivity_level": 2,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "Contains M&A-specific figures (EBITDA multiple 8.2x, revenue $67M, deal value $547M, debt $89M), a codename (Project Starfish), internal document reference (M&A-2024-0047), and an employee with ID (EMP-44219). These are morphologically detectable patterns — specific financial figures, internal reference codes, and employee IDs. The user is asking for help creating a presentation outline, which is legitimate work. The numbers and identifiers can be masked to [FINANCIAL_METRIC], [DEAL_CODENAME], [DOC_REF], [EMPLOYEE_ID] while preserving the ability to generate a useful outline template."
+    },
+    {
+      "id": "corp_morph_en_l3_01",
+      "text": "We're considering entering the Southeast Asian market next year, potentially through a partnership with a local distributor. The preliminary analysis suggests Vietnam and Thailand as the most promising entry points, with an estimated initial investment of around $5M to $8M. I've been discussing this with our regional VP, and we think a phased rollout starting with B2B channels makes sense. Can you help me outline the key considerations for a market entry strategy deck?",
+      "sensitivity_level": 3,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "The message discusses strategic intentions (Southeast Asian market entry) and includes an investment range ($5M-$8M) which is a morphologically detectable financial figure. However, the information is highly preliminary and vague — no specific partner names, no confirmed plans, no confidential documents referenced. Market expansion strategies are commonly discussed in general business contexts. The investment range is broad enough to be non-actionable. This falls in the ambiguous zone: it could be sensitive strategic planning, or it could be general business brainstorming. Since no specific confidential data is being directly asked about or processed, and the strategic intent alone without specifics is not actionable, allowing with no masking is appropriate."
+    },
+    {
+      "id": "corp_morph_en_l3_02",
+      "text": "I'm researching best practices for migrating our on-premise ERP system to a cloud-based solution. We're currently running SAP ECC 6.0 on some aging infrastructure, and the IT team has been evaluating options like SAP S/4HANA Cloud, Oracle Cloud ERP, and Microsoft Dynamics 365. The preliminary timeline suggests an 18-month migration window if we start in Q1 next year. Can you compare the pros and cons of each platform for a mid-size manufacturing company with about 2,000 employees?",
+      "sensitivity_level": 3,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "The message mentions a specific ERP system version (SAP ECC 6.0), employee count (~2,000), and a migration timeline. While revealing the current ERP platform could theoretically be useful to an attacker, this is very common enterprise information that is often publicly available through job postings, case studies, and vendor references. The employee count and migration timeline are not particularly sensitive. The core request is a generic technology comparison — no passwords, financial data, or proprietary processes are involved. The morphological patterns (version numbers, employee count) are low-sensitivity in this context."
+    },
+    {
+      "id": "corp_morph_en_l4_01",
+      "text": "I'm working on a quarterly business review presentation for our team and I want to make it visually engaging. The presentation should cover standard topics like team achievements, project milestones, and goals for the next quarter. I'd like to use a modern template with good data visualization options for charts and graphs. Can you suggest a structure for a 20-minute presentation and recommend some design tips for making the slides more professional and readable?",
+      "sensitivity_level": 4,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "Contains no sensitive information whatsoever. No PII, no financial figures, no internal URLs, no codenames, no passwords, no employee data. The request is about general presentation design advice — a completely routine business task. There are no morphological patterns (numbers, URLs, emails, file paths, keywords) that would trigger any sensitivity detection. This is a clear allow."
+    },
+    {
+      "id": "corp_morph_en_l4_02",
+      "text": "Can you help me write a professional email to follow up on a job application I submitted last week? I applied for a Senior Marketing Manager position at a mid-sized tech company through their careers page. I haven't heard back yet and want to send a polite, concise follow-up that reiterates my interest in the role and briefly highlights my relevant experience in digital marketing and brand strategy. I want to keep it under 150 words and make sure the tone is enthusiastic but not pushy.",
+      "sensitivity_level": 4,
+      "context": "corporate",
+      "type": "morphological",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "Contains no sensitive corporate information. No internal URLs, no financial data, no employee IDs, no codenames, no passwords, no proprietary information. The user is asking for help writing a generic follow-up email — a completely benign, everyday request. No morphological patterns that would trigger sensitivity detection are present. This is unambiguously not sensitive."
+    }
+  ]
+}

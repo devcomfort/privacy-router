@@ -1,0 +1,82 @@
+[
+  {
+    "id": "single_hash_drift_en",
+    "observed": "MOBILE_PHONE_NUMBER#badc0ffe",
+    "allowed": ["MOBILE_PHONE_NUMBER#a1b2c3d4"],
+    "masked_messages": [{"role": "user", "content": "Send the reminder to MOBILE_PHONE_NUMBER#a1b2c3d4."}],
+    "masked_output": "I will send it to MOBILE_PHONE_NUMBER#badc0ffe.",
+    "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4"
+  },
+  {
+    "id": "category_typo_with_semantics",
+    "observed": "MOBILE_PHONE_NUMBR#f00dcafe",
+    "allowed": ["MOBILE_PHONE_NUMBER#a1b2c3d4", "EMAIL_ADDRESS#e5f6a7b8"],
+    "masked_messages": [{"role": "user", "content": "Phone MOBILE_PHONE_NUMBER#a1b2c3d4; email EMAIL_ADDRESS#e5f6a7b8. Call me."}],
+    "masked_output": "Calling MOBILE_PHONE_NUMBR#f00dcafe now.",
+    "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4"
+  },
+  {
+    "id": "same_category_position",
+    "observed": "EMAIL_ADDRESS#00000000",
+    "allowed": ["EMAIL_ADDRESS#11111111", "EMAIL_ADDRESS#22222222"],
+    "masked_messages": [{"role": "user", "content": "Primary: EMAIL_ADDRESS#11111111. Backup: EMAIL_ADDRESS#22222222."}],
+    "masked_output": "The backup address EMAIL_ADDRESS#00000000 will be used.",
+    "expected": "EMAIL_ADDRESS#22222222"
+  },
+  {
+    "id": "same_category_ambiguous",
+    "observed": "EMAIL_ADDRESS#00000000",
+    "allowed": ["EMAIL_ADDRESS#11111111", "EMAIL_ADDRESS#22222222"],
+    "masked_messages": [{"role": "user", "content": "Contacts: EMAIL_ADDRESS#11111111 and EMAIL_ADDRESS#22222222."}],
+    "masked_output": "I will use EMAIL_ADDRESS#00000000.",
+    "expected": null
+  },
+  {
+    "id": "cross_category_email",
+    "observed": "CONTACT#00000000",
+    "allowed": ["MOBILE_PHONE_NUMBER#a1b2c3d4", "EMAIL_ADDRESS#e5f6a7b8"],
+    "masked_messages": [{"role": "user", "content": "Call MOBILE_PHONE_NUMBER#a1b2c3d4 or email EMAIL_ADDRESS#e5f6a7b8."}],
+    "masked_output": "I will send an email to CONTACT#00000000.",
+    "expected": "EMAIL_ADDRESS#e5f6a7b8"
+  },
+  {
+    "id": "korean_phone",
+    "observed": "MOBILE_PHONE_NUMBER#ffffffff",
+    "allowed": ["MOBILE_PHONE_NUMBER#1234abcd", "RESIDENT_REGISTRATION_NUMBER#5678efab"],
+    "masked_messages": [{"role": "user", "content": "연락처는 MOBILE_PHONE_NUMBER#1234abcd이고 식별번호는 RESIDENT_REGISTRATION_NUMBER#5678efab입니다. 전화해 주세요."}],
+    "masked_output": "MOBILE_PHONE_NUMBER#ffffffff로 전화하겠습니다.",
+    "expected": "MOBILE_PHONE_NUMBER#1234abcd"
+  },
+  {
+    "id": "research_codename",
+    "observed": "UNPUBLISHED_RESEARCH_CONCEPT#deadbeef",
+    "allowed": ["UNPUBLISHED_RESEARCH_CONCEPT#abcddcba", "INTERNAL_PROJECT_NAME#10293847"],
+    "masked_messages": [{"role": "user", "content": "The unpublished method is UNPUBLISHED_RESEARCH_CONCEPT#abcddcba in project INTERNAL_PROJECT_NAME#10293847."}],
+    "masked_output": "The method UNPUBLISHED_RESEARCH_CONCEPT#deadbeef should remain confidential.",
+    "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba"
+  },
+  {
+    "id": "json_tool_context",
+    "observed": "CREDENTIAL#00000000",
+    "allowed": ["CREDENTIAL#cafebabe", "INTERNAL_HOST#decafbad"],
+    "masked_messages": [{"role": "user", "content": "Authenticate with CREDENTIAL#cafebabe at INTERNAL_HOST#decafbad."}],
+    "masked_output": "{\"host\":\"INTERNAL_HOST#decafbad\",\"token\":\"CREDENTIAL#00000000\"}",
+    "expected": "CREDENTIAL#cafebabe"
+  },
+  {
+    "id": "no_semantic_match",
+    "observed": "BANK_ACCOUNT#00000000",
+    "allowed": ["EMAIL_ADDRESS#11111111", "MOBILE_PHONE_NUMBER#22222222"],
+    "masked_messages": [{"role": "user", "content": "Contact EMAIL_ADDRESS#11111111 or MOBILE_PHONE_NUMBER#22222222."}],
+    "masked_output": "Charge BANK_ACCOUNT#00000000.",
+    "expected": null
+  },
+  {
+    "id": "preserve_exact_registered_choice",
+    "observed": "PROJECT_BUDGET_AMOUNT#99999999",
+    "allowed": ["SALARY_AMOUNT#aaaaaaaa", "PROJECT_BUDGET_AMOUNT#bbbbbbbb", "INTERNAL_PROJECT_NAME#cccccccc"],
+    "masked_messages": [{"role": "user", "content": "Budget PROJECT_BUDGET_AMOUNT#bbbbbbbb belongs to INTERNAL_PROJECT_NAME#cccccccc; salary is SALARY_AMOUNT#aaaaaaaa."}],
+    "masked_output": "The project budget is PROJECT_BUDGET_AMOUNT#99999999.",
+    "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb"
+  }
+]

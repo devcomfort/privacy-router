@@ -52,6 +52,13 @@ Existing Big-Tech privacy solutions (OpenAI Moderation, Azure AI Content Safety,
   \item Inability to detect context-dependent sensitivity (unpublished research ideas, business strategies)
   \item Fixed cost structures burden small research laboratories
 \end{itemize}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{../assets/generated/context-sensitive-detection.png}
+  \caption{Conceptual illustration of context-sensitive information. Research, business, and personal prompts can require different protections even when their surface patterns look similar. This image is explanatory only; evaluation results are reported later.}
+  \label{fig:context-sensitive-detection}
+\end{figure}
+
 
 \subsection{Target Users}
 
@@ -86,6 +93,13 @@ User Text -> Extractor -> Sensitivity + Records
          -> Judge -> Meaningfulness + Policy Action
          -> Router -> Execution Path
 \end{verbatim}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{../assets/generated/two-tier-routing.png}
+  \caption{Conceptual illustration of the two-tier routing boundary. The router sends masked, non-essential requests to an external model and retains requests that require sensitive context for local processing.}
+  \label{fig:two-tier-routing}
+\end{figure}
+
 
 \subsection{Extractor}
 

@@ -1,0 +1,213 @@
+{
+  "$schema": "privacy-router-experiment-v1",
+  "version": "1.0.0",
+  "generated_at": "2026-06-22T01:22:15.946815+00:00",
+  "experiment": {
+    "model": "gemma-4-E4B-it",
+    "model_info": {
+      "model_path": "google/gemma-4-E4B-it",
+      "params": "4B",
+      "size_gb": 15
+    },
+    "total_trials": 5,
+    "test_cases": 17,
+    "detection_types": {
+      "morphological": 4,
+      "contextual": 9,
+      "mixed": 1,
+      "none": 3
+    }
+  },
+  "best": {
+    "trial_id": 4,
+    "score": 0.7022,
+    "prompt": "fewshot",
+    "techniques": "fewshot",
+    "params": {
+      "temperature": 0.8,
+      "top_p": 1.0,
+      "max_tokens": 1024
+    },
+    "metrics": {
+      "overall_accuracy_pct": 70.6,
+      "morphological_accuracy_pct": 75.0,
+      "contextual_accuracy_pct": 55.6,
+      "consistency_pct": 100.0,
+      "avg_latency_s": 4.8
+    }
+  },
+  "leaderboard": [
+    {
+      "trial_id": 4,
+      "score": 0.7022,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.8,
+      "top_p": 1.0,
+      "max_tokens": 1024,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 4.8,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 2,
+      "score": 0.6902,
+      "prompt": "fewshot+cot",
+      "techniques": "fewshot+cot",
+      "temperature": 0.6000000000000001,
+      "top_p": 1.0,
+      "max_tokens": 2048,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 6.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 1,
+      "score": 0.25,
+      "prompt": "fewshot+cot+role",
+      "techniques": "fewshot+cot+role",
+      "temperature": 0.2,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    },
+    {
+      "trial_id": 3,
+      "score": 0.25,
+      "prompt": "cot",
+      "techniques": "cot",
+      "temperature": 0.1,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    },
+    {
+      "trial_id": 0,
+      "score": 0.2499,
+      "prompt": "fewshot+cot",
+      "techniques": "fewshot+cot",
+      "temperature": 0.0,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    }
+  ],
+  "trials": [
+    {
+      "trial_id": 0,
+      "score": 0.2499,
+      "prompt": "fewshot+cot",
+      "techniques": "fewshot+cot",
+      "temperature": 0.0,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    },
+    {
+      "trial_id": 1,
+      "score": 0.25,
+      "prompt": "fewshot+cot+role",
+      "techniques": "fewshot+cot+role",
+      "temperature": 0.2,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    },
+    {
+      "trial_id": 2,
+      "score": 0.6902,
+      "prompt": "fewshot+cot",
+      "techniques": "fewshot+cot",
+      "temperature": 0.6000000000000001,
+      "top_p": 1.0,
+      "max_tokens": 2048,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 6.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 3,
+      "score": 0.25,
+      "prompt": "cot",
+      "techniques": "cot",
+      "temperature": 0.1,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 4096,
+      "metrics": {
+        "overall_accuracy_pct": 0.0,
+        "morphological_accuracy_pct": 0.0,
+        "contextual_accuracy_pct": 0.0,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 0.0,
+        "errors": 17
+      }
+    },
+    {
+      "trial_id": 4,
+      "score": 0.7022,
+      "prompt": "fewshot",
+      "techniques": "fewshot",
+      "temperature": 0.8,
+      "top_p": 1.0,
+      "max_tokens": 1024,
+      "metrics": {
+        "overall_accuracy_pct": 70.6,
+        "morphological_accuracy_pct": 75.0,
+        "contextual_accuracy_pct": 55.6,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 4.8,
+        "errors": 0
+      }
+    }
+  ]
+}

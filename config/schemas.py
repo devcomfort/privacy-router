@@ -5,9 +5,42 @@ All public types are re-exported via ``config/__init__.py``.
 
 from __future__ import annotations
 
+from ipaddress import ip_address
 from typing import Literal
+from urllib.parse import urlsplit
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+_NATIVE_LOOPBACK_MODEL_PREFIXES = ("ollama/", "ollama_chat/")
+
+
+def validate_local_api_base(model_id: str, api_base: str | None) -> str | None:
+    """Require local custom endpoints to use an unambiguous loopback host."""
+    if api_base is None:
+        if model_id.startswith(_NATIVE_LOOPBACK_MODEL_PREFIXES):
+            return None
+        raise ValueError(f"Local model {model_id!r} requires a loopback api_base")
+
+    try:
+        parsed = urlsplit(api_base)
+        host = parsed.hostname
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError(f"Local model {model_id!r} has an invalid api_base") from exc
+
+    if parsed.scheme not in {"http", "https"} or not host or port is None:
+        raise ValueError(f"Local model {model_id!r} api_base must be an HTTP(S) loopback URL with an explicit port")
+
+    normalized_host = host.rstrip(".").lower()
+    if normalized_host == "localhost":
+        return api_base
+    try:
+        is_loopback = ip_address(normalized_host).is_loopback
+    except ValueError:
+        is_loopback = False
+    if not is_loopback:
+        raise ValueError(f"Local model {model_id!r} api_base host must be loopback: {host!r}")
+    return api_base
 
 
 # ── Model spec ───────────────────────────────────────────────────────────────
@@ -80,6 +113,12 @@ class ModelSpec(BaseModel):
         examples=[0.10, 0.25],
     )
 
+    @model_validator(mode="after")
+    def validate_local_endpoint(self) -> ModelSpec:
+        if self.location == "local":
+            validate_local_api_base(self.id, self.api_base)
+        return self
+
 
 # ── Agent config ─────────────────────────────────────────────────────────────
 
@@ -123,6 +162,8 @@ class AgentConfig(BaseModel):
     ----------
     model : str
         Model id (must match a key in the top-level ``models`` list).
+    api_base : str or None
+        Override API base URL. If None, resolved from model registry.
     config : LLMConfig
         LLM call parameters.
 
@@ -138,9 +179,64 @@ class AgentConfig(BaseModel):
         description="Model id. Must appear in the top-level models registry.",
         examples=["openrouter/mistralai/ministral-3b-2512"],
     )
+    api_base: str | None = Field(
+        default=None,
+        description="Override API base URL. If None, resolved from model registry.",
+    )
     config: LLMConfig = Field(
         ...,
         description="LLM call parameters (temperature, max_tokens).",
+    )
+
+
+# ── Profile ──────────────────────────────────────────────────────────────────
+
+
+class ProfileOverride(BaseModel):
+    """Per-agent override within a profile.
+
+    Only specified fields override the base config; omitted fields inherit.
+    """
+
+    model: str | None = Field(
+        default=None,
+        description="Override model id. None = inherit from base config.",
+    )
+    api_base: str | None = Field(
+        default=None,
+        description="Override API base URL. None = inherit from base config.",
+    )
+    temperature: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description="Override temperature. None = inherit.",
+    )
+    max_tokens: int | None = Field(
+        default=None,
+        ge=1,
+        description="Override max_tokens. None = inherit.",
+    )
+
+
+class Profile(BaseModel):
+    """Named overrides for the three runtime model roles."""
+
+    decision: ProfileOverride | None = Field(
+        default=None,
+        description="Sensitive decision model override.",
+    )
+    local: ProfileOverride | None = Field(
+        default=None,
+        description="Local generation model override.",
+    )
+    external: ProfileOverride | None = Field(
+        default=None,
+        description="External generation model override.",
+    )
+    description: str = Field(
+        default="",
+        description="Human-readable profile description.",
     )
 
 
@@ -148,26 +244,11 @@ class AgentConfig(BaseModel):
 
 
 class PrivacyRouterConfig(BaseModel):
-    """Root config for .privacy-router.config.yaml.
+    """Validated model catalog and the three explicit runtime roles.
 
-    Attributes
-    ----------
-    models : list of ModelSpec
-        Available model registry.
-    extractor : AgentConfig
-        Extractor agent configuration.
-    judge : AgentConfig
-        Judge agent configuration.
-
-    Examples
-    --------
-    >>> c = PrivacyRouterConfig(
-    ...     models=[ModelSpec(id="openrouter/mistralai/ministral-3b-2512", tier="smol", cost_per_1m_tokens=0.10)],
-    ...     extractor=AgentConfig(model="openrouter/mistralai/ministral-3b-2512", config=LLMConfig(temperature=0.0, max_tokens=4096)),
-    ...     judge=AgentConfig(model="openrouter/google/gemini-3.1-flash-lite", config=LLMConfig(temperature=0.0, max_tokens=2048)),
-    ... )
-    >>> c.extractor.model
-    'openrouter/mistralai/ministral-3b-2512'
+    ``decision`` and ``local`` are hard-bound to on-device models.
+    ``external`` is hard-bound to a cloud model.  These location checks are
+    trust-boundary invariants, not UI hints.
     """
 
     models: list[ModelSpec] = Field(
@@ -175,19 +256,71 @@ class PrivacyRouterConfig(BaseModel):
         min_length=1,
         description="Available model registry.",
     )
-    extractor: AgentConfig = Field(
+    decision: AgentConfig = Field(
         ...,
-        description="Extractor agent configuration.",
-    )
-    judge: AgentConfig = Field(
-        ...,
-        description="Judge agent configuration.",
-    )
-    generator: AgentConfig = Field(
-        ...,
-        description="Generator (external AI) agent configuration.",
+        description="Local model for sensitivity analysis and structured extraction.",
     )
     local: AgentConfig = Field(
         ...,
-        description="Local AI agent configuration (Ollama, vLLM, etc.).",
+        description="Local model for raw sensitive generation and hydration repair.",
     )
+    external: AgentConfig = Field(
+        ...,
+        description="External model for safe or masked generation.",
+    )
+    profiles: dict[str, Profile] = Field(
+        default_factory=dict,
+        description="Named profiles that override runtime model assignments.",
+    )
+    active_profile: str | None = Field(
+        default=None,
+        description="Currently active profile name. Set via PRIVACY_ROUTER_PROFILE.",
+    )
+
+    @model_validator(mode="after")
+    def validate_role_locations(self) -> PrivacyRouterConfig:
+        catalog: dict[str, ModelSpec] = {}
+        for model in self.models:
+            if model.id in catalog:
+                raise ValueError(f"Duplicate model id: {model.id!r}")
+            catalog[model.id] = model
+
+        expected_locations = {
+            "decision": "local",
+            "local": "local",
+            "external": "external",
+        }
+
+        def validate_binding(
+            role: str,
+            model_id: str,
+            api_base: str | None,
+        ) -> None:
+            expected_location = expected_locations[role]
+            model = catalog.get(model_id)
+            if model is None:
+                raise ValueError(f"{role} model {model_id!r} is not registered in models")
+            if model.location != expected_location:
+                raise ValueError(f"{role} model must be {expected_location}, got {model.location}: {model.id}")
+            if model.location == "local":
+                validate_local_api_base(model.id, api_base if api_base is not None else model.api_base)
+
+        for role in expected_locations:
+            configured = getattr(self, role)
+            validate_binding(role, configured.model, configured.api_base)
+
+        for profile_name, profile in self.profiles.items():
+            for role in expected_locations:
+                base = getattr(self, role)
+                override = getattr(profile, role)
+                if override is None:
+                    continue
+                model_id = override.model or base.model
+                api_base = override.api_base
+                if api_base is None and override.model is None:
+                    api_base = base.api_base
+                try:
+                    validate_binding(role, model_id, api_base)
+                except ValueError as exc:
+                    raise ValueError(f"Profile {profile_name!r}: {exc}") from exc
+        return self

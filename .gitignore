@@ -401,3 +401,6 @@ presentation_ko.*
 models/*.gguf
 models/*.safetensors
 models/*.bin
+
+# Raw dataset bundle (duplicates extracted archives under experiments/datasets/)
+/12.판결서 익명처리 데이터.zip

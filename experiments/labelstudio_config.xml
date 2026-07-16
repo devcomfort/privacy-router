@@ -1,0 +1,21 @@
+<View>
+  <Text name="text" value="$text" granularity="paragraph"/>
+
+  <Header value="## Sensitivity Classification"/>
+  <Choices name="sensitivity" toName="text" choice="single" showInLine="true" required="true">
+    <Choice value="allow" hint="No sensitive information"/>
+    <Choice value="block" hint="Critical secrets - never leave device"/>
+    <Choice value="selective_mask" hint="PII present - mask before sending"/>
+  </Choices>
+
+  <Header value="## PII Entity Types"/>
+  <Choices name="pii_types" toName="text" choice="multiple" showInLine="true">
+    <Choice value="personal_id" hint="Name, SSN, passport, RRN"/>
+    <Choice value="financial" hint="Credit card, bank account"/>
+    <Choice value="contact" hint="Email, phone, address"/>
+    <Choice value="corporate" hint="Trade secrets, strategy"/>
+    <Choice value="legal" hint="Litigation, regulatory risk"/>
+    <Choice value="research" hint="Unpublished results, IP"/>
+    <Choice value="none" hint="No PII detected"/>
+  </Choices>
+</View>

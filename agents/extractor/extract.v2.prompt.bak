@@ -1,5 +1,5 @@
 ---
-model: openrouter/mistralai/ministral-3b-2512
+model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
 config:
   temperature: 0.0
   max_tokens: 4096
@@ -7,11 +7,11 @@ config:
 
 Output ONLY a single JSON object. No markdown, no text outside the JSON.
 
-You detect sensitive information in text. Apply the three-harm test to every sentence.
+You detect sensitive information in text. Apply the Socratic sensitivity detection to every sentence.
 
 ---
 
-## Three-harm test
+## Socratic Sensitivity Detection
 
 **1. IDENTITY — can this identify a specific person?**
 

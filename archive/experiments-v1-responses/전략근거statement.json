@@ -1,0 +1,31 @@
+{
+  "case_name": "전략근거(statement)",
+  "input_text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"내부적인 비즈니스 전략 및 결정 사항이 포함되어 있음\"}, \"records\": [{\"category\": \"BUSINESS_SECRET\", \"span\": \"TSMC 대신 삼성 파운드리를 선택하기로 결정했어\", \"confidence\": 0.95, \"reasoning\": \"내부적인 공급망 및 전략 결정 사항\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "내부적인 비즈니스 전략 및 결정 사항이 포함되어 있음"
+    },
+    "records": [
+      {
+        "category": "BUSINESS_SECRET",
+        "span": "TSMC 대신 삼성 파운드리를 선택하기로 결정했어",
+        "confidence": 0.95,
+        "reasoning": "내부적인 공급망 및 전략 결정 사항",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

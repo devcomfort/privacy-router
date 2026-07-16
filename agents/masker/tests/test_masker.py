@@ -4,14 +4,22 @@ Crypto and contract_store unit tests are self-contained (no external deps).
 """
 
 import hashlib
-import os
+from unittest.mock import patch
 
 import pytest
+from cryptography.fernet import Fernet
 
-from agents.masker import HydrationError, Masker, MaskingContract
-from agents.masker.crypto import encrypt_field, decrypt_field, generate_key, _get_fernet
-from agents.masker.contract_store import ContractStore
-
+from agents.masker import (
+    ContractStore,
+    HydrationError,
+    Masker,
+    MaskingContract,
+    decrypt_field,
+    encrypt_field,
+    fingerprint_field,
+    generate_key,
+    key_fingerprint,
+)
 
 # ── crypto.py ────────────────────────────────────────────────────────────────
 
@@ -57,45 +65,38 @@ class TestCryptoEncryptDecrypt:
 
 
 class TestCryptoKeyHandling:
-    """Test key management and _get_fernet behavior."""
+    """Test public key-management behavior."""
 
     def test_generate_key_returns_base64_fernet_key(self):
         key = generate_key()
-        assert isinstance(key, str)
-        assert len(key) > 0
-        # Should be usable as a Fernet key
-        from cryptography.fernet import Fernet
-        f = Fernet(key.encode())
-        assert f.decrypt(f.encrypt(b"test")) == b"test"
+        fernet = Fernet(key.encode())
+        assert fernet.decrypt(fernet.encrypt(b"test")) == b"test"
 
-    def test_get_fernet_uses_env_key(self, monkeypatch):
-        """When MASKING_ENCRYPTION_KEY is set, _get_fernet uses it."""
+    def test_legacy_env_key_is_used(self, monkeypatch):
         key = generate_key()
+        monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
         monkeypatch.setenv("MASKING_ENCRYPTION_KEY", key)
-        f = _get_fernet()
-        token = f.encrypt(b"test_payload")
-        assert f.decrypt(token) == b"test_payload"
+        encrypted = encrypt_field("test_payload")
+        assert decrypt_field(encrypted) == "test_payload"
 
-    def test_get_fernet_generates_key_when_env_empty(self, monkeypatch):
-        """When MASKING_ENCRYPTION_KEY is empty, a random key is generated."""
+    def test_master_key_is_generated_once_when_env_empty(self, monkeypatch):
+        monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
         monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
-        f = _get_fernet()
-        # Should be able to encrypt/decrypt
-        token = f.encrypt(b"test")
-        assert f.decrypt(token) == b"test"
+        first = encrypt_field("first")
+        second = encrypt_field("second")
+        assert decrypt_field(first) == "first"
+        assert decrypt_field(second) == "second"
 
-    def test_encrypt_decrypt_consistent_with_same_env_key(self, monkeypatch):
-        """Encrypt and decrypt use the same key when env var is set."""
-        key = generate_key()
-        monkeypatch.setenv("MASKING_ENCRYPTION_KEY", key)
+    def test_encrypt_decrypt_consistent_with_master_key(self, monkeypatch):
+        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
         encrypted = encrypt_field("secret-data")
-        monkeypatch.setenv("MASKING_ENCRYPTION_KEY", key)  # ensure same key
         assert decrypt_field(encrypted) == "secret-data"
 
     def test_env_key_with_whitespace_stripped(self, monkeypatch):
-        """Key from env has whitespace stripped."""
-        key = generate_key()
-        monkeypatch.setenv("MASKING_ENCRYPTION_KEY", f"  {key}  ")
+        monkeypatch.setenv(
+            "PRIVACY_ROUTER_MASTER_KEY",
+            f"  {generate_key()}  ",
+        )
         encrypted = encrypt_field("test")
         assert decrypt_field(encrypted) == "test"
 
@@ -103,58 +104,38 @@ class TestCryptoKeyHandling:
 # ── contract_store.py ────────────────────────────────────────────────────────
 
 
-class TestContractStoreUidFor:
-    """Test ContractStore._uid_for — pure deterministic UID generation."""
+class TestCryptoFingerprint:
+    def test_fingerprint_is_keyed_and_stable(self, monkeypatch):
+        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
+        value = "901212-1234567"
+        assert fingerprint_field(value) == fingerprint_field(value)
+        assert fingerprint_field(value) != hashlib.sha256(value.encode()).hexdigest()
 
-    def test_uid_for_valid_record(self):
-        store = ContractStore()
-        record = {"category": "RESIDENT_REGISTRATION_NUMBER", "span": "901212-1234567"}
-        uid = store._uid_for(record)
-        assert uid.startswith("RESIDENT_REGISTRATION_NUMBER_")
-        expected_hash = hashlib.sha256("901212-1234567".encode()).hexdigest()[:8]
-        assert uid == f"RESIDENT_REGISTRATION_NUMBER_{expected_hash}"
+    def test_fingerprint_changes_with_key(self, monkeypatch):
+        value = "010-1234-5678"
+        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
+        first = fingerprint_field(value)
+        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
+        assert fingerprint_field(value) != first
 
-    def test_uid_for_none_returns_unknown(self):
-        store = ContractStore()
-        assert store._uid_for(None) == "unknown"
+    def test_provider_key_fingerprint_never_contains_plaintext_fragments(self, monkeypatch):
+        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
+        provider_key = "sk-live-super-secret-1234567890"
 
-    def test_uid_for_deterministic(self):
-        store = ContractStore()
-        record = {"category": "PHONE", "span": "010-1234-5678"}
-        uid1 = store._uid_for(record)
-        uid2 = store._uid_for(record)
-        assert uid1 == uid2
+        fingerprint = key_fingerprint(provider_key)
 
-    def test_uid_for_different_records_different_uids(self):
-        store = ContractStore()
-        r1 = {"category": "PHONE", "span": "010-1111-1111"}
-        r2 = {"category": "PHONE", "span": "010-2222-2222"}
-        assert store._uid_for(r1) != store._uid_for(r2)
+        assert fingerprint == key_fingerprint(provider_key)
+        assert provider_key[:8] not in fingerprint
+        assert provider_key[-4:] not in fingerprint
+        assert len(fingerprint) == 16
 
-    def test_uid_for_different_categories_different_prefixes(self):
-        store = ContractStore()
-        r1 = {"category": "PHONE", "span": "010-1234-5678"}
-        r2 = {"category": "EMAIL", "span": "010-1234-5678"}
-        assert store._uid_for(r1) != store._uid_for(r2)
+        short_key = "12345678"
+        short_fingerprint = key_fingerprint(short_key)
+        assert short_key not in short_fingerprint
+        assert len(short_fingerprint) == 16
 
-    def test_uid_for_missing_category(self):
-        store = ContractStore()
-        record = {"span": "value"}
-        uid = store._uid_for(record)
-        assert uid.startswith("UNKNOWN_")
 
-    def test_uid_for_missing_span(self):
-        store = ContractStore()
-        record = {"category": "TEST"}
-        uid = store._uid_for(record)
-        hash_prefix = hashlib.sha256("".encode()).hexdigest()[:8]
-        assert uid == f"TEST_{hash_prefix}"
-
-    def test_uid_for_empty_record(self):
-        """Empty dict is falsy, so _uid_for returns 'unknown' (same as None)."""
-        store = ContractStore()
-        assert store._uid_for({}) == "unknown"
-
+class TestContractStore:
     def test_ttl_default(self):
         store = ContractStore()
         assert store._ttl.total_seconds() == 24 * 3600
@@ -206,7 +187,7 @@ class TestMasker:
             {"category": "RESIDENT_REGISTRATION_NUMBER", "span": "901212-1234567", "start": 7, "end": 21},
         ]
         result = masker.mask(text, records)
-        assert "[RESIDENT_REGISTRATION_NUMBER#" in result.masked_text
+        assert "SENSITIVE_DATA#" in result.masked_text
         assert "901212-1234567" not in result.masked_text
         assert result.contract.count == 1
 
@@ -218,10 +199,62 @@ class TestMasker:
             {"category": "MOBILE_PHONE_NUMBER", "span": "010-9876-5432", "start": 23, "end": 36},
         ]
         result = masker.mask(text, records)
-        assert "[RESIDENT_REGISTRATION_NUMBER#" in result.masked_text
-        assert "[MOBILE_PHONE_NUMBER#" in result.masked_text
+        assert result.masked_text.count("SENSITIVE_DATA#") == 2
         assert "901212-1234567" not in result.masked_text
         assert "010-9876-5432" not in result.masked_text
+
+    @patch("agents.masker.masker.secrets.token_hex", side_effect=["deadbeef", "cafebabe"])
+    def test_placeholders_are_unlinkable_across_operations(self, _mock_token):
+        masker = Masker()
+        text = "Call 010-1234-5678"
+        records = [
+            {
+                "category": "PERSONAL_IDENTIFIER_NUMBER",
+                "span": "010-1234-5678",
+                "start": 5,
+                "end": 18,
+            },
+        ]
+
+        first = masker.mask(text, records)
+        second = masker.mask(text, records)
+
+        assert "SENSITIVE_DATA#deadbeef" in first.masked_text
+        assert "SENSITIVE_DATA#cafebabe" in second.masked_text
+
+    @patch("agents.masker.masker.secrets.token_hex", return_value="deadbeef")
+    def test_prompt_derived_category_never_leaves_masker(self, _mock_token):
+        result = Masker().mask(
+            "Project Aurora must remain confidential.",
+            [
+                {
+                    "category": "PROJECT_AURORA_SECRET",
+                    "span": "Aurora",
+                    "start": 8,
+                    "end": 14,
+                },
+            ],
+        )
+
+        assert result.masked_text == "Project SENSITIVE_DATA#deadbeef must remain confidential."
+        assert "AURORA" not in result.masked_text
+
+    @patch("agents.masker.masker.secrets.token_hex", return_value="01234567")
+    def test_arbitrary_dynamic_category_is_opaque(self, _mock_token):
+        result = Masker().mask(
+            "Keep Apollo private.",
+            [
+                {
+                    "category": "ACQUISITION_TARGET_APOLLO",
+                    "span": "Apollo",
+                    "start": 5,
+                    "end": 11,
+                },
+            ],
+        )
+
+        assert result.masked_text == "Keep SENSITIVE_DATA#01234567 private."
+        assert "ACQUISITION" not in result.masked_text
 
     def test_mask_span_not_found_skips(self):
         masker = Masker()
@@ -256,7 +289,7 @@ class TestMasker:
         llm_response = f"처리 완료: {result.masked_text}"
         hydrated = masker.hydrate(llm_response, result.contract)
         assert "901212-1234567" in hydrated.hydrated_text
-        assert "[RESIDENT_REGISTRATION_NUMBER#1]" not in hydrated.hydrated_text
+        assert "SENSITIVE_DATA#" not in hydrated.hydrated_text
 
     def test_selective_mask(self):
         masker = Masker()
@@ -267,7 +300,7 @@ class TestMasker:
         ]
         # Only mask the first record (index 0)
         result = masker.selective_mask(text, records, [0])
-        assert "[RESIDENT_REGISTRATION_NUMBER#" in result.masked_text
+        assert "SENSITIVE_DATA#" in result.masked_text
         assert "010-9876-5432" in result.masked_text  # second record NOT masked
         assert result.contract.count == 1
 

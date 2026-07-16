@@ -1,0 +1,2123 @@
+{
+  "version": "2.0.0",
+  "created": "2026-06-24T22:40:08.799965",
+  "description": "Privacy Router Benchmark v2 — 120+ bilingual cases across 4 sensitivity levels × 3 contexts × 2 types",
+  "total_cases": 120,
+  "statistics": {
+    "by_sensitivity": {
+      "L1": 36,
+      "L2": 36,
+      "L3": 36,
+      "L4": 12
+    },
+    "by_context": {
+      "personal": 40,
+      "corporate": 40,
+      "research": 40
+    },
+    "by_language": {
+      "KO": 60,
+      "EN": 60
+    },
+    "by_detection_type": {
+      "morphological": 54,
+      "contextual": 54,
+      "none": 12
+    },
+    "by_action": {
+      "selective_mask": 66,
+      "block": 28,
+      "allow": 26
+    }
+  },
+  "cases": [
+    {
+      "id": "l1_per_m_KO_000",
+      "text": "주민등록번호 901212-1234567을 사용하여 건강보험 자격 조회를 해주고, 조회 결과를 정리한 보고서를 작성해줘. 보고서에는 내 이름과 생년월일이 포함되어야 하고, 보험료 납부 내역도 함께 정리해줘. 보험 유형은 직장가입자이고, 피부양자 등록도 확인해야 해. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PERSONAL_IDENTIFIER_NUMBER",
+          "span": "901212-1234567",
+          "is_essential": false
+        }
+      ],
+      "text_length": 264
+    },
+    {
+      "id": "l1_per_m_KO_001",
+      "text": "내 여권번호는 AB1234567이고, 비자 신청서류를 작성해야 해. 여권 발급일은 2023년 5월 10일이고, 만료일은 2033년 5월 9일이야. 모든 필수 항목을 채워서 제출 가능한 형태로 만들어줘. 국적은 대한민국이고, 발급기관은 외교부야. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PASSPORT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": true
+        }
+      ],
+      "text_length": 257
+    },
+    {
+      "id": "l1_per_m_KO_002",
+      "text": "신용카드 번호 6011-1111-1111-1117로 온라인 결제를 진행하고, 결제 내역을 정리해줘. 카드 유효기간은 09/26이고 CVV는 789이야. 구매 항목과 금액을 카테고리별로 분류해줘. 총 결제 금액은 15만원이고, 배송지는 서울시 강남구 테헤란로 123이야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "6011-1111-1111-1117",
+          "is_essential": true
+        }
+      ],
+      "text_length": 270
+    },
+    {
+      "id": "l1_per_m_EN_003",
+      "text": "Use my Social Security Number 123-45-6789 to look up my health insurance eligibility status and compile a detailed report. The report should include my full name Sarah Lee, date of birth March 15 1990, and a complete history of insurance premium payments over the past five years with monthly breakdowns.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PERSONAL_IDENTIFIER_NUMBER",
+          "span": "123-45-6789",
+          "is_essential": false
+        }
+      ],
+      "text_length": 304
+    },
+    {
+      "id": "l1_per_m_EN_004",
+      "text": "My passport number is AB1234567 and I need to fill out a visa application form for a business trip to Japan. The passport was issued on May 10, 2023 and expires on May 9, 2033. Please complete all required fields including nationality, place of birth, and occupation in a submission-ready format.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PASSPORT_NUMBER",
+          "span": "AB1234567",
+          "is_essential": true
+        }
+      ],
+      "text_length": 296
+    },
+    {
+      "id": "l1_per_m_EN_005",
+      "text": "Process an online payment using credit card number 6011-1111-1111-1117, expiration date 09/26, CVV 789. Then organize the transaction details by category, listing each purchased item with its amount and the total expenditure. Shipping address is 123 Tech Avenue, San Francisco, CA 94102.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "6011-1111-1111-1117",
+          "is_essential": true
+        }
+      ],
+      "text_length": 287
+    },
+    {
+      "id": "l1_per_c_KO_006",
+      "text": "정신과 상담 기록을 검토해줘. 최근 3개월간 우울증 진단과 약물 처방 이력을 정리하고, 다음 상담 때 어떤 내용을 준비하면 좋을지 제안해줘. 현재 복용 중인 약은 세르트랄린 50mg이고, 주 1회 인지행동치료를 받고 있어. 기밀 유지가 매우 중요해. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 256
+    },
+    {
+      "id": "l1_per_c_KO_007",
+      "text": "이혼 소송 진행 중인데, 배우자의 은행 계좌 내역을 분석해줘. 계좌번호 210-567-890123에서 최근 6개월간 500만원 이상 출금 건을 추출하고, 패턴을 정리해줘. 변호사에게 제출할 증거 자료로 사용할 거야. 재산 분할 비율 산정에 필요해. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 259
+    },
+    {
+      "id": "l1_per_c_KO_008",
+      "text": "성폭력 피해 상담 기록을 정리해줘. 2024년 3월 15일 사건부터 경찰 신고, 병원 진단서, 법률 상담까지 모든 문서의 타임라인을 만들고, 현재 진행 상황을 요약해줘. 가해자는 직장 상사이며, 현재 접근금지 명령이 내려진 상태야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "LEGAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 308
+    },
+    {
+      "id": "l1_per_c_EN_009",
+      "text": "Review my psychiatric counseling records from the past three months. Summarize the depression diagnosis, medication prescription history for Sertraline 50mg, and weekly cognitive behavioral therapy progress. Suggest topics I should prepare for the next session. Confidentiality is critical as this contains deeply personal mental health information.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 349
+    },
+    {
+      "id": "l1_per_c_EN_010",
+      "text": "I am going through a divorce proceeding and need help analyzing my spouse bank account statements from account 210-567-890123. Extract all withdrawals exceeding $5,000 over the past six months and identify suspicious spending patterns relevant to asset division. My lawyer needs this for court submission.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 305
+    },
+    {
+      "id": "l1_per_c_EN_011",
+      "text": "Help me organize my sexual assault case documentation starting from the March 15, 2024 incident. Create a timeline including police report filing, hospital examination records, and legal counsel consultations. The perpetrator is my workplace supervisor and a restraining order is currently in effect.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "LEGAL_RECORD",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 300
+    },
+    {
+      "id": "l1_corp_m_KO_012",
+      "text": "회사 내부 시스템 https://internal.corp.com/salary 에서 전체 직원 급여 데이터를 다운로드하고, 부서별 평균 연봉과 상위 10% 보상 패키지를 분석해줘. 결과를 비공개 보고서로 정리해줘. 대상 직원 수는 약 500명이고, 분석 기간은 최근 3년이야. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        }
+      ],
+      "text_length": 270
+    },
+    {
+      "id": "l1_corp_m_KO_013",
+      "text": "API 키 gsk_abc123def456ghi789jkl를 사용하여 우리 서비스의 사용량 통계를 조회하고, 월별 트렌드를 분석해줘. 이 키는 프로덕션 환경 전용이고, 결제 시스템과 연동되어 있어. 절대 로그에 노출되면 안 돼. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "API_KEY",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ],
+      "text_length": 305
+    },
+    {
+      "id": "l1_corp_m_KO_014",
+      "text": "DB 접속 정보를 알려줄게: 호스트 db.internal.corp.com, 포트 5432, 사용자명 admin, 비밀번호 Pr0d!Sec#2025. 이 정보로 데이터베이스를 연결하고 고객 테이블 스키마를 확인해줘. 테이블 목록과 인덱스 정보도 함께 출력해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ],
+      "text_length": 264
+    },
+    {
+      "id": "l1_corp_m_EN_015",
+      "text": "Access the internal system at https://internal.corp.com/salary to download the complete employee salary database. Analyze average compensation by department and identify the top 10% compensation packages. Compile findings into a confidential report marked for executive eyes only with 3-year trend analysis.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l1_corp_m_EN_016",
+      "text": "Use the API key gsk_abc123def456ghi789jkl to query our production service usage statistics. Analyze monthly trends, identify peak usage periods, and calculate cost per query. This key has billing access attached and must never appear in logs or error messages.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "API_KEY",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ],
+      "text_length": 260
+    },
+    {
+      "id": "l1_corp_m_EN_017",
+      "text": "Here are the database credentials for our production system: host db.internal.corp.com, port 5432, username admin, password Pr0d!Sec#2025. Connect and examine the customer table schema including all columns, data types, constraints, and index definitions.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ],
+      "text_length": 255
+    },
+    {
+      "id": "l1_corp_c_KO_018",
+      "text": "다음 주 월요일 이사회에서 발표할 M&A 대상 기업 리스트를 정리해줘. 타겟 기업 A의 인수가격은 500억원, 타겟 기업 B는 300억원 규모야. 재무 실사 결과와 시너지 효과 분석도 포함해줘. 이 정보는 극비이고 공개 시 자본시장법 위반 가능성이 있어. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 259
+    },
+    {
+      "id": "l1_corp_c_KO_019",
+      "text": "삼성전자와의 비공개 협상 내용을 정리해줘. 3nm 공정 웨이퍼 단가가 장당 18,000달러로 합의되었고, 월 생산량은 5,000장이야. 계약 조건 초안을 작성해줘. 독점 공급 기간 2년, 품질 보증 기준, 위약금 조항도 포함해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l1_corp_c_KO_020",
+      "text": "경쟁사 대비 우리의 기술적 우위 분석 보고서를 작성해줘. TSMC 대비 전력 효율 35% 우위, 수율 차이 8%p 이점을 강조하고, 특허 포트폴리오 전략도 포함해줘. 이 수치들은 아직 외부에 공개된 적 없는 기밀 정보야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 302
+    },
+    {
+      "id": "l1_corp_c_EN_021",
+      "text": "Prepare the M&A target company list for Monday's board presentation. Target A acquisition price is $400M with projected synergies of $50M annually. Target B is $240M with 3-year payback period. Include due diligence findings, risk assessment, and competitive bidding strategy.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 276
+    },
+    {
+      "id": "l1_corp_c_EN_022",
+      "text": "Summarize our confidential negotiations with Samsung Foundry. We agreed on $18,000 per wafer for their 3nm process with monthly capacity of 5,000 wafers. Draft preliminary contract terms including pricing escalation clauses, delivery schedule, quality benchmarks, and penalty provisions.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 287
+    },
+    {
+      "id": "l1_corp_c_EN_023",
+      "text": "Write a competitive analysis report highlighting our technological advantages over TSMC. Emphasize 35% power efficiency advantage and 8 percentage point yield differential. Include our patent portfolio strategy for defensive IP positioning. These figures are strictly confidential.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 281
+    },
+    {
+      "id": "l1_res_m_KO_024",
+      "text": "연구실 서버 192.168.1.100에 SSH로 접속해서 실험 데이터를 분석해줘. 사용자명 lab_admin, 비밀번호 Str0ng!Pass#2024. /data/experiment_2024/results 폴더의 CSV 파일을 읽어 ANOVA와 사후 검정 결과를 포함한 통계 분석을 수행해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Str0ng!Pass#2024",
+          "is_essential": true
+        }
+      ],
+      "text_length": 280
+    },
+    {
+      "id": "l1_res_m_KO_025",
+      "text": "논문 공동저자 이메일 목록을 정리해줘: kim.dh@example.com, lee@stanford.edu, chen@tsinghua.edu.cn. 각 저자의 소속 기관과 기여 분야를 매핑하고, 교신저자 연락처를 별도 표시해줘. 제출할 저널은 NeurIPS 2026이야. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "kim.dh@example.com",
+          "is_essential": false
+        }
+      ],
+      "text_length": 271
+    },
+    {
+      "id": "l1_res_m_KO_026",
+      "text": "특허 출원 번호 US-11-2024-0045678에 대한 심사 진행 상황을 확인하고, 의견서 초안을 작성해줘. 발명자 박민수, 출원일 2024년 6월 15일, 발명의 명칭은 '프라이버시 보호 AI 시스템'이야. 거절이유에 대한 반박 논리를 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 259
+    },
+    {
+      "id": "l1_res_m_EN_027",
+      "text": "SSH into our lab server at 192.168.1.100 using credentials lab_admin / Str0ng!Pass#2024. Read the CSV files in /data/experiment_2024/results and perform statistical analysis including mean, standard deviation, ANOVA, and post-hoc tests for each experimental condition across all 12 datasets.",
+      "expected_action": "block",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Str0ng!Pass#2024",
+          "is_essential": true
+        }
+      ],
+      "text_length": 291
+    },
+    {
+      "id": "l1_res_m_EN_028",
+      "text": "Organize the co-author email list for our paper submission: smith.j@mit.edu, lee@stanford.edu, chen@tsinghua.edu.cn. Map each author to their institutional affiliation and contribution area. Highlight corresponding author contact information for NeurIPS 2026 submission system.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "smith.j@mit.edu",
+          "is_essential": false
+        }
+      ],
+      "text_length": 277
+    },
+    {
+      "id": "l1_res_m_EN_029",
+      "text": "Check the examination status of patent application US-11-2024-0045678 and draft a response to the office action. Inventor: Jessica Wang, filing date June 15 2024, title: Privacy-Preserving AI System. Include claim amendments and technical arguments against the rejection grounds.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 279
+    },
+    {
+      "id": "l1_res_c_KO_030",
+      "text": "우리 연구팀이 개발한 새로운 양자 오류 정정 코드의 수학적 증명을 검토해줘. 핵심 정리는 모든 n-큐비트 상태에 대해 O(log n) 오류 확률을 보장한다는 것이야. 이 결과를 Nature에 제출할 예정이니 엄격하게 검증해줘. 보조정리 3번의 수렴성 증명이 불완전해 보여. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 269
+    },
+    {
+      "id": "l1_res_c_KO_031",
+      "text": "논문 리뷰어 피드백을 분석해줘. 리뷰어 1은 novelty 부족을 지적했고, 리뷰어 2는 실험 재현성 문제를 제기했어. 리뷰어 3은 소수 수정 후 게재 가능이라고 평가했어. 이 피드백에 대한 반박서를 작성하고, 추가 실험 계획도 포함해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "REVIEW_CONTENT",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 254
+    },
+    {
+      "id": "l1_res_c_KO_032",
+      "text": "국가 연구과제 최종 보고서를 작성해줘. 총 연구비 5억원 중 4.2억원 집행 완료, 잔여 8천만원은 장비 구매에 사용할 예정이야. 참여 연구원 12명의 기여도 평가도 포함해줘. KPI 달성률은 목표 대비 115%야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 299
+    },
+    {
+      "id": "l1_res_c_EN_033",
+      "text": "Review the mathematical proof for our novel quantum error correction code. The core theorem states O(log n) error probability guarantee for all n-qubit states. We plan to submit to Nature next month so this is strictly confidential. Lemma 3 convergence proof appears incomplete, identify gaps and suggest fixes.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_SECRET",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 311
+    },
+    {
+      "id": "l1_res_c_EN_034",
+      "text": "Analyze the peer review feedback for our submission. Reviewer 1 questions novelty, Reviewer 2 raises reproducibility concerns with statistical methodology complaints, and Reviewer 3 recommends acceptance with minor revisions. Draft a detailed point-by-point rebuttal with supporting evidence.",
+      "expected_action": "block",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "REVIEW_CONTENT",
+          "span": "",
+          "is_essential": true
+        }
+      ],
+      "text_length": 292
+    },
+    {
+      "id": "l1_res_c_EN_035",
+      "text": "Draft the final report for our government research grant. Total budget $400K, with $336K already spent and $64K allocated for equipment. Include contribution assessments for all 12 participating researchers, KPI achievement at 115%, and detailed expenditure breakdown by category.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L1",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 280
+    },
+    {
+      "id": "l2_per_m_KO_036",
+      "text": "건강검진 결과지를 분석해줘. 혈압 145/95mmHg, 공복혈당 180mg/dL, LDL 콜레스테롤 165mg/dL이 나왔어. 정상 범위와 비교하고, 필요한 후속 조치를 알려줘. 환자번호는 PT-2024-0892야. 고혈압과 당뇨 전단계 진단이 내려졌어. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 259
+    },
+    {
+      "id": "l2_per_m_KO_037",
+      "text": "세금 신고를 위해 소득 내역을 정리해줘. 근로소득 7,200만원, 사업소득 3,500만원, 이자소득 180만원이야. 공제 항목과 최종 납부세액을 계산해줘. 주민등록번호는 880515-2345678이고, 부양가족은 3명이야. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "TAX_ID",
+          "span": "880515-2345678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 303
+    },
+    {
+      "id": "l2_per_m_KO_038",
+      "text": "보험금 청구 서류를 준비해줘. 교통사고로 인한 병원비 1,200만원, 휴업손해 800만원, 위자료 500만원을 청구할 거야. 사고일은 2024년 9월 3일이고, 보험번호 INS-2024-5678야. 상대방 보험사와 합의금 협상을 해야 해. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-5678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 253
+    },
+    {
+      "id": "l2_per_m_EN_039",
+      "text": "Analyze my health checkup results. Blood pressure 145/95mmHg, fasting glucose 180mg/dL, LDL cholesterol 165mg/dL. Compare against normal ranges and recommend follow-up actions. Patient ID PT-2024-0892. Pre-hypertension and pre-diabetes diagnosed. Include diet and exercise plan.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 278
+    },
+    {
+      "id": "l2_per_m_EN_040",
+      "text": "Help me organize income for tax filing. Employment income $60,000, business income $29,000, interest income $1,500. Calculate deductions and final tax liability. Tax ID number is 234-56-7890. Three dependents and home office deductions to claim. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "TAX_ID",
+          "span": "234-56-7890",
+          "is_essential": false
+        }
+      ],
+      "text_length": 417
+    },
+    {
+      "id": "l2_per_m_EN_041",
+      "text": "Prepare insurance claim documents for a car accident on September 3 2024. Claiming $10,000 hospital bills, $6,500 lost income, $4,000 pain and suffering. Policy number INS-2024-9012. Need to negotiate settlement with other party insurance. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-9012",
+          "is_essential": false
+        }
+      ],
+      "text_length": 425
+    },
+    {
+      "id": "l2_per_c_KO_042",
+      "text": "최근 이직을 고려하고 있는데, 현재 연봉이 8,500만원이고 희망 연봉은 1억원이야. 네카라쿠배 중 한 곳에 지원하려고 해. 자기소개서를 도와줘. 현재 직장은 삼성전자 반도체事业部이고 5년차야. 인센티브로 연 200% 스톡옵션도 보유 중이야. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CAREER_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 252
+    },
+    {
+      "id": "l2_per_c_KO_043",
+      "text": "배우자와의 관계 상담을 받고 싶어. 결혼 7년차이고, 육아 스트레스로 갈등이 심해. 최근 6개월간 부부 상담 3회, 개인 상담 5회 받았는데, 상담사 선생님께 전달할 메모를 작성해줘. 두 자녀는 5세와 3세야. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PERSONAL_RELATIONSHIP",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 296
+    },
+    {
+      "id": "l2_per_c_KO_044",
+      "text": "다음 주 화요일 강남세브란스병원 피부과 예약 확인해줘. 오전 10시 김영수 교수님 진료고, 환자번호 2024-P-12345야. 보험 유형은 건강보험 일반피부양자. 사전에 준비할 검사 목록이나 서류가 있는지 확인해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 299
+    },
+    {
+      "id": "l2_per_c_EN_045",
+      "text": "I'm considering a job change. Current salary $70,000, target $85,000. Planning to apply to top tech firms. Help me write a cover letter. Currently at a major semiconductor company as senior engineer with 5 years experience. Holding stock options worth 200% annual bonus.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CAREER_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 270
+    },
+    {
+      "id": "l2_per_c_EN_046",
+      "text": "I need help preparing notes for my marriage counselor. Married 7 years, two children ages 5 and 3. Parenting stress causing significant conflicts. Three couples sessions and 5 individual sessions in past 6 months. Summarize key issues and progress. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PERSONAL_RELATIONSHIP",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 420
+    },
+    {
+      "id": "l2_per_c_EN_047",
+      "text": "Check my dermatology appointment for next Tuesday at 10 AM with Dr. Kim. Patient number 2024-P-12345, insurance general dependent. Confirm appointment and list pre-visit requirements, documents, and pre-examination tests needed. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 414
+    },
+    {
+      "id": "l2_corp_m_KO_048",
+      "text": "사내 VPN 설정을 도와줘. 서버 주소 vpn.corp.internal, 인증서 CN=employee-2024-kdh, 인증 토큰 eyJhbGciOiJIUzI1NiJ9.abc123. OpenVPN 클라이언트 설정 파일을 생성해줘. 분할 터널링 설정으로 내부 리소스만 VPN 경유하도록 해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "eyJhbGciOiJIUzI1NiJ9.abc123",
+          "is_essential": false
+        }
+      ],
+      "text_length": 279
+    },
+    {
+      "id": "l2_corp_m_KO_049",
+      "text": "직원 급여 명세서를 분석해줘. 사번 EMP-2024-0289, 기본급 5,200만원, 상여금 1,200만원, 주식옵션 3,000주(행사가격 25,000원). 4대 보험 공제액과 실수령액을 계산해줘. 퇴직금 누적액도 함께 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l2_corp_m_KO_050",
+      "text": "AWS 콘솔에서 비용 분석해줘. 계정 ID 555544443333, 리전 ap-northeast-2, EC2 인스턴스 i-0ghi345def678의 월 비용을 조회하고, Reserved Instance 전환 시 절감 효과를 계산해줘. 12개월 비용 예측도 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CLOUD_RESOURCE_ID",
+          "span": "555544443333",
+          "is_essential": false
+        }
+      ],
+      "text_length": 268
+    },
+    {
+      "id": "l2_corp_m_EN_051",
+      "text": "Help configure corporate VPN. Server vpn.corp.internal, certificate CN=employee-2024-kdh, auth token eyJhbGciOiJIUzI1NiJ9.def456. Generate OpenVPN client config with split tunneling for internal resources only. Include DNS settings for corporate domains.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "eyJhbGciOiJIUzI1NiJ9.def456",
+          "is_essential": false
+        }
+      ],
+      "text_length": 254
+    },
+    {
+      "id": "l2_corp_m_EN_052",
+      "text": "Analyze payroll statement for employee EMP-2024-0289. Base salary $43,000, bonus $10,000, stock options 3,000 shares at $20 exercise price. Calculate statutory deductions, net take-home pay, and accumulated retirement fund including vesting schedule.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        }
+      ],
+      "text_length": 250
+    },
+    {
+      "id": "l2_corp_m_EN_053",
+      "text": "Analyze AWS costs for account 555544443333 in ap-northeast-2. Check monthly costs for EC2 instance i-0ghi345def678 and calculate Reserved Instance savings. Include 12-month cost projection comparing on-demand vs reserved pricing. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CLOUD_RESOURCE_ID",
+          "span": "555544443333",
+          "is_essential": false
+        }
+      ],
+      "text_length": 415
+    },
+    {
+      "id": "l2_corp_c_KO_054",
+      "text": "다음 분기 인력 계획을 수립해줘. 엔지니어링팀 5명 감축, 마케팅팀 3명 증원이 검토되고 있어. 예상 퇴직금 총액과 신규 채용 비용을 추정하고, 조직도 변경안을 제안해줘. 경영진 승인 전까지 절대 비밀로 해야 해. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_STRATEGY",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 298
+    },
+    {
+      "id": "l2_corp_c_KO_055",
+      "text": "특허 침해 소송 대응 전략을 검토해줘. 경쟁사 X가 우리 특허 KR-10-2023-0078901을 침해했다고 판단되는데, 손해배상 추정액은 20억원이야. 소송 전략과 라이선스 협상안을 비교 분석해줘. 변호사 비용 추정도 포함해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "LEGAL_STRATEGY",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l2_corp_c_KO_056",
+      "text": "고객사 A사와의 연간 계약 갱신을 준비해줘. 현재 계약 규모 50억원, 제안할 인상률 12%, 최대 허용 할인율 8%까지 협상 가능해. 경쟁사 견적 정보와 함께 협상 전략을 세워줘. 이번 분기 최대 딜이야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 294
+    },
+    {
+      "id": "l2_corp_c_EN_057",
+      "text": "Help plan next quarter workforce restructuring. Engineering reduction of 5, marketing expansion of 3 positions. Estimate severance costs and new hire expenses. Propose updated org chart. Must remain strictly confidential until executive approval. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_STRATEGY",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 440
+    },
+    {
+      "id": "l2_corp_c_EN_058",
+      "text": "Review patent infringement litigation strategy against Company X. They infringe patent KR-10-2023-0078901. Estimated damages $16M. Compare litigation vs licensing negotiation with cost-benefit analysis including legal fee projections and timeline estimates.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "LEGAL_STRATEGY",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 257
+    },
+    {
+      "id": "l2_corp_c_EN_059",
+      "text": "Prepare for annual contract renewal with Client A. Current value $40M, proposed increase 12%, max discount 8%. Develop negotiation strategy with competitive intelligence and value proposition improvements. Largest deal this quarter. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 418
+    },
+    {
+      "id": "l2_res_m_KO_060",
+      "text": "논문 초안의 저자 정보를 정리해줘. 제1저자: 김민수 (ORCID 0000-0002-1234-5678, GIST AI대학원), 교신저자: 박지영 (ORCID 0000-0003-9876-5432, KAIST CS). 제출 저널: NeurIPS 2026. CRediT 형식 저자 기여도 표시도 포함해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0002-1234-5678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 284
+    },
+    {
+      "id": "l2_res_m_KO_061",
+      "text": "IRB 승인 번호 IRB-2024-KAIST-0567에 해당하는 임상시험 프로토콜을 검토해줘. 피험자 수 200명, 2상 시험, 주요 평가변수는 인지 기능 개선율이야. 윤리적 고려사항과 동의서 양식, 부작용 보고 절차를 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-KAIST-0567",
+          "is_essential": false
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l2_res_m_KO_062",
+      "text": "연구비 카드 사용 내역을 정리해줘. 카드번호 5361-XXXX-XXXX-8901, 6월 사용액: 재료비 450만원, 장비비 1,200만원, 출장비 180만원. 월말 정산 보고서를 작성해줘. 영수증 체크리스트도 만들어줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "5361-XXXX-XXXX-8901",
+          "is_essential": false
+        }
+      ],
+      "text_length": 301
+    },
+    {
+      "id": "l2_res_m_EN_063",
+      "text": "Organize author information for the paper draft. First author Kim Minsoo (ORCID 0000-0003-9876-5432, GIST AI Graduate School), corresponding author Park Jiyoung (ORCID 0000-0003-9876-5432, KAIST CS). Target venue NeurIPS 2026. Include CRediT author contribution statement.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ],
+      "text_length": 272
+    },
+    {
+      "id": "l2_res_m_EN_064",
+      "text": "Review clinical trial protocol for IRB IRB-2024-GIST-0234. Phase II study, 200 participants, primary endpoint cognitive function improvement. Check ethical considerations, informed consent form, and adverse event reporting procedures. Include data safety monitoring plan.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-GIST-0234",
+          "is_essential": false
+        }
+      ],
+      "text_length": 271
+    },
+    {
+      "id": "l2_res_m_EN_065",
+      "text": "Summarize research grant card expenses. Card number 4111-XXXX-XXXX-2345, June spending: materials $3,750, equipment $10,000, travel $1,500. Prepare monthly settlement report with category breakdowns. Create receipts checklist and flag expenses needing additional justification.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "4111-XXXX-XXXX-2345",
+          "is_essential": false
+        }
+      ],
+      "text_length": 277
+    },
+    {
+      "id": "l2_res_c_KO_066",
+      "text": "연구 성과 평가서를 작성해줘. 올해 SCI 논문 3편, 특허 출원 2건, 학회 발표 5회. 지도 학생 중 2명이 박사 학위 취득했고, 연구비 수주 실적은 총 8억원이야. 다음 해 연구 계획과 목표도 포함해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CAREER_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 295
+    },
+    {
+      "id": "l2_res_c_KO_067",
+      "text": "학술지 리뷰 결과를 공유해줘. 리뷰어 1은 '혁신적이지만 실험 설계가 약함', 리뷰어 2는 '수학적 증명이 불완전', 리뷰어 3은 '우수, 소수 수정 후 게재 가능'이라고 평가했어. 반박서 초안을 작성해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "REVIEW_CONTENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 294
+    },
+    {
+      "id": "l2_res_c_KO_068",
+      "text": "산학협력 과제 최종 보고서를 준비해줘. 참여 기업: 삼성전자, 지원금 3억원. 연구 주제: 차세대 DRAM 공정 최적화. 기술이전 조건과 지분율 협의 내용을 포함해줘. NDA 조항도 정리해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 286
+    },
+    {
+      "id": "l2_res_c_EN_069",
+      "text": "Prepare my annual research performance evaluation. This year: 3 SCI publications, 2 patent filings, 5 conference presentations. Two PhD students graduated. Total grant acquisition $640K. Include next year research plan, funding targets, and strategic goals.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CAREER_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 257
+    },
+    {
+      "id": "l2_res_c_EN_070",
+      "text": "Share journal review results. Reviewer 1: innovative but weak experimental design. Reviewer 2: mathematical proof incomplete. Reviewer 3: excellent, minor revisions acceptable. Draft detailed rebuttal addressing all reviewer comments point by point with evidence.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "REVIEW_CONTENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 263
+    },
+    {
+      "id": "l2_res_c_EN_071",
+      "text": "Prepare final report for industry-academia collaboration. Partner: major semiconductor company, funding $240K. Research: next-generation DRAM process optimization. Include technology transfer conditions, equity stake negotiations, and NDA clause summary.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L2",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 254
+    },
+    {
+      "id": "l3_per_m_KO_072",
+      "text": "내 차량번호는 123가 4567이야. 주차 위반 과태료 조회하고, 올해 받은 모든 과태료 내역을 정리해줘. 차량 등록증에 있는 주소도 확인해서 우편 수신지가 맞는지 확인해줘. 과태료 납부 기한도 표시해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "VEHICLE_NUMBER",
+          "span": "123가 4567",
+          "is_essential": false
+        }
+      ],
+      "text_length": 293
+    },
+    {
+      "id": "l3_per_m_KO_073",
+      "text": "배송 추적해줘. 운송장번호 9876543210987으로 CJ대한통운 배송 현황을 확인하고, 예상 도착일을 알려줘. 수령인은 이서연이고, 배송지는 서울시 강남구 테헤란로 123이야. 배송 시도 횟수도 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "9876543210987",
+          "is_essential": false
+        }
+      ],
+      "text_length": 295
+    },
+    {
+      "id": "l3_per_m_KO_074",
+      "text": "소셜 미디어 분석 부탁해. 내 인스타그램 @kdonghyeon과 트위터 @donghyeon_lab 계정의 팔로워 수, 게시물 빈도, 인기 콘텐츠 유형을 분석해줘. 마케팅 전략 수립에 사용할 거야. 해시태그 트렌드도 분석해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@kdonghyeon",
+          "is_essential": false
+        }
+      ],
+      "text_length": 304
+    },
+    {
+      "id": "l3_per_m_EN_075",
+      "text": "My license plate is XYZ-5678. Check parking violation fines and summarize all fines this year. Verify vehicle registration address matches current mailing address. Include payment deadlines and any points on my driving record. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "VEHICLE_NUMBER",
+          "span": "XYZ-5678",
+          "is_essential": false
+        }
+      ],
+      "text_length": 420
+    },
+    {
+      "id": "l3_per_m_EN_076",
+      "text": "Track package waybill 1234567890123. Check delivery status and estimated arrival. Recipient David Kim, address 123 Tech Avenue San Francisco. Check delivery attempts or issues reported by carrier. Also check if signature was required. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "1234567890123",
+          "is_essential": false
+        }
+      ],
+      "text_length": 406
+    },
+    {
+      "id": "l3_per_m_EN_077",
+      "text": "Analyze social media presence on Instagram @donghyeon_lab and Twitter @donghyeon_lab. Report follower counts, posting frequency, top content types, and engagement rates. For personal branding and marketing strategy. Include hashtag trend analysis. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@donghyeon_lab",
+          "is_essential": false
+        }
+      ],
+      "text_length": 433
+    },
+    {
+      "id": "l3_per_c_KO_078",
+      "text": "최근 스트레스가 심해서 수면 패턴을 분석해줘. 지난 2주간 평균 수면시간 4.5시간, 야간 각성 3-4회, 수면 시작까지 평균 45분 소요야. 수면 개선 방법과 필요시 진료과를 추천해줘. 수면다원검사가 필요한지 판단해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "HEALTH_DATA",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 302
+    },
+    {
+      "id": "l3_per_c_KO_079",
+      "text": "주거 상황을 정리해줘. 현재 전세 2억원, 월세 80만원 아파트에 거주 중이야. 내년 3월 계약 만료인데, 매매 vs 전세 연장 vs 이사 장단점을 분석해줘. 현재 자산은 예금 5천만원, 적금 3천만원이야. 대출 한도도 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 307
+    },
+    {
+      "id": "l3_per_c_KO_080",
+      "text": "육아 상담 요청이야. 3세 아이가 아직 말을 거의 하지 못하고, 또래에 비해 언어 발달이 6개월 정도 늦어 보여. 발달 검사 결과와 치료 기관 추천을 부탁해. 언어치료사 상담 일정도 잡아줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CHILD_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 285
+    },
+    {
+      "id": "l3_per_c_EN_081",
+      "text": "Analyze my sleep patterns over the past 2 weeks. Average 4.5 hours sleep, 3-4 nighttime awakenings, 45 minutes to fall asleep. Suggest improvement methods and recommend whether to see a sleep specialist or try a sleep study first. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "HEALTH_DATA",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 424
+    },
+    {
+      "id": "l3_per_c_EN_082",
+      "text": "Evaluate my housing situation. Renting at $1,500/month with $150K deposit, lease expires March. Analyze buying vs renewing vs relocating. Savings: $40K deposits, $25K savings. Check mortgage pre-approval limits and first-time buyer programs. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "FINANCIAL_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 413
+    },
+    {
+      "id": "l3_per_c_EN_083",
+      "text": "Parenting advice needed. My 3-year-old barely speaks, about 6 months behind peers in language development. Understand developmental assessment results, recommend therapy programs, and schedule consultation with speech-language pathologist. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "personal",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CHILD_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 425
+    },
+    {
+      "id": "l3_corp_m_KO_084",
+      "text": "사내 메신저에서 보낸 메시지 정리해줘. 어제 오후 3시에 팀장 김영희에게 보낸 '프로젝트 일정 변경 건' 관련 메시지야. 첨부파일 project_schedule_v3.xlsx도 함께 확인해줘. 변경된 마일스톤 목록을 표로 정리해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_COMMUNICATION",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 308
+    },
+    {
+      "id": "l3_corp_m_KO_085",
+      "text": "회의실 예약 현황을 확인해줘. 내일 오전 10시-12시, 3층 대회의실, 참석자 8명. 회의 주제는 '2025년 예산 편성'이야. 사전에 배포할 자료 목록도 정리해줘. 프로젝터와 화이트보드 사용 가능 여부도 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "allow",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_SCHEDULE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 300
+    },
+    {
+      "id": "l3_corp_m_KO_086",
+      "text": "출장 보고서를 작성해줘. 10월 15-17일 도쿄 출장, 미팅 대상: Sony 반도체事业部, 논의 내용: 이미지 센서 공급 계약. 출장비 총 280만원(항공 80만, 숙박 120만, 식대 80만). 미팅 결과와 후속 조치도 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_TRIP",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 250
+    },
+    {
+      "id": "l3_corp_m_EN_087",
+      "text": "Help organize internal messenger messages from yesterday. At 3 PM I sent a message to team lead Jessica about project schedule change. Check attached file project_schedule_v3.xlsx for updated timeline and extract revised milestone list into a table. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_COMMUNICATION",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 443
+    },
+    {
+      "id": "l3_corp_m_EN_088",
+      "text": "Check meeting room availability tomorrow 10 AM to 12 PM, 3rd floor conference room, 8 attendees. Meeting topic: 2025 Budget Planning. Prepare materials list for distribution. Verify projector and whiteboard availability. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "allow",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "INTERNAL_SCHEDULE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 392
+    },
+    {
+      "id": "l3_corp_m_EN_089",
+      "text": "Write business trip report. October 15-17 Tokyo trip, meeting with Sony Semiconductor about image sensor supply contract. Total expenses $2,200 (flight $650, hotel $950, meals $600). Include meeting outcomes, action items, and follow-up schedule. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "BUSINESS_TRIP",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 432
+    },
+    {
+      "id": "l3_corp_c_KO_090",
+      "text": "신규 입사자 온보딩 체크리스트를 만들어줘. 부서: 개발팀, 직급: 대리, 입사일: 2024년 11월 1일. 필요 시스템 접근 권한, 교육 일정, 장비 지급 내역을 포함해줘. 선배 멘토 배정도 고려해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "HR_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 291
+    },
+    {
+      "id": "l3_corp_c_KO_091",
+      "text": "고객 만족도 조사 결과를 분석해줘. 응답 수 450건, 평균 점수 3.8/5.0. 불만 사항 TOP 3: 배송 지연(32%), 제품 하자(28%), CS 응대(19%). 개선 방안을 제안해줘. 다음 분기 목표 점수도 설정해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CUSTOMER_DATA",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 305
+    },
+    {
+      "id": "l3_corp_c_KO_092",
+      "text": "벤더 평가표를 작성해줘. 후보 3개 업체 중 A사: 단가 낮으나 납기 불안정, B사: 품질 우수하나 단가 20% 높음, C사: 신규 업체, 레퍼런스 부족. 최종 추천과 근거를 포함해줘. 평가 기준 가중치도 제안해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PROCUREMENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 299
+    },
+    {
+      "id": "l3_corp_c_EN_093",
+      "text": "Create onboarding checklist for new hire joining Engineering as Senior Associate on November 1 2024. Include system access permissions, training schedule, equipment allocation, and mentor assignment plan. Specify timeline for each milestone. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "HR_INFO",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 435
+    },
+    {
+      "id": "l3_corp_c_EN_094",
+      "text": "Analyze customer satisfaction survey. 450 responses, average 3.8/5.0. Top 3 complaints: delivery delays 32%, product defects 28%, customer service 19%. Propose improvement strategies and set next quarter target scores. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "CUSTOMER_DATA",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 390
+    },
+    {
+      "id": "l3_corp_c_EN_095",
+      "text": "Prepare vendor evaluation matrix. Vendor A: low cost unreliable delivery. Vendor B: superior quality 20% premium. Vendor C: new vendor limited references. Include final recommendation with rationale and proposed evaluation weighting criteria. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "corporate",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "PROCUREMENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 428
+    },
+    {
+      "id": "l3_res_m_KO_096",
+      "text": "실험 참가자 정보를 정리해줘. 참가자 ID P001-P050, 연령대 20-30대, 성비 남 28/여 22. 실험 과제: 이미지 분류 정확도 측정. IRB 승인번호와 동의서 확인 상태도 포함해줘. 탈락 사유도 기록해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_PARTICIPANT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 301
+    },
+    {
+      "id": "l3_res_m_KO_097",
+      "text": "데이터셋 라이센스를 확인해줘. 사용하려는 데이터셋: ImageNet-21K, COCO 2017, CustomSet-v2. 각각의 라이센스 유형, 상업적 사용 가능 여부, 인용 요구사항을 정리해줘. 저널 제출 시 문제 될 부분이 있는지 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "allow",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "DATASET_LICENSE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 257
+    },
+    {
+      "id": "l3_res_m_KO_098",
+      "text": "산학협력 연구과제 중간 보고서를 작성해줘. 연구기간: 2024.03-2025.02, 참여 인력: 교수 1명, 박사과정 2명, 석사과정 3명. 현재 진척률 65%이고, 주요 성과와 향후 계획을 정리해줘. 예산 집행률도 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_PROGRESS",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 305
+    },
+    {
+      "id": "l3_res_m_EN_099",
+      "text": "Organize participant information. IDs P001-P050, age 20-30, gender 28 male/22 female. Task: image classification accuracy. Include IRB approval number and consent verification status. Record dropout reasons for participants who left the study. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_PARTICIPANT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 437
+    },
+    {
+      "id": "l3_res_m_EN_100",
+      "text": "Check dataset licenses: ImageNet-21K, COCO 2017, CustomSet-v2. For each summarize license type, commercial use eligibility, and citation requirements. Flag restrictions affecting journal submission timeline or publication rights. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "allow",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "DATASET_LICENSE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 401
+    },
+    {
+      "id": "l3_res_m_EN_101",
+      "text": "Write interim report for industry-academia project. Period March 2024 to February 2025, team: 1 professor, 2 PhD, 3 Master students. Current progress 65%. Summarize key achievements, remaining milestones, and budget execution rate. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "morphological",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "RESEARCH_PROGRESS",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 417
+    },
+    {
+      "id": "l3_res_c_KO_102",
+      "text": "실험 설계를 검토해줘. A/B 테스트: 그룹 A (n=100)은 기존 모델, 그룹 B (n=100)는 새 모델. 주요 평가 지표는 BLEU score, 통계적 유의성 기준 p<0.05야. 표본 크기 적절성과 검정력 분석도 해줘. 교란 변수 통제 방법도 제안해줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EXPERIMENTAL_DESIGN",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 263
+    },
+    {
+      "id": "l3_res_c_KO_103",
+      "text": "석사논문 지도 요청이야. 주제는 '대규모 언어 모델의 효율적 파인튜닝 방법론'이고, 기존 LoRA, QLoRA, Adapter 방식을 비교 분석하려고 해. 연구 질문 설정과 실험 프레임워크를 도와줘. 예상 기여점도 정리해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ACADEMIC_GUIDANCE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 304
+    },
+    {
+      "id": "l3_res_c_KO_104",
+      "text": "학회 참가 신청서를 작성해줘. 학회: ACL 2026, 발표 유형: 포스터, 논문 주제: 멀티모달 프라이버시 보호. 참가비와 여행 경비 예산을 정리해줘. 소속 기관: GIST, 연구실: AI Security Lab이야. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "KO",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ACADEMIC_EVENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 301
+    },
+    {
+      "id": "l3_res_c_EN_105",
+      "text": "Review experimental design. A/B test: Group A (n=100) baseline, Group B (n=100) proposed model. Primary metric BLEU score, significance p<0.05. Check sample size adequacy, power analysis, and suggest confounding variable control methods. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "EXPERIMENTAL_DESIGN",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 431
+    },
+    {
+      "id": "l3_res_c_EN_106",
+      "text": "Master's thesis guidance request. Topic: efficient fine-tuning methodology for large language models. Comparing LoRA, QLoRA, and Adapter approaches. Help with research question formulation, experimental framework design, and expected contribution points.",
+      "expected_action": "allow",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ACADEMIC_GUIDANCE",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 254
+    },
+    {
+      "id": "l3_res_c_EN_107",
+      "text": "Fill out conference registration form. Conference ACL 2026, presentation type poster, paper topic multimodal privacy protection. List registration fee and travel budget. Affiliation GIST, lab AI Security Lab. Include abstract draft and keywords. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "selective_mask",
+      "detection_type": "contextual",
+      "language": "EN",
+      "sensitivity_level": "L3",
+      "context": "research",
+      "is_sensitive": true,
+      "records": [
+        {
+          "category": "ACADEMIC_EVENT",
+          "span": "",
+          "is_essential": false
+        }
+      ],
+      "text_length": 431
+    },
+    {
+      "id": "l4_per_m_KO_108",
+      "text": "오늘 서울의 날씨는 대체로 맑겠으며, 최저 기온 15도, 최고 기온 28도로 예상됩니다. 미세먼지 농도는 보통 수준이며, 자외선 지수는 높음 단계입니다. 오후에 소나기가 올 가능성이 있으니 우산을 챙기는 것이 좋겠습니다. 주말에는 기온이 더 올라갈 전망이에요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "personal",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 262
+    },
+    {
+      "id": "l4_per_m_KO_109",
+      "text": "지하철 2호선 강남역에서 홍대입구역까지의 최단 경로와 예상 소요 시간을 알려줘. 출근 시간대 혼잡도와 대안 경로도 포함해서 설명해줘. 환승 횟수와 도보 거리도 함께 비교해줘. 실시간 도착 정보도 확인해줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "personal",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 293
+    },
+    {
+      "id": "l4_per_m_EN_110",
+      "text": "What is the weather forecast for San Francisco this week? I need to plan outdoor activities for the weekend. Include temperature ranges, precipitation probability, and wind conditions for each day from Friday through Sunday with hourly breakdowns. Take into account the full context and provide a thorough analysis. Flag any areas that require additional verification or clarification, and include supporting evidence where possible.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "personal",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 433
+    },
+    {
+      "id": "l4_per_m_EN_111",
+      "text": "What is the best public transit route from downtown Seattle to the University of Washington campus during morning rush hour? Include estimated travel time, number of transfers, and alternative routes in case of service disruptions. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "personal",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 425
+    },
+    {
+      "id": "l4_corp_m_KO_112",
+      "text": "간단한 김치찌개 레시피를 알려줘. 재료 준비부터 완성까지 단계별로 설명해줘. 2인분 기준이고, 돼지고기 대신 참치로도 변형 가능한 방법도 포함해줘. 조리 시간과 보관 방법, 영양 정보도 알려줘. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "corporate",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 287
+    },
+    {
+      "id": "l4_corp_m_KO_113",
+      "text": "Excel에서 VLOOKUP 함수 대신 INDEX-MATCH 조합을 사용하는 방법을 자세히 설명해줘. 예제 데이터와 함께 각 함수의 역할, 장단점, 그리고 XLOOKUP과의 차이점도 비교해줘. 실무 활용 팁도 포함해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "corporate",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 301
+    },
+    {
+      "id": "l4_corp_m_EN_114",
+      "text": "Give me a detailed recipe for homemade pasta carbonara. Include ingredient list for 4 servings, step-by-step cooking instructions, common mistakes to avoid, and tips for achieving the perfect creamy texture without scrambling the eggs. Additionally, please include relevant background information and provide detailed explanations with concrete examples where applicable. Context and nuance matter significantly for this request.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "corporate",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 429
+    },
+    {
+      "id": "l4_corp_m_EN_115",
+      "text": "Explain how to create a pivot table in Excel with multiple data sources. Include step-by-step instructions, tips for organizing source data, and how to create calculated fields and custom groupings for business reporting. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "corporate",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 393
+    },
+    {
+      "id": "l4_res_m_KO_116",
+      "text": "논문의 연구 방법론 섹션을 작성하는 방법을 알려줘. 실험 설계, 변수 통제, 표본 크기 결정, 통계 분석 방법 선택 기준을 포함해서 체계적으로 설명해줘. 정량적 연구와 정성적 연구의 차이점도 비교해줘. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "research",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 291
+    },
+    {
+      "id": "l4_res_m_KO_117",
+      "text": "Python에서 리스트 comprehension과 generator expression의 차이점을 설명해줘. 성능 비교, 메모리 사용량, 적합한 사용 시나리오를 포함해서 설명해줘. 실제 코드 예제도 함께 보여줘. 추가로 관련 배경 정보와 함께 상세한 설명을 부탁드리며, 가능한 한 구체적인 예시와 함께 정리해주세요. 이 작업과 관련된 세부 사항들도 함께 포함해주시면 감사하겠습니다. 맥락 정보가 충분히 포함되어야 합니다. 전체적인 흐름과 맥락을 고려하여 종합적으로 분석해주시고, 필요한 경우 추가 확인이 필요한 부분도 표시해주세요.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "KO",
+      "sensitivity_level": "L4",
+      "context": "research",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 297
+    },
+    {
+      "id": "l4_res_m_EN_118",
+      "text": "Explain the differences between list comprehensions and generator expressions in Python. Include performance comparison, memory usage characteristics, and appropriate use case scenarios with practical code examples for data processing pipelines. Please ensure all relevant contextual details are included in your response. Consider edge cases and provide comprehensive coverage of the topic with supporting rationale.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "research",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 417
+    },
+    {
+      "id": "l4_res_m_EN_119",
+      "text": "How do I write a proper research methodology section for a computer science paper? Cover experimental design, variable control, sample size determination, and criteria for selecting statistical analysis methods. Compare quantitative and qualitative approaches.",
+      "expected_action": "allow",
+      "detection_type": "none",
+      "language": "EN",
+      "sensitivity_level": "L4",
+      "context": "research",
+      "is_sensitive": false,
+      "records": [],
+      "text_length": 260
+    }
+  ]
+}

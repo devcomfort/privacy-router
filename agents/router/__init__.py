@@ -35,16 +35,52 @@ Examples
 """
 
 from .cache import SQLiteKVCache, get_cache
-from .middle_man import MiddleManAgent, UserDecision, UserAction, RoutingStrategy
-from .middle_man import process_with_decision, summarize_extraction, format_extraction_for_user
+from .execution import (
+    PrivacyRouteFailure,
+    execute_fixed_route,
+    execute_fixed_stream,
+    log_privacy_failure,
+    privacy_failure,
+    public_error_fields,
+)
+from .middle_man import (
+    MiddleManAgent,
+    RecordOverride,
+    RoutingStrategy,
+    UserAction,
+    UserDecision,
+    format_extraction_for_user,
+    process_with_decision,
+    summarize_extraction,
+)
+from .placeholder_repair import PlaceholderRepairer, placeholder_repair_enabled
 from .router import PrivacyRouter, Router, process
-from .schemas import RouteResult
+from .schemas import (
+    ChatMessage,
+    ChatRequest,
+    PipelineResult,
+    PlaceholderRepairDecision,
+    RouteResult,
+)
 
 __all__ = [
+    "ChatMessage",
+    "ChatRequest",
     "PrivacyRouter",
     "Router",
     "RouteResult",
+    "PrivacyRouteFailure",
+    "execute_fixed_route",
+    "execute_fixed_stream",
+    "log_privacy_failure",
+    "privacy_failure",
+    "public_error_fields",
+    "PlaceholderRepairDecision",
+    "PlaceholderRepairer",
+    "placeholder_repair_enabled",
+    "PipelineResult",
     "MiddleManAgent",
+    "RecordOverride",
     "UserDecision",
     "UserAction",
     "RoutingStrategy",

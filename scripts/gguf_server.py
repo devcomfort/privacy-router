@@ -9,8 +9,8 @@ Usage:
 import argparse
 import json
 import time
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from threading import Thread
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -25,6 +25,7 @@ def parse_args():
 class LlamaServer:
     def __init__(self, model_path, n_gpu_layers, n_ctx):
         from llama_cpp import Llama
+
         print(f"Loading model: {model_path}")
         print(f"  GPU layers: {n_gpu_layers}")
         print(f"  Context: {n_ctx}")
@@ -58,10 +59,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            data = {
-                "object": "list",
-                "data": [{"id": server_instance.model_name, "object": "model"}]
-            }
+            data = {"object": "list", "data": [{"id": server_instance.model_name, "object": "model"}]}
             self.wfile.write(json.dumps(data).encode())
         elif self.path == "/health":
             self.send_response(200)
@@ -75,15 +73,13 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/v1/chat/completions":
             content_length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(content_length))
-            
+
             messages = body.get("messages", [])
             max_tokens = body.get("max_tokens", 512)
             temperature = body.get("temperature", 0.0)
-            
+
             try:
-                response, latency = server_instance.chat_completions(
-                    messages, max_tokens, temperature
-                )
+                response, latency = server_instance.chat_completions(messages, max_tokens, temperature)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -105,13 +101,13 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     global server_instance
     args = parse_args()
-    
+
     server_instance = LlamaServer(args.model, args.n_gpu_layers, args.n_ctx)
-    
+
     httpd = HTTPServer((args.host, args.port), Handler)
     print(f"GGUF server listening on {args.host}:{args.port}")
     print(f"Model: {server_instance.model_name}")
-    
+
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

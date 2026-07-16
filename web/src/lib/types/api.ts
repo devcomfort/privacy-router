@@ -32,6 +32,16 @@ export interface BulkActionResult {
 	errors: string[];
 }
 
+export interface ProviderOut {
+	id: string;
+	name: string;
+	api_base: string | null;
+	has_key: boolean;
+	key_fingerprint: string | null;
+	source: 'db' | 'env' | 'none';
+	api_key_env: string | null;
+}
+
 export interface ModelOut {
 	id: string;
 	model_id: string;
@@ -43,18 +53,33 @@ export interface ModelOut {
 	created_at: string;
 }
 
+export interface SettingsModel {
+	model_id: string;
+	display_name: string | null;
+	provider_id?: string;
+	location: 'local' | 'external';
+	tier: string;
+	cost_per_1m_tokens: number;
+	api_base?: string | null;
+}
+
+
 export interface AgentConfig {
 	model: string;
+	api_base?: string | null;
 	temperature?: number;
 	max_tokens?: number;
+	config?: {
+		temperature?: number;
+		max_tokens?: number;
+	};
 }
 
 export interface RouterSettings {
-	extractor: AgentConfig;
-	judge?: AgentConfig;
-	router?: AgentConfig;
-	generator?: AgentConfig;
-	models?: ModelOut[];
+	decision: AgentConfig;
+	local: AgentConfig;
+	external: AgentConfig;
+	models?: SettingsModel[];
 }
 
 export interface ChatMessage {

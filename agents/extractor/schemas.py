@@ -11,8 +11,9 @@ relevant, ``examples`` to fully document the contract.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from collections.abc import Iterable
 
+from pydantic import BaseModel, Field, model_validator
 
 # ── Public schemas ───────────────────────────────────────────────────────────
 
@@ -67,15 +68,15 @@ class ExtractionRecord(BaseModel):
 
     Examples
     --------
-    >>> r = ExtractionRecord(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21)
-    >>> r.make_placeholder(1)
-    '[RESIDENT_REGISTRATION_NUMBER#1]'
+    >>> r = ExtractionRecord(category="PERSONAL_IDENTIFIER_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21)
+    >>> r.category
+    'PERSONAL_IDENTIFIER_NUMBER'
     """
 
     category: str = Field(
         ...,
-        description="SCREAMING_SNAKE_CASE tag (e.g., RESIDENT_REGISTRATION_NUMBER).",
-        examples=["RESIDENT_REGISTRATION_NUMBER", "NOVEL_RESEARCH_CONCEPT"],
+        description="Reusable, value-independent SCREAMING_SNAKE_CASE semantic type.",
+        examples=["PERSONAL_IDENTIFIER_NUMBER", "UNPUBLISHED_RESEARCH_CONCEPT"],
     )
     span: str = Field(
         ...,
@@ -117,27 +118,6 @@ class ExtractionRecord(BaseModel):
         examples=[False, True],
     )
 
-    def make_placeholder(self, index: int) -> str:
-        """Generate a stable placeholder for masking.
-
-        Parameters
-        ----------
-        index : int
-            Instance counter for this category (1-indexed).
-
-        Returns
-        -------
-        str
-            Placeholder string such as ``[RESIDENT_REGISTRATION_NUMBER#1]``.
-
-        Examples
-        --------
-        >>> record = ExtractionRecord(category="RESIDENT_REGISTRATION_NUMBER", ...)
-        >>> record.make_placeholder(1)
-        '[RESIDENT_REGISTRATION_NUMBER#1]'
-        """
-        return f"[{self.category}#{index}]"
-
 
 class ExtractionResult(BaseModel):
     """Full result of the extraction phase.
@@ -165,8 +145,37 @@ class ExtractionResult(BaseModel):
     records: list[ExtractionRecord] = Field(
         default_factory=list,
         description="Validated extraction records.",
-        examples=[[ExtractionRecord(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21)]],
+        examples=[
+            [
+                ExtractionRecord(
+                    category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98, start=7, end=21
+                )
+            ]
+        ],
     )
+
+    @model_validator(mode="after")
+    def records_imply_sensitivity(self) -> ExtractionResult:
+        """Treat validated sensitive spans as authoritative evidence."""
+        if self.records and not self.sensitivity.is_sensitive:
+            self.sensitivity = self.sensitivity.model_copy(update={"is_sensitive": True})
+        return self
+
+
+def redact_extraction_records(
+    records: Iterable[ExtractionRecord],
+) -> list[dict[str, str | float | bool | int]]:
+    """Build public metadata without exposing raw spans or model reasoning."""
+    return [
+        {
+            "index": index,
+            "category": record.category,
+            "span": "<redacted>",
+            "confidence": record.confidence,
+            "is_essential": record.is_essential,
+        }
+        for index, record in enumerate(records)
+    ]
 
 
 # ── Internal schemas (SLM output contracts) ──────────────────────────────────
@@ -240,7 +249,6 @@ class _ExtractedOutput(BaseModel):
         description="Raw extracted items from the SLM.",
         examples=[[_ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98)]],
     )
-
 
 
 class _CriticItem(BaseModel):

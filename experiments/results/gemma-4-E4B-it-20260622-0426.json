@@ -1,0 +1,1304 @@
+{
+  "$schema": "privacy-router-experiment-v1",
+  "version": "1.0.0",
+  "generated_at": "2026-06-22T06:10:46.442228+00:00",
+  "experiment": {
+    "model": "gemma-4-E4B-it",
+    "model_info": {
+      "model_path": "google/gemma-4-E4B-it",
+      "params": "4B",
+      "size_gb": 15
+    },
+    "total_trials": 50,
+    "test_cases": 17,
+    "n_per_config": 10,
+    "detection_types": {
+      "morphological": 4,
+      "contextual": 9,
+      "mixed": 1,
+      "none": 3
+    }
+  },
+  "best": {
+    "trial_id": 31,
+    "score": 0.88,
+    "prompt": "fewshot_v2",
+    "techniques": "zeroshot",
+    "params": {
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048
+    },
+    "metrics": {
+      "overall_accuracy_pct": 88.2,
+      "morphological_accuracy_pct": 100.0,
+      "contextual_accuracy_pct": 77.8,
+      "consistency_pct": 100.0,
+      "avg_latency_s": 2.9
+    }
+  },
+  "leaderboard": [
+    {
+      "trial_id": 31,
+      "score": 0.88,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 32,
+      "score": 0.8799,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 37,
+      "score": 0.8799,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 3,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 11,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 48,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.2,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 7,
+      "score": 0.8797,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 27,
+      "score": 0.8797,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 36,
+      "score": 0.8796,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 45,
+      "score": 0.8796,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 21,
+      "score": 0.8795,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 22,
+      "score": 0.8795,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 4,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.75,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 9,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 49,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 0,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 2,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 15,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 26,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 19,
+      "score": 0.8792,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    }
+  ],
+  "trials": [
+    {
+      "trial_id": 0,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 1,
+      "score": 0.8657,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.75,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 2,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 3,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 4,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.75,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 5,
+      "score": 0.8791,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.2,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 6,
+      "score": 0.8663,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.6000000000000001,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 7,
+      "score": 0.8797,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 8,
+      "score": 0.8666,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 9,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 10,
+      "score": 0.7531,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 82.9,
+        "morphological_accuracy_pct": 92.5,
+        "contextual_accuracy_pct": 71.1,
+        "consistency_pct": 47.1,
+        "avg_latency_s": 2.9,
+        "errors": 1
+      }
+    },
+    {
+      "trial_id": 11,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 12,
+      "score": 0.866,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 13,
+      "score": 0.866,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 14,
+      "score": 0.8197,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 85.3,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 73.3,
+        "consistency_pct": 76.5,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 15,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 16,
+      "score": 0.879,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.0,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 17,
+      "score": 0.8664,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.6000000000000001,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 18,
+      "score": 0.82,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.95,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 86.5,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 70.6,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 19,
+      "score": 0.8792,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 20,
+      "score": 0.8112,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 1.0,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 85.3,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 73.3,
+        "consistency_pct": 70.6,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 21,
+      "score": 0.8795,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 22,
+      "score": 0.8795,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 23,
+      "score": 0.8465,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.6000000000000001,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 86.5,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 88.2,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 24,
+      "score": 0.8664,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 25,
+      "score": 0.8445,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.1,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 82.4,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 26,
+      "score": 0.8793,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.30000000000000004,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 27,
+      "score": 0.8797,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 28,
+      "score": 0.8506,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.5,
+      "top_p": 1.0,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.1,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 88.2,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 29,
+      "score": 0.8792,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.4,
+      "top_p": 0.85,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 30,
+      "score": 0.8665,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.6000000000000001,
+      "top_p": 0.8999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 31,
+      "score": 0.88,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 32,
+      "score": 0.8799,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 33,
+      "score": 0.862,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.1,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 34,
+      "score": 0.8423,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 1.0,
+      "top_p": 0.75,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 85.3,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 73.3,
+        "consistency_pct": 88.2,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 35,
+      "score": 0.8667,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 36,
+      "score": 0.8796,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 37,
+      "score": 0.8799,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 38,
+      "score": 0.8641,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 97.5,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 39,
+      "score": 0.8792,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.2,
+      "top_p": 0.75,
+      "max_tokens": 1024,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 40,
+      "score": 0.8666,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 1.0,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 41,
+      "score": 0.862,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.1,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 42,
+      "score": 0.8665,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 43,
+      "score": 0.8666,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 44,
+      "score": 0.8665,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.9,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.6,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 76.7,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 45,
+      "score": 0.8796,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.7000000000000001,
+      "top_p": 0.7,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 46,
+      "score": 0.8623,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.8,
+      "top_p": 0.75,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 87.1,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 75.6,
+        "consistency_pct": 94.1,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 47,
+      "score": 0.8402,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 1.0,
+      "top_p": 0.7999999999999999,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 86.5,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 74.4,
+        "consistency_pct": 82.4,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 48,
+      "score": 0.8798,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.2,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 2.9,
+        "errors": 0
+      }
+    },
+    {
+      "trial_id": 49,
+      "score": 0.8794,
+      "prompt": "fewshot_v2",
+      "techniques": "zeroshot",
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_tokens": 2048,
+      "n_per_config": 10,
+      "metrics": {
+        "overall_accuracy_pct": 88.2,
+        "morphological_accuracy_pct": 100.0,
+        "contextual_accuracy_pct": 77.8,
+        "consistency_pct": 100.0,
+        "avg_latency_s": 3.0,
+        "errors": 0
+      }
+    }
+  ]
+}

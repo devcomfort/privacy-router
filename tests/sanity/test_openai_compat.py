@@ -10,10 +10,11 @@ Requires a running Privacy Router API at localhost:8787.
 import os
 
 import pytest
-from openai import OpenAI
+from openai import BadRequestError, InternalServerError, OpenAI
 
 BASE_URL = os.getenv("PRIVACY_ROUTER_URL", "http://localhost:8787/v1")
 API_KEY = os.getenv("PRIVACY_ROUTER_API_KEY", "")
+ROUTER_MODEL = "privacy-router"
 
 if not API_KEY:
     pytest.skip("PRIVACY_ROUTER_API_KEY not set", allow_module_level=True)
@@ -35,17 +36,18 @@ class TestModels:
 
     def test_model_has_required_fields(self):
         resp = client.models.list()
-        model = resp.data[0]
-        assert hasattr(model, "id")
-        assert hasattr(model, "owned_by")
-        assert model.id.startswith("privacy-router/")
+        for model in resp.data:
+            assert model.id
+            assert model.owned_by == "privacy-router"
 
     def test_model_id_contains_provider(self):
-        """Model IDs should follow privacy-router/<provider>/<model> format."""
+        """Explicit model IDs follow privacy-router/<provider>/<model> format."""
         resp = client.models.list()
-        for model in resp.data:
-            parts = model.id.split("/")
-            assert len(parts) >= 3, f"Expected 3+ parts in '{model.id}'"
+        model_ids = {model.id for model in resp.data}
+        assert ROUTER_MODEL in model_ids
+        for model_id in model_ids - {ROUTER_MODEL}:
+            assert model_id.startswith(f"{ROUTER_MODEL}/")
+            assert len(model_id.split("/")) >= 3
 
 
 # ── Chat Completions ─────────────────────────────────────────────────────────
@@ -57,7 +59,7 @@ class TestChatCompletions:
     def test_basic_chat(self):
         """Non-sensitive prompt should get a normal response."""
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[{"role": "user", "content": "Say hello in one word."}],
             max_tokens=10,
         )
@@ -68,7 +70,7 @@ class TestChatCompletions:
 
     def test_response_has_usage(self):
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[{"role": "user", "content": "Hi"}],
             max_tokens=5,
         )
@@ -80,7 +82,7 @@ class TestChatCompletions:
     def test_system_message(self):
         """System + user message should work."""
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant. Reply in one sentence."},
                 {"role": "user", "content": "What is 2+2?"},
@@ -92,7 +94,7 @@ class TestChatCompletions:
     def test_multi_turn(self):
         """Multi-turn conversation should work."""
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[
                 {"role": "user", "content": "My name is TestBot."},
                 {"role": "assistant", "content": "Hello TestBot!"},
@@ -106,7 +108,7 @@ class TestChatCompletions:
     def test_sensitive_data_detection(self):
         """Prompt with PII should be detected (privacy_router metadata)."""
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[
                 {
                     "role": "user",
@@ -125,7 +127,7 @@ class TestChatCompletions:
     def test_model_field(self):
         """Response model field should indicate privacy-router."""
         resp = client.chat.completions.create(
-            model="openrouter/google/gemma-4-26b-a4b-it",
+            model=ROUTER_MODEL,
             messages=[{"role": "user", "content": "ping"}],
             max_tokens=5,
         )
@@ -139,7 +141,6 @@ class TestErrors:
     """Error responses should be OpenAI-compatible."""
 
     def test_invalid_model_returns_error(self):
-        from openai import BadRequestError
 
         with pytest.raises(BadRequestError):
             client.chat.completions.create(
@@ -149,11 +150,10 @@ class TestErrors:
             )
 
     def test_empty_messages_returns_error(self):
-        from openai import BadRequestError, InternalServerError
 
         with pytest.raises((BadRequestError, InternalServerError)):
             client.chat.completions.create(
-                model="openrouter/google/gemma-4-26b-a4b-it",
+                model=ROUTER_MODEL,
                 messages=[],
                 max_tokens=5,
             )

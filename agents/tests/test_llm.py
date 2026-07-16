@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from pydantic import BaseModel
-
 
 # ── call_llm() ──────────────────────────────────────────────────────────────
 
@@ -26,15 +24,16 @@ class TestCallLlm:
         return resp
 
     @patch("agents.llm.litellm.completion")
-    def test_default_model_from_env(self, mock_completion):
-        """Uses default model when none specified."""
+    def test_default_external_model(self, mock_completion, monkeypatch):
+        """Uses the current external model when no model or env override is specified."""
         from agents.llm import call_llm
 
+        monkeypatch.delenv("LLM_MODEL", raising=False)
         mock_completion.return_value = self._make_mock_response("result")
         call_llm([{"role": "user", "content": "hi"}])
 
         _, kwargs = mock_completion.call_args
-        assert kwargs["model"] == "openrouter/mistralai/ministral-3b-2512"
+        assert kwargs["model"] == "openrouter/google/gemma-4-26b-it"
 
     @patch("agents.llm.litellm.completion")
     def test_custom_model_passed_through(self, mock_completion):
@@ -135,10 +134,11 @@ class TestCallLlmStructured:
     """Tests for call_llm_structured() (lines 93-142)."""
 
     @patch("agents.llm.instructor.from_litellm")
-    def test_default_model_from_env(self, mock_from_litellm):
-        """Uses default model when none specified."""
+    def test_default_external_model(self, mock_from_litellm, monkeypatch):
+        """Uses the current external model when no model or env override is specified."""
         from agents.llm import call_llm_structured
 
+        monkeypatch.delenv("LLM_MODEL", raising=False)
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = _TestResponse(answer="42")
         mock_from_litellm.return_value = mock_client
@@ -150,7 +150,7 @@ class TestCallLlmStructured:
 
         assert isinstance(result, _TestResponse)
         _, kwargs = mock_client.chat.completions.create.call_args
-        assert kwargs["model"] == "openrouter/mistralai/ministral-3b-2512"
+        assert kwargs["model"] == "openrouter/google/gemma-4-26b-it"
 
     @patch("agents.llm.instructor.from_litellm")
     def test_custom_model_passed_through(self, mock_from_litellm):
@@ -191,8 +191,9 @@ class TestCallLlmStructured:
     @patch("agents.llm.instructor.from_litellm")
     def test_api_base_triggers_json_mode(self, mock_from_litellm):
         """When api_base is provided, instructor.Mode.JSON is used."""
-        from agents.llm import call_llm_structured
         import instructor
+
+        from agents.llm import call_llm_structured
 
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = _TestResponse(answer="local")
@@ -397,8 +398,9 @@ class TestCallLlmStructured:
     @patch("agents.llm.litellm.completion")
     def test_raw_json_handles_array_response(self, mock_completion):
         """_call_raw_json wraps array responses for models with list fields."""
-        from agents.llm import call_llm_structured
         from pydantic import Field
+
+        from agents.llm import call_llm_structured
 
         class _ListResponse(BaseModel):
             items: list[str] = Field(default_factory=list)

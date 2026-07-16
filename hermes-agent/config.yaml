@@ -6,7 +6,7 @@
 model:
   provider: custom
   base_url: http://api:8787/v1
-  api_key: "pr-D1RHd7yHooABh96hwt-G066ZLiqZ8mGcGMs2DL_LLOY"
+  api_key: "${PRIVACY_ROUTER_API_KEY}"
   default: "openrouter/google/gemini-3.1-flash-lite"
 
 # Telegram channel

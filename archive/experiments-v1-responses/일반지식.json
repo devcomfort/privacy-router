@@ -1,0 +1,23 @@
+{
+  "case_name": "일반지식",
+  "input_text": "Python에서 리스트를 정렬하는 방법을 알려줘.",
+  "expected": {
+    "action": "allow",
+    "sensitive": false
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": false, \"rationale\": \"민감 정보 없음\"}, \"records\": []}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": false,
+      "rationale": "민감 정보 없음"
+    },
+    "records": []
+  },
+  "actual": {
+    "action": "allow",
+    "sensitive": false
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

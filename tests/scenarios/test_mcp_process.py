@@ -10,10 +10,10 @@ Run:
 
 from __future__ import annotations
 
-from db.session import init_db
-init_db()
+from db import init_db
+from server.mcp import process
 
-from server.mcp.tools import process
+init_db()
 
 
 class TestProcessAuto:
@@ -29,7 +29,10 @@ class TestProcessAuto:
         result = process("주민등록번호 901212-1234567을 확인해주세요")
         assert result["is_sensitive"] is True
         assert len(result["extraction_records"]) > 0
-        assert result["extraction_records"][0]["category"] == "RESIDENT_REGISTRATION_NUMBER"
+        rrn_record = next(
+            record for record in result["extraction_records"] if record["category"] == "RESIDENT_REGISTRATION_NUMBER"
+        )
+        assert rrn_record["span"] == "<redacted>"
 
 
 class TestProcessClassify:

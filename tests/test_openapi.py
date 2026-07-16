@@ -7,16 +7,20 @@ Run:
     docker compose up -d && sleep 8
     pytest tests/test_openapi.py -v
 """
+
 from __future__ import annotations
 
-import httpx
+import os
+import uuid
 
-from server.api.auth import create_api_key
-from db.session import get_session, init_db
-from db.models import ApiKey, Provider
-import db.models  # noqa: F401
+import httpx
+from dotenv import load_dotenv
+
+from db import ApiKey, Provider, get_session, init_db
+from server.api import create_api_key
 
 BASE = "http://localhost:8787"
+load_dotenv()
 
 init_db()
 
@@ -40,6 +44,17 @@ def _get_auth_headers() -> dict:
 
 
 AUTH_HEADERS = _get_auth_headers()
+
+
+def _get_admin_headers() -> dict[str, str]:
+    """Return the independent management credential used by the live server."""
+    admin_key = os.getenv("PRIVACY_ROUTER_ADMIN_KEY")
+    if not admin_key:
+        raise RuntimeError("Set PRIVACY_ROUTER_ADMIN_KEY before running live OpenAPI tests")
+    return {"X-Privacy-Router-Admin-Key": admin_key}
+
+
+ADMIN_HEADERS = _get_admin_headers()
 
 
 # ── Health / Public ──────────────────────────────────────────────────────────
@@ -77,16 +92,16 @@ class TestAPIKeys:
         resp = httpx.post(
             f"{BASE}/api/v1/keys",
             json={"name": "test-key", "description": "test"},
-            headers=AUTH_HEADERS,
+            headers=ADMIN_HEADERS,
         )
         assert resp.status_code == 201
         data = resp.json()
-        assert data["key"].startswith("pr-")
+        assert data["api_key"].startswith("pr-")
         assert data["name"] == "test-key"
-        return data["id"]
+        assert data["id"]
 
     def test_list_keys(self):
-        resp = httpx.get(f"{BASE}/api/v1/keys", headers=AUTH_HEADERS)
+        resp = httpx.get(f"{BASE}/api/v1/keys", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
 
@@ -98,22 +113,30 @@ class TestModels:
     """Model registry CRUD."""
 
     def test_list_models(self):
-        resp = httpx.get(f"{BASE}/api/v1/models", headers=AUTH_HEADERS)
+        resp = httpx.get(f"{BASE}/api/v1/models", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
 
     def test_create_model(self):
-        resp = httpx.post(
+        model_id = f"test-provider/test-model-{uuid.uuid4().hex}"
+        response = httpx.post(
             f"{BASE}/api/v1/models",
             json={
-                "model_id": "test/test-model",
+                "model_id": model_id,
+                "provider_id": "test-provider",
                 "display_name": "Test Model",
-                "tier": "edge",
+                "tier": "small",
                 "cost_per_1m_tokens": 0.0,
             },
-            headers=AUTH_HEADERS,
+            headers=ADMIN_HEADERS,
         )
-        assert resp.status_code == 201
+        assert response.status_code == 201
+
+        removed = httpx.delete(
+            f"{BASE}/api/v1/models/{response.json()['id']}",
+            headers=ADMIN_HEADERS,
+        )
+        assert removed.status_code == 204
 
 
 # ── Providers ────────────────────────────────────────────────────────────────
@@ -123,8 +146,9 @@ class TestProviders:
     """Provider CRUD."""
 
     def test_list_providers(self):
-        resp = httpx.get(f"{BASE}/api/v1/providers", headers=AUTH_HEADERS)
+        resp = httpx.get(f"{BASE}/api/providers", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
+        assert isinstance(resp.json()["providers"], list)
 
 
 # ── Classify / Generate ──────────────────────────────────────────────────────
@@ -138,18 +162,21 @@ class TestClassifyEndpoint:
             f"{BASE}/api/v1/classify",
             json={"text": "주민등록번호 901212-1234567을 확인해주세요"},
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
         assert data["is_sensitive"] is True
-        assert len(data["extraction_records"]) > 0
-        assert data["extraction_records"][0]["category"] == "RESIDENT_REGISTRATION_NUMBER"
+        assert len(data["records"]) > 0
+        rrn_record = next(record for record in data["records"] if record["category"] == "RESIDENT_REGISTRATION_NUMBER")
+        assert rrn_record["span"] == "<redacted>"
 
     def test_classify_non_sensitive(self):
         resp = httpx.post(
             f"{BASE}/api/v1/classify",
             json={"text": "오늘 서울 날씨는 맑습니다"},
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -166,11 +193,12 @@ class TestChatCompletions:
         resp = httpx.post(
             f"{BASE}/v1/chat/completions",
             json={
-                "model": "privacy-router/openrouter/mistralai/ministral-3b-2512",
+                "model": "privacy-router/openrouter/google/gemma-4-26b-a4b-it",
                 "messages": [{"role": "user", "content": "안녕하세요"}],
                 "max_tokens": 32,
             },
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code in (200, 502)
 
@@ -178,11 +206,12 @@ class TestChatCompletions:
         resp = httpx.post(
             f"{BASE}/v1/chat/completions",
             json={
-                "model": "privacy-router/openrouter/mistralai/ministral-3b-2512",
+                "model": "privacy-router/openrouter/google/gemma-4-26b-a4b-it",
                 "messages": [{"role": "user", "content": "내 주민등록번호가 뭐야?"}],
                 "max_tokens": 32,
             },
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code in (200, 409, 502)
 
@@ -213,8 +242,8 @@ class TestMaskingEndpoints:
 
 
 class TestSettings:
-    """GET /api/settings — public config."""
+    """GET /api/settings — admin-protected config."""
 
     def test_get_settings(self):
-        resp = httpx.get(f"{BASE}/api/settings")
+        resp = httpx.get(f"{BASE}/api/settings", headers=ADMIN_HEADERS)
         assert resp.status_code == 200

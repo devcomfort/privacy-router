@@ -1,3 +1,5 @@
+> Public sanitized copy. Raw identifier-like examples are replaced with placeholders.
+
 # Privacy Router — 평가 보고서
 
 **프로젝트:** Privacy Router — 한국 연구자를 위한 주권 우선 AI 비서
@@ -72,7 +74,7 @@ User Prompt → Extractor → Sensitivity + Records → Judge → Meaningfulness
 
 | # | Name | Input | Expected |
 |---|------|-------|----------|
-| 1 | PII — Context | "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘." | is_sensitive: true, mask_and_send |
+| 1 | PII — Context | "주민등록번호 <personal-id>을 포함한 이메일을 작성해줘." | is_sensitive: true, mask_and_send |
 | 2 | PII — Target | "내 주민등록번호가 뭐야?" | is_sensitive: true, process_locally |
 | 3 | Business Secret | "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘." | is_sensitive: true, mask_and_send |
 | 4 | Research — Context | "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘." | is_sensitive: true, mask_and_send |
@@ -173,7 +175,7 @@ Signs that the answer is YES:
 | `gemma-4-26b-a4b-it` | Performant | $0.06 | 5/5 | 0/5 | 0/5 | 0/5 | 5/5 |
 | `granite-4.1-8b` | Edge | $0.05 | 1/5* | 3/5 | 0/5 | 0/5 | 5/5 |
 
-*Granite 4.1: "이메일"을 EMAIL_ADDRESS로 오탐, 실제 PII(901212-1234567) 누락
+*Granite 4.1: "이메일"을 EMAIL_ADDRESS로 오탐, 실제 PII(<personal-id>) 누락
 
 PII 포함 예시는 모든 모델이 통과하지만, PII 직접 질의와 사업기밀 탐지에서 모델 간 격차가 벌어진다. `gemini-3.1-flash-lite`만 유일하게 사업기밀과 연구기밀을 5/5 탐지했으며, 나머지 모델들은 컨텍스트 기반 민감도 판단에 실패했다.
 

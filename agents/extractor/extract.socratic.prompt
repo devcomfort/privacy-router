@@ -1,5 +1,5 @@
 ---
-model: openrouter/mistralai/ministral-3b-2512
+model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
 config:
   temperature: 0.0
   max_tokens: 4096

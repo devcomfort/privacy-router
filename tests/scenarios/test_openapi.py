@@ -10,17 +10,20 @@ Run:
 
 from __future__ import annotations
 
+import os
+import uuid
+
 import httpx
+from dotenv import load_dotenv
+
+from db import ApiKey, Provider, get_session, init_db
+from server.api import create_api_key
 
 BASE = "http://localhost:8787"
-
-# Create a test API key via the auth module
-from server.api.auth import create_api_key
-from db.session import get_session, init_db
-from db.models import ApiKey, Provider
-import db.models  # noqa: F401
+load_dotenv()
 
 init_db()
+
 
 def _get_auth_headers() -> dict:
     """Create a test API key and return auth headers."""
@@ -41,7 +44,19 @@ def _get_auth_headers() -> dict:
         session.close()
     return {"Authorization": f"Bearer {raw}"}
 
+
 AUTH_HEADERS = _get_auth_headers()
+
+
+def _get_admin_headers() -> dict[str, str]:
+    """Return the independent management credential used by the live server."""
+    admin_key = os.getenv("PRIVACY_ROUTER_ADMIN_KEY")
+    if not admin_key:
+        raise RuntimeError("Set PRIVACY_ROUTER_ADMIN_KEY before running live OpenAPI tests")
+    return {"X-Privacy-Router-Admin-Key": admin_key}
+
+
+ADMIN_HEADERS = _get_admin_headers()
 
 
 # ── Public endpoints (no auth) ───────────────────────────────────────────────
@@ -69,7 +84,7 @@ class TestPublic:
         assert resp.json()["object"] == "list"
 
     def test_settings(self):
-        resp = httpx.get(f"{BASE}/api/settings")
+        resp = httpx.get(f"{BASE}/api/settings", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
 
 
@@ -83,7 +98,7 @@ class TestAPIKeys:
         resp = httpx.post(
             f"{BASE}/api/v1/keys",
             json={"name": "scenario-test-key", "provider_id": "test-provider"},
-            headers=AUTH_HEADERS,
+            headers=ADMIN_HEADERS,
         )
         assert resp.status_code == 201
         data = resp.json()
@@ -92,7 +107,7 @@ class TestAPIKeys:
     def test_list_keys(self):
         resp = httpx.get(
             f"{BASE}/api/v1/keys",
-            headers=AUTH_HEADERS,
+            headers=ADMIN_HEADERS,
         )
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
@@ -107,17 +122,28 @@ class TestModelRegistry:
     def test_list_models(self):
         resp = httpx.get(
             f"{BASE}/api/v1/models",
-            headers=AUTH_HEADERS,
+            headers=ADMIN_HEADERS,
         )
         assert resp.status_code == 200
 
     def test_create_model(self):
-        resp = httpx.post(
+        model_id = f"test-provider/scenario-model-{uuid.uuid4().hex}"
+        response = httpx.post(
             f"{BASE}/api/v1/models",
-            json={"model_id": "test/scenario-model", "provider_id": "test-provider", "tier": "edge"},
-            headers=AUTH_HEADERS,
+            json={
+                "model_id": model_id,
+                "provider_id": "test-provider",
+                "tier": "small",
+            },
+            headers=ADMIN_HEADERS,
         )
-        assert resp.status_code == 201
+        assert response.status_code == 201
+
+        removed = httpx.delete(
+            f"{BASE}/api/v1/models/{response.json()['id']}",
+            headers=ADMIN_HEADERS,
+        )
+        assert removed.status_code == 204
 
 
 # ── Provider management ──────────────────────────────────────────────────────
@@ -127,11 +153,11 @@ class TestProviders:
     """Provider CRUD."""
 
     def test_list_providers(self):
-        resp = httpx.get(
-            f"{BASE}/api/v1/providers",
-            headers=AUTH_HEADERS,
-        )
+        resp = httpx.get(f"{BASE}/api/providers", headers=ADMIN_HEADERS)
         assert resp.status_code == 200
+        providers = resp.json()["providers"]
+        assert isinstance(providers, list)
+        assert any(provider["id"] == "test-provider" for provider in providers)
 
 
 # ── Classify endpoint ────────────────────────────────────────────────────────
@@ -145,17 +171,21 @@ class TestClassify:
             f"{BASE}/api/v1/classify",
             json={"text": "주민등록번호 901212-1234567을 확인해주세요"},
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
         assert data["is_sensitive"] is True
-        assert len(data["extraction_records"]) > 0
+        assert len(data["records"]) > 0
+        rrn_record = next(record for record in data["records"] if record["category"] == "RESIDENT_REGISTRATION_NUMBER")
+        assert rrn_record["span"] == "<redacted>"
 
     def test_non_sensitive_input(self):
         resp = httpx.post(
             f"{BASE}/api/v1/classify",
             json={"text": "오늘 서울 날씨는 맑습니다"},
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code == 200
         assert resp.json()["is_sensitive"] is False

@@ -99,7 +99,6 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             },
         ],
     },
-
     # ── 2. Competitor (TSMC) strategy with internal comparisons ────────────
     {
         "id": "researcher_competitor_comparison",
@@ -204,7 +203,6 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             },
         ],
     },
-
     # ── 3. Budget figures accumulate across turns ──────────────────────────
     {
         "id": "researcher_budget_accumulation",
@@ -305,7 +303,6 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             },
         ],
     },
-
     # ── 4. Mixed public technical + internal decisions ─────────────────────
     {
         "id": "researcher_mixed_sensitivity",
@@ -346,8 +343,7 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             {
                 "role": "assistant",
                 "content": (
-                    "내부 전략 결정이시군요. 기술적으로 multi-patterning은 "
-                    "cost와 throughput에서 불리할 수 있습니다."
+                    "내부 전략 결정이시군요. 기술적으로 multi-patterning은 cost와 throughput에서 불리할 수 있습니다."
                 ),
             },
             {
@@ -408,7 +404,6 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             },
         ],
     },
-
     # ── 5. Patent application before filing ────────────────────────────────
     {
         "id": "researcher_patent_prefiling",
@@ -447,10 +442,7 @@ RESEARCHER_CONVERSATIONS: list[dict] = [
             },
             {
                 "role": "assistant",
-                "content": (
-                    "특허 명세서 작성을 도와드리겠습니다. "
-                    "발명의 구체적인 구성과 효과를 알려주세요."
-                ),
+                "content": ("특허 명세서 작성을 도와드리겠습니다. 발명의 구체적인 구성과 효과를 알려주세요."),
             },
             {
                 "role": "user",

@@ -9,33 +9,101 @@ Configuration is read from .privacy-router.config.yaml at startup.
 
 from __future__ import annotations
 
-import hashlib
 import time
-from pathlib import Path
-from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+
+from agents import (
+    ContractStore,
+    ExtractionRecord,
+    ExtractionResult,
+    Extractor,
+    Masker,
+    MiddleManAgent,
+    PrivacyRouter,
+    RecordOverride,
+    RoutingStrategy,
+    Sensitivity,
+    UserAction,
+    UserDecision,
+    cache_fingerprint,
+    call_llm,
+    get_cache,
+    redact_extraction_records,
+)
+from config import (
+    PrivacyRouterConfig,
+    load_config,
+    resolve_generation_binding,
+)
+from db import UsageLog, get_session
 
 mcp = FastMCP("privacy-router")
 
 
-def _load_config() -> dict[str, Any]:
-    """Load Privacy Router configuration from YAML."""
-    import yaml
+def _load_config() -> PrivacyRouterConfig:
+    """Load the SQLite-first, validated runtime configuration."""
+    return load_config()
 
-    config_path = Path(__file__).resolve().parents[2] / ".privacy-router.config.yaml"
-    if not config_path.exists():
-        return {}
-    text = config_path.read_text(encoding="utf-8")
-    # Resolve ${VAR} from environment
-    import os
-    import re
-    def _resolve_env(match: re.Match) -> str:
-        var = match.group(1)
-        default = match.group(3) if match.group(3) else ""
-        return os.environ.get(var, default)
-    text = re.sub(r"\$\{(\w+)(:([^}]*))?\}", _resolve_env, text)
-    return yaml.safe_load(text) or {}
+
+def _analysis_unavailable_fields() -> dict[str, str]:
+    """Return source-free fields for a failed privacy analysis."""
+    return {
+        "analysis_status": "unavailable",
+        "error_code": "privacy_analysis_failed",
+        "error": ("Sensitive-information analysis is unavailable; the input was not forwarded."),
+    }
+
+
+def _load_extraction(
+    text: str,
+    no_cache: bool,
+    config: PrivacyRouterConfig | None = None,
+) -> tuple[ExtractionResult, bool]:
+    """Load a validated cached extraction or run and cache a fresh one."""
+    cache = get_cache()
+    cache_key = cache_fingerprint(f"mcp-text\0{text}")
+    extraction = None
+    cached = False
+    if not no_cache:
+        cached_data = cache.get_extraction(cache_key)
+        if cached_data is not None:
+            extraction = ExtractionResult(
+                sensitivity=Sensitivity(**cached_data["sensitivity"]),
+                records=[ExtractionRecord(**record) for record in cached_data["records"]],
+            )
+            cached = True
+
+    if extraction is None:
+        active_config = config or _load_config()
+        extractor = Extractor(
+            model=active_config.decision.model,
+            api_base=active_config.decision.api_base,
+        )
+        extraction = extractor.extract(text)
+        cache.put_extraction(
+            cache_key,
+            {
+                "sensitivity": {
+                    "is_sensitive": extraction.sensitivity.is_sensitive,
+                    "rationale": extraction.sensitivity.rationale,
+                },
+                "records": [
+                    {
+                        "category": record.category,
+                        "span": record.span,
+                        "start": record.start,
+                        "end": record.end,
+                        "detection_type": record.detection_type,
+                        "is_essential": record.is_essential,
+                        "confidence": record.confidence,
+                        "reasoning": record.reasoning,
+                    }
+                    for record in extraction.records
+                ],
+            },
+        )
+    return extraction, cached
 
 
 @mcp.tool()
@@ -76,12 +144,6 @@ def process(
             - masking_session_id: str | None — DB session ID (when masking applied)
             - masking_records: list[dict] — per-record masking details with UIDs
     """
-    import hashlib as _hashlib
-
-    from agents.router import PrivacyRouter
-    from agents.masker import ContractStore, Masker
-    from agents.llm import call_llm
-
     config = _load_config()
     t0 = time.time()
     contract_store = ContractStore()
@@ -136,19 +198,50 @@ def process(
 
     # ── Step 1: Extract + Judge (always runs unless action=allow) ──────────
     if action == "allow":
-        gen_model = model or config.get("generator", {}).get("model", "")
-        gen_cfg = config.get("generator", {}).get("config", {})
-        if gen_model:
-            content = call_llm(text, model=gen_model, **gen_cfg)
-        else:
-            content = None
+        try:
+            gen_model, gen_cfg, api_base = resolve_generation_binding(
+                config,
+                "allow",
+                model,
+            )
+        except (KeyError, ValueError):
+            return _generation_unavailable_response(
+                records=[],
+                policy_action="allow",
+                is_sensitive=False,
+                requires_masking=False,
+                model_used=None,
+                latency_ms=(time.time() - t0) * 1000,
+                masking_session_id=None,
+                placeholder_map=[],
+                error_code="generation_configuration_error",
+                error_message="Generation model configuration is unavailable.",
+            )
+        try:
+            content = call_llm(
+                [{"role": "user", "content": text}],
+                model=gen_model,
+                api_base=api_base,
+                **gen_cfg,
+            )
+        except Exception:
+            return _generation_unavailable_response(
+                records=[],
+                policy_action="allow",
+                is_sensitive=False,
+                requires_masking=False,
+                model_used=gen_model,
+                latency_ms=(time.time() - t0) * 1000,
+                masking_session_id=None,
+                placeholder_map=[],
+            )
         latency_ms = (time.time() - t0) * 1000
-        _log_usage("process", text, False, 0, "route_to_external", gen_model, latency_ms)
+        _log_usage("process", False, 0, "allow", gen_model, latency_ms)
         return {
             "action_taken": "allowed",
             "content": content,
             "extraction_records": [],
-            "policy_action": "route_to_external",
+            "policy_action": "allow",
             "is_sensitive": False,
             "requires_masking": False,
             "model_used": gen_model or None,
@@ -158,28 +251,35 @@ def process(
         }
 
     # Run Extractor → Router pipeline
-    pr = PrivacyRouter()
-    pipeline = pr.process(text)
+    try:
+        pr = PrivacyRouter()
+        pipeline = pr.process(text)
+    except Exception:
+        return {
+            "action_taken": "error",
+            **_analysis_unavailable_fields(),
+            "content": None,
+            "extraction_records": [],
+            "policy_action": "block",
+            "is_sensitive": None,
+            "requires_masking": False,
+            "model_used": None,
+            "latency_ms": (time.time() - t0) * 1000,
+            "masking_session_id": None,
+            "placeholder_map": [],
+        }
 
     is_sensitive = pipeline.sensitivity.is_sensitive
 
-    records = [
-        {
-            "category": r.category,
-            "span": r.span,
-            "confidence": r.confidence,
-            "is_essential": r.is_essential,
-            "reasoning": r.reasoning,
-        }
-        for r in pipeline.records
-    ]
+    internal_records = [record.model_dump() for record in pipeline.records]
+    records = redact_extraction_records(pipeline.records)
 
     policy_action = pipeline.judgment.policy_action
 
     # ── Step 2: If classify-only, return here ─────────────────────────────
     if action == "classify":
         latency_ms = (time.time() - t0) * 1000
-        _log_usage("process", text, is_sensitive, len(records), "classify", None, latency_ms)
+        _log_usage("process", is_sensitive, len(records), "classify", None, latency_ms)
         return {
             "action_taken": "classified",
             "content": None,
@@ -194,80 +294,90 @@ def process(
         }
 
     # ── Step 3: Apply routing decision ────────────────────────────────────
+    effective_action = policy_action
     if action == "generate":
-        effective_action = "mask_and_send" if is_sensitive else "route_to_external"
-    else:
-        effective_action = policy_action
-
-    if effective_action == "prompt_user":
-        latency_ms = (time.time() - t0) * 1000
-        _log_usage("process", text, is_sensitive, len(records), "prompt_user", None, latency_ms)
-        return {
-            "action_taken": "prompt_user",
-            "content": None,
-            "extraction_records": records,
-            "policy_action": "prompt_user",
-            "is_sensitive": is_sensitive,
-            "requires_masking": False,
-            "model_used": None,
-            "latency_ms": latency_ms,
-            "masking_session_id": None,
-            "placeholder_map": [],
-            "description": "사용자 확인이 필요합니다. 민감 정보가 포함되어 있습니다.",
-        }
+        effective_action = "selective_mask" if is_sensitive else "allow"
 
     # ── Step 4: Mask if needed ────────────────────────────────────────────
     masked_text = text
     masking_result = None
     masking_session_id = None
     masking_records_out = []
-    requires_masking = effective_action in ("mask_and_send", "selective_mask")
+    requires_masking = effective_action == "selective_mask"
 
     if requires_masking and pipeline.records:
         masker = Masker()
-        record_dicts = [
-            {"category": r.category, "span": r.span, "start": r.start, "end": r.end}
-            for r in pipeline.records
-        ]
+        record_dicts = internal_records
         masking_result = masker.mask(text, record_dicts)
         masked_text = masking_result.masked_text
 
         # Persist to DB
-        input_hash = _hashlib.sha256(text.encode()).hexdigest()[:16]
         masking_session_id = contract_store.create_session(
             chat_id=chat_id,
-            input_hash=input_hash,
             record_count=len(records),
             policy_action=effective_action,
         )
         contract_store.save_records(
             session_id=masking_session_id,
-            records=records,
+            records=internal_records,
             placeholder_map=masking_result.contract.placeholder_map,
         )
 
         # Build masking_records for response
         for placeholder, original in masking_result.contract.placeholder_map.items():
-            uid = _hashlib.sha256(original.encode()).hexdigest()[:8]
-            matching = next((r for r in records if r["span"] == original), None)
-            masking_records_out.append({
-                "uid": uid,
-                "category": matching["category"] if matching else "UNKNOWN",
-                "placeholder": placeholder,
-                "confidence": matching["confidence"] if matching else 0.0,
-                "is_essential": matching["is_essential"] if matching else False,
-            })
+            uid = placeholder.strip("[]").partition("#")[2]
+            matching = next((r for r in internal_records if r["span"] == original), None)
+            masking_records_out.append(
+                {
+                    "uid": uid,
+                    "category": matching["category"] if matching else "UNKNOWN",
+                    "placeholder": placeholder,
+                    "confidence": matching["confidence"] if matching else 0.0,
+                    "is_essential": matching["is_essential"] if matching else False,
+                }
+            )
 
     # ── Step 5: Call LLM ──────────────────────────────────────────────────
-    gen_model = model or config.get("generator", {}).get("model", "")
-    gen_cfg = config.get("generator", {}).get("config", {})
+    try:
+        gen_model, gen_cfg, api_base = resolve_generation_binding(
+            config,
+            effective_action,
+            model,
+        )
+    except (KeyError, ValueError):
+        return _generation_unavailable_response(
+            records=records,
+            policy_action=effective_action,
+            is_sensitive=is_sensitive,
+            requires_masking=requires_masking,
+            model_used=None,
+            latency_ms=(time.time() - t0) * 1000,
+            masking_session_id=masking_session_id,
+            placeholder_map=masking_records_out,
+            error_code="generation_configuration_error",
+            error_message="Generation model configuration is unavailable.",
+        )
 
     content = None
     if gen_model:
         try:
-            content = call_llm(masked_text, model=gen_model, **gen_cfg)
-        except Exception as e:
-            content = f"[LLM 호출 실패: {e}]"
+            content = call_llm(
+                [{"role": "user", "content": masked_text}],
+                model=gen_model,
+                api_base=api_base,
+                **gen_cfg,
+            )
+        except Exception:
+            return _generation_unavailable_response(
+                records=records,
+                policy_action=effective_action,
+                is_sensitive=is_sensitive,
+                requires_masking=requires_masking,
+                model_used=gen_model,
+                latency_ms=(time.time() - t0) * 1000,
+                masking_session_id=masking_session_id,
+                placeholder_map=masking_records_out,
+            )
 
     # ── Step 6: Hydrate response ──────────────────────────────────────────
     if content and requires_masking and masking_result:
@@ -277,7 +387,7 @@ def process(
 
     latency_ms = (time.time() - t0) * 1000
     action_taken = "generated" if content else "masked_and_sent"
-    _log_usage("process", text, is_sensitive, len(records), effective_action, gen_model, latency_ms)
+    _log_usage("process", is_sensitive, len(records), effective_action, gen_model, latency_ms)
 
     return {
         "action_taken": action_taken,
@@ -317,55 +427,25 @@ def review(
             - formatted: str — formatted text for user display
             - cached: bool — whether result was from cache
     """
-    from agents.router import MiddleManAgent
-    from agents.router.cache import get_cache
-    from agents.extractor import Extractor
-    from agents.extractor.schemas import ExtractionResult, SensitivityAssessment, ExtractionRecord
-
-    cache = get_cache()
-    cached = False
-    extraction = None
-
-    # Try cache first
-    if not no_cache:
-        cached_data = cache.get(text)
-        if cached_data is not None:
-            # Deserialize
-            extraction = ExtractionResult(
-                sensitivity=SensitivityAssessment(**cached_data["sensitivity"]),
-                records=[ExtractionRecord(**r) for r in cached_data["records"]],
-            )
-            cached = True
-
-    # Run extraction if not cached
-    if extraction is None:
-        config = _load_config()
-        extractor_model = config.get("extractor", {}).get("model")
-        api_base = config.get("extractor", {}).get("api_base")
-        extractor = Extractor(model=extractor_model, api_base=api_base)
-        extraction = extractor.extract(text)
-
-        # Serialize and cache
-        cache.put(text, {
-            "sensitivity": {
-                "is_sensitive": extraction.sensitivity.is_sensitive,
-                "rationale": extraction.sensitivity.rationale,
+    try:
+        extraction, cached = _load_extraction(text, no_cache)
+        middle_man = MiddleManAgent()
+        summary = middle_man.summarize(extraction)
+    except Exception:
+        return {
+            **_analysis_unavailable_fields(),
+            "summary": {
+                "is_sensitive": None,
+                "record_count": 0,
+                "essential_count": 0,
+                "default_action": "block",
+                "confidence_avg": 0.0,
+                "low_confidence_records": [],
             },
-            "extraction_records": [
-                {
-                    "category": r.category,
-                    "span": r.span,
-                    "is_essential": r.is_essential,
-                    "confidence": r.confidence,
-                    "harms": r.harms,
-                    "reasoning": r.reasoning,
-                }
-                for r in extraction.records
-            ],
-        })
-
-    middle_man = MiddleManAgent()
-    summary = middle_man.summarize(extraction)
+            "extraction_records": [],
+            "formatted": ("Sensitive-information analysis is unavailable. The input was not forwarded."),
+            "cached": False,
+        }
 
     return {
         "summary": {
@@ -380,6 +460,7 @@ def review(
         "formatted": middle_man.format_for_user(summary),
         "cached": cached,
     }
+
 
 @mcp.tool()
 def apply_decision(
@@ -408,53 +489,26 @@ def apply_decision(
     Returns:
         dict with same keys as `process` tool.
     """
-    from agents.router import MiddleManAgent, UserDecision, UserAction, RoutingStrategy
-    from agents.router.middle_man import RecordOverride
-    from agents.router.cache import get_cache
-    from agents.extractor import Extractor
-    from agents.extractor.schemas import ExtractionResult, SensitivityAssessment, ExtractionRecord
-    from agents.masker import ContractStore, Masker
-    from agents.llm import call_llm
-
-    config = _load_config()
     t0 = time.time()
-    cache = get_cache()
-
-    # Try cache first
-    extraction = None
-    cached = False
-    if not no_cache:
-        cached_data = cache.get(text)
-        if cached_data is not None:
-            extraction = ExtractionResult(
-                sensitivity=SensitivityAssessment(**cached_data["sensitivity"]),
-                records=[ExtractionRecord(**r) for r in cached_data["records"]],
-            )
-            cached = True
-
-    # Run extraction if not cached
-    if extraction is None:
-        extractor_model = config.get("extractor", {}).get("model")
-        api_base = config.get("extractor", {}).get("api_base")
-        extractor = Extractor(model=extractor_model, api_base=api_base)
-        extraction = extractor.extract(text)
-        cache.put(text, {
-            "sensitivity": {
-                "is_sensitive": extraction.sensitivity.is_sensitive,
-                "rationale": extraction.sensitivity.rationale,
-            },
-            "extraction_records": [
-                {
-                    "category": r.category,
-                    "span": r.span,
-                    "is_essential": r.is_essential,
-                    "confidence": r.confidence,
-                    "harms": r.harms,
-                    "reasoning": r.reasoning,
-                }
-                for r in extraction.records
-            ],
-        })
+    try:
+        config = _load_config()
+        extraction, _cached = _load_extraction(text, no_cache, config)
+    except Exception:
+        return {
+            "action_taken": "error",
+            **_analysis_unavailable_fields(),
+            "content": None,
+            "extraction_records": [],
+            "policy_action": "block",
+            "is_sensitive": None,
+            "requires_masking": False,
+            "model_used": None,
+            "latency_ms": (time.time() - t0) * 1000,
+            "masking_session_id": None,
+            "placeholder_map": [],
+            "user_action": action,
+            "user_strategy": strategy,
+        }
 
     # Build user decision
     user_overrides = []
@@ -480,16 +534,8 @@ def apply_decision(
 
     # Build response
     is_sensitive = pipeline.sensitivity.is_sensitive
-    records = [
-        {
-            "category": r.category,
-            "span": r.span,
-            "confidence": r.confidence,
-            "is_essential": r.is_essential,
-            "reasoning": r.reasoning,
-        }
-        for r in pipeline.records
-    ]
+    internal_records = [record.model_dump() for record in pipeline.records]
+    records = redact_extraction_records(pipeline.records)
     policy_action = pipeline.judgment.policy_action
 
     # Mask if needed
@@ -497,50 +543,87 @@ def apply_decision(
     masking_result = None
     masking_session_id = None
     masking_records_out = []
-    requires_masking = policy_action in ("mask_and_send", "selective_mask")
+    requires_masking = policy_action == "selective_mask"
 
     if requires_masking and pipeline.records:
         masker = Masker()
-        record_dicts = [
-            {"category": r.category, "span": r.span, "start": r.start, "end": r.end}
-            for r in pipeline.records
-        ]
+        record_dicts = internal_records
         masking_result = masker.mask(text, record_dicts)
         masked_text = masking_result.masked_text
 
         contract_store = ContractStore()
-        input_hash = hashlib.sha256(text.encode()).hexdigest()[:16]
         masking_session_id = contract_store.create_session(
-            input_hash=input_hash,
+            chat_id=None,
             record_count=len(records),
             policy_action=policy_action,
         )
         contract_store.save_records(
             session_id=masking_session_id,
-            records=records,
+            records=internal_records,
             placeholder_map=masking_result.contract.placeholder_map,
         )
 
         for placeholder, original in masking_result.contract.placeholder_map.items():
-            uid = hashlib.sha256(original.encode()).hexdigest()[:8]
-            matching = next((r for r in records if r["span"] == original), None)
-            masking_records_out.append({
-                "uid": uid,
-                "category": matching["category"] if matching else "UNKNOWN",
-                "placeholder": placeholder,
-                "confidence": matching["confidence"] if matching else 0.0,
-                "is_essential": matching["is_essential"] if matching else False,
-            })
+            uid = placeholder.strip("[]").partition("#")[2]
+            matching = next((r for r in internal_records if r["span"] == original), None)
+            masking_records_out.append(
+                {
+                    "uid": uid,
+                    "category": matching["category"] if matching else "UNKNOWN",
+                    "placeholder": placeholder,
+                    "confidence": matching["confidence"] if matching else 0.0,
+                    "is_essential": matching["is_essential"] if matching else False,
+                }
+            )
 
     # Call LLM
-    gen_model = model or config.get("generator", {}).get("model", "")
-    gen_cfg = config.get("generator", {}).get("config", {})
+    try:
+        gen_model, gen_cfg, api_base = resolve_generation_binding(
+            config,
+            policy_action,
+            model,
+        )
+    except (KeyError, ValueError):
+        return _generation_unavailable_response(
+            records=records,
+            policy_action=policy_action,
+            is_sensitive=is_sensitive,
+            requires_masking=requires_masking,
+            model_used=None,
+            latency_ms=(time.time() - t0) * 1000,
+            masking_session_id=masking_session_id,
+            placeholder_map=masking_records_out,
+            error_code="generation_configuration_error",
+            error_message="Generation model configuration is unavailable.",
+            extra={
+                "user_action": action,
+                "user_strategy": strategy,
+            },
+        )
     content = None
     if gen_model:
         try:
-            content = call_llm(masked_text, model=gen_model, **gen_cfg)
-        except Exception as e:
-            content = f"[LLM 호출 실패: {e}]"
+            content = call_llm(
+                [{"role": "user", "content": masked_text}],
+                model=gen_model,
+                api_base=api_base,
+                **gen_cfg,
+            )
+        except Exception:
+            return _generation_unavailable_response(
+                records=records,
+                policy_action=policy_action,
+                is_sensitive=is_sensitive,
+                requires_masking=requires_masking,
+                model_used=gen_model,
+                latency_ms=(time.time() - t0) * 1000,
+                masking_session_id=masking_session_id,
+                placeholder_map=masking_records_out,
+                extra={
+                    "user_action": action,
+                    "user_strategy": strategy,
+                },
+            )
 
     # Hydrate
     if content and requires_masking and masking_result:
@@ -550,7 +633,7 @@ def apply_decision(
 
     latency_ms = (time.time() - t0) * 1000
     action_taken = "generated" if content else "masked_and_sent"
-    _log_usage("apply_decision", text, is_sensitive, len(records), policy_action, gen_model, latency_ms)
+    _log_usage("apply_decision", is_sensitive, len(records), policy_action, gen_model, latency_ms)
 
     return {
         "action_taken": action_taken,
@@ -568,15 +651,43 @@ def apply_decision(
     }
 
 
-
-
-
 # ── Helpers ─────────────────────────────────────────────────────────────────
+
+
+def _generation_unavailable_response(
+    *,
+    records: list[dict],
+    policy_action: str,
+    is_sensitive: bool,
+    requires_masking: bool,
+    model_used: str | None,
+    latency_ms: float,
+    masking_session_id: str | None,
+    placeholder_map: list[dict],
+    extra: dict | None = None,
+    error_code: str = "llm_request_failed",
+    error_message: str = "Language model request failed.",
+) -> dict:
+    """Return a source-free MCP error when generation fails."""
+    return {
+        "action_taken": "error",
+        "content": None,
+        "extraction_records": records,
+        "policy_action": policy_action,
+        "is_sensitive": is_sensitive,
+        "requires_masking": requires_masking,
+        "model_used": model_used,
+        "latency_ms": latency_ms,
+        "masking_session_id": masking_session_id,
+        "placeholder_map": placeholder_map,
+        "error_code": error_code,
+        "error_message": error_message,
+        **(extra or {}),
+    }
 
 
 def _log_usage(
     event: str,
-    text: str,
     is_sensitive: bool,
     records_count: int,
     policy_action: str,
@@ -585,15 +696,10 @@ def _log_usage(
 ) -> None:
     """Record a usage log entry."""
     try:
-        from db.session import get_session
-        from db.models import UsageLog
-
-        input_hash = hashlib.sha256(text.encode()).hexdigest()[:16]
         session = get_session()
         try:
             entry = UsageLog(
                 event=event,
-                input_hash=input_hash,
                 is_sensitive=is_sensitive,
                 records_count=records_count,
                 policy_action=policy_action,

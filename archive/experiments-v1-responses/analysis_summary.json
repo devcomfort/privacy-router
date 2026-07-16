@@ -1,0 +1,77 @@
+{
+  "prompt": "extract.fewshot.prompt",
+  "model": "openai/google/gemma-4-E4B-it",
+  "params": {
+    "temperature": 0.4,
+    "top_p": 0.7,
+    "max_tokens": 2048
+  },
+  "total_cases": 17,
+  "passed": 12,
+  "failed": 5,
+  "accuracy_pct": 70.6,
+  "by_type": {
+    "morphological": {
+      "total": 4,
+      "passed": 3,
+      "pct": 75.0
+    },
+    "contextual": {
+      "total": 9,
+      "passed": 5,
+      "pct": 55.6
+    },
+    "mixed": {
+      "total": 1,
+      "passed": 1,
+      "pct": 100.0
+    },
+    "none": {
+      "total": 3,
+      "passed": 3,
+      "pct": 100.0
+    }
+  },
+  "failures": [
+    {
+      "case_name": "내부URL",
+      "detection_type": "morphological",
+      "expected": "block",
+      "actual": "selective_mask",
+      "reason": "WRONG_ACTION: Expected 'block', got 'selective_mask'",
+      "error": null
+    },
+    {
+      "case_name": "이름+소속",
+      "detection_type": "contextual",
+      "expected": "selective_mask",
+      "actual": "block",
+      "reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+      "error": null
+    },
+    {
+      "case_name": "사업비밀(creation)",
+      "detection_type": "contextual",
+      "expected": "selective_mask",
+      "actual": "block",
+      "reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+      "error": null
+    },
+    {
+      "case_name": "모호한실험결과(creation)",
+      "detection_type": "contextual",
+      "expected": "selective_mask",
+      "actual": "block",
+      "reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+      "error": null
+    },
+    {
+      "case_name": "미공개상태",
+      "detection_type": "contextual",
+      "expected": "selective_mask",
+      "actual": "block",
+      "reason": "WRONG_ACTION: Expected 'selective_mask', got 'block'",
+      "error": null
+    }
+  ]
+}

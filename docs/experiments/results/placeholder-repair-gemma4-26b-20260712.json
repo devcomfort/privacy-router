@@ -1,0 +1,417 @@
+{
+  "created_at": "2026-07-12T15:44:21.251581+00:00",
+  "summary": {
+    "model": "openrouter/google/gemma-4-26b-a4b-it",
+    "cases": 10,
+    "trials": 5,
+    "samples": 50,
+    "accuracy": 1.0,
+    "mapping_accuracy": 1.0,
+    "ambiguous_null_accuracy": 1.0,
+    "latency_mean_s": 1.7146052148658781,
+    "latency_median_s": 0.6266805951017886,
+    "latency_p95_s": 8.083844763925299
+  },
+  "results": [
+    {
+      "trial": 1,
+      "case_id": "single_hash_drift_en",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.9972963449545205
+    },
+    {
+      "trial": 1,
+      "case_id": "category_typo_with_semantics",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.7913548138458282
+    },
+    {
+      "trial": 1,
+      "case_id": "same_category_position",
+      "expected": "EMAIL_ADDRESS#22222222",
+      "actual": "EMAIL_ADDRESS#22222222",
+      "passed": true,
+      "latency_s": 0.38790232012979686
+    },
+    {
+      "trial": 1,
+      "case_id": "same_category_ambiguous",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 1.8124392440076917
+    },
+    {
+      "trial": 1,
+      "case_id": "cross_category_email",
+      "expected": "EMAIL_ADDRESS#e5f6a7b8",
+      "actual": "EMAIL_ADDRESS#e5f6a7b8",
+      "passed": true,
+      "latency_s": 0.4592814079951495
+    },
+    {
+      "trial": 1,
+      "case_id": "korean_phone",
+      "expected": "MOBILE_PHONE_NUMBER#1234abcd",
+      "actual": "MOBILE_PHONE_NUMBER#1234abcd",
+      "passed": true,
+      "latency_s": 0.26227777218446136
+    },
+    {
+      "trial": 1,
+      "case_id": "research_codename",
+      "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "actual": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "passed": true,
+      "latency_s": 0.3984143871348351
+    },
+    {
+      "trial": 1,
+      "case_id": "json_tool_context",
+      "expected": "CREDENTIAL#cafebabe",
+      "actual": "CREDENTIAL#cafebabe",
+      "passed": true,
+      "latency_s": 0.6398744550533593
+    },
+    {
+      "trial": 1,
+      "case_id": "no_semantic_match",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 0.9945615949109197
+    },
+    {
+      "trial": 1,
+      "case_id": "preserve_exact_registered_choice",
+      "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "actual": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "passed": true,
+      "latency_s": 0.4986064520198852
+    },
+    {
+      "trial": 2,
+      "case_id": "single_hash_drift_en",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.9234318339731544
+    },
+    {
+      "trial": 2,
+      "case_id": "category_typo_with_semantics",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.6715281631331891
+    },
+    {
+      "trial": 2,
+      "case_id": "same_category_position",
+      "expected": "EMAIL_ADDRESS#22222222",
+      "actual": "EMAIL_ADDRESS#22222222",
+      "passed": true,
+      "latency_s": 0.452607783023268
+    },
+    {
+      "trial": 2,
+      "case_id": "same_category_ambiguous",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 7.1023109999950975
+    },
+    {
+      "trial": 2,
+      "case_id": "cross_category_email",
+      "expected": "EMAIL_ADDRESS#e5f6a7b8",
+      "actual": "EMAIL_ADDRESS#e5f6a7b8",
+      "passed": true,
+      "latency_s": 0.23731359094381332
+    },
+    {
+      "trial": 2,
+      "case_id": "korean_phone",
+      "expected": "MOBILE_PHONE_NUMBER#1234abcd",
+      "actual": "MOBILE_PHONE_NUMBER#1234abcd",
+      "passed": true,
+      "latency_s": 0.5522417349275202
+    },
+    {
+      "trial": 2,
+      "case_id": "research_codename",
+      "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "actual": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "passed": true,
+      "latency_s": 0.5627800119109452
+    },
+    {
+      "trial": 2,
+      "case_id": "json_tool_context",
+      "expected": "CREDENTIAL#cafebabe",
+      "actual": "CREDENTIAL#cafebabe",
+      "passed": true,
+      "latency_s": 0.4823900528717786
+    },
+    {
+      "trial": 2,
+      "case_id": "no_semantic_match",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 1.1026129759848118
+    },
+    {
+      "trial": 2,
+      "case_id": "preserve_exact_registered_choice",
+      "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "actual": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "passed": true,
+      "latency_s": 1.3316316797863692
+    },
+    {
+      "trial": 3,
+      "case_id": "single_hash_drift_en",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.5339250350371003
+    },
+    {
+      "trial": 3,
+      "case_id": "category_typo_with_semantics",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.6924865699838847
+    },
+    {
+      "trial": 3,
+      "case_id": "same_category_position",
+      "expected": "EMAIL_ADDRESS#22222222",
+      "actual": "EMAIL_ADDRESS#22222222",
+      "passed": true,
+      "latency_s": 0.47306798305362463
+    },
+    {
+      "trial": 3,
+      "case_id": "same_category_ambiguous",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 1.2849300680682063
+    },
+    {
+      "trial": 3,
+      "case_id": "cross_category_email",
+      "expected": "EMAIL_ADDRESS#e5f6a7b8",
+      "actual": "EMAIL_ADDRESS#e5f6a7b8",
+      "passed": true,
+      "latency_s": 0.5001182411797345
+    },
+    {
+      "trial": 3,
+      "case_id": "korean_phone",
+      "expected": "MOBILE_PHONE_NUMBER#1234abcd",
+      "actual": "MOBILE_PHONE_NUMBER#1234abcd",
+      "passed": true,
+      "latency_s": 0.7047532279975712
+    },
+    {
+      "trial": 3,
+      "case_id": "research_codename",
+      "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "actual": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "passed": true,
+      "latency_s": 0.5051454990170896
+    },
+    {
+      "trial": 3,
+      "case_id": "json_tool_context",
+      "expected": "CREDENTIAL#cafebabe",
+      "actual": "CREDENTIAL#cafebabe",
+      "passed": true,
+      "latency_s": 0.3942036551889032
+    },
+    {
+      "trial": 3,
+      "case_id": "no_semantic_match",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 1.31505515309982
+    },
+    {
+      "trial": 3,
+      "case_id": "preserve_exact_registered_choice",
+      "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "actual": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "passed": true,
+      "latency_s": 0.7993236659094691
+    },
+    {
+      "trial": 4,
+      "case_id": "single_hash_drift_en",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.6432459680363536
+    },
+    {
+      "trial": 4,
+      "case_id": "category_typo_with_semantics",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.6503064569551498
+    },
+    {
+      "trial": 4,
+      "case_id": "same_category_position",
+      "expected": "EMAIL_ADDRESS#22222222",
+      "actual": "EMAIL_ADDRESS#22222222",
+      "passed": true,
+      "latency_s": 0.5904716590885073
+    },
+    {
+      "trial": 4,
+      "case_id": "same_category_ambiguous",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 17.773659174097702
+    },
+    {
+      "trial": 4,
+      "case_id": "cross_category_email",
+      "expected": "EMAIL_ADDRESS#e5f6a7b8",
+      "actual": "EMAIL_ADDRESS#e5f6a7b8",
+      "passed": true,
+      "latency_s": 0.5402651859913021
+    },
+    {
+      "trial": 4,
+      "case_id": "korean_phone",
+      "expected": "MOBILE_PHONE_NUMBER#1234abcd",
+      "actual": "MOBILE_PHONE_NUMBER#1234abcd",
+      "passed": true,
+      "latency_s": 0.613486735150218
+    },
+    {
+      "trial": 4,
+      "case_id": "research_codename",
+      "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "actual": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "passed": true,
+      "latency_s": 0.6081782940309495
+    },
+    {
+      "trial": 4,
+      "case_id": "json_tool_context",
+      "expected": "CREDENTIAL#cafebabe",
+      "actual": "CREDENTIAL#cafebabe",
+      "passed": true,
+      "latency_s": 0.33382399287074804
+    },
+    {
+      "trial": 4,
+      "case_id": "no_semantic_match",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 2.066729793092236
+    },
+    {
+      "trial": 4,
+      "case_id": "preserve_exact_registered_choice",
+      "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "actual": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "passed": true,
+      "latency_s": 0.5158512131310999
+    },
+    {
+      "trial": 5,
+      "case_id": "single_hash_drift_en",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.3903851609211415
+    },
+    {
+      "trial": 5,
+      "case_id": "category_typo_with_semantics",
+      "expected": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "actual": "MOBILE_PHONE_NUMBER#a1b2c3d4",
+      "passed": true,
+      "latency_s": 0.7189498969819397
+    },
+    {
+      "trial": 5,
+      "case_id": "same_category_position",
+      "expected": "EMAIL_ADDRESS#22222222",
+      "actual": "EMAIL_ADDRESS#22222222",
+      "passed": true,
+      "latency_s": 0.5707189589738846
+    },
+    {
+      "trial": 5,
+      "case_id": "same_category_ambiguous",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 5.673122123815119
+    },
+    {
+      "trial": 5,
+      "case_id": "cross_category_email",
+      "expected": "EMAIL_ADDRESS#e5f6a7b8",
+      "actual": "EMAIL_ADDRESS#e5f6a7b8",
+      "passed": true,
+      "latency_s": 0.7292960921768099
+    },
+    {
+      "trial": 5,
+      "case_id": "korean_phone",
+      "expected": "MOBILE_PHONE_NUMBER#1234abcd",
+      "actual": "MOBILE_PHONE_NUMBER#1234abcd",
+      "passed": true,
+      "latency_s": 14.816156836925074
+    },
+    {
+      "trial": 5,
+      "case_id": "research_codename",
+      "expected": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "actual": "UNPUBLISHED_RESEARCH_CONCEPT#abcddcba",
+      "passed": true,
+      "latency_s": 0.5093140020035207
+    },
+    {
+      "trial": 5,
+      "case_id": "json_tool_context",
+      "expected": "CREDENTIAL#cafebabe",
+      "actual": "CREDENTIAL#cafebabe",
+      "passed": true,
+      "latency_s": 8.083844763925299
+    },
+    {
+      "trial": 5,
+      "case_id": "no_semantic_match",
+      "expected": null,
+      "actual": null,
+      "passed": true,
+      "latency_s": 1.6187516788486391
+    },
+    {
+      "trial": 5,
+      "case_id": "preserve_exact_registered_choice",
+      "expected": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "actual": "PROJECT_BUDGET_AMOUNT#bbbbbbbb",
+      "passed": true,
+      "latency_s": 0.41983603895641863
+    }
+  ]
+}

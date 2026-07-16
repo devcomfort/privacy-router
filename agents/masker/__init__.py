@@ -26,6 +26,15 @@ Examples
 """
 
 from .contract_store import ContractStore
+from .crypto import (
+    cache_fingerprint,
+    decrypt_field,
+    encrypt_field,
+    fingerprint_field,
+    generate_key,
+    key_fingerprint,
+    resolve_provider_key,
+)
 from .masker import HydrationError, Masker
 from .schemas import HydrationResult, MaskingContract, MaskingResult
 
@@ -36,4 +45,11 @@ __all__ = [
     "MaskingResult",
     "HydrationResult",
     "HydrationError",
+    "cache_fingerprint",
+    "decrypt_field",
+    "encrypt_field",
+    "fingerprint_field",
+    "generate_key",
+    "key_fingerprint",
+    "resolve_provider_key",
 ]

@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "id": "personal_contextual_en_L1_01",
+      "text": "I need help preparing my tax return documents. My social security number is 078-05-1120, and I earned $87,500 last year from my employer, Acme Corp. I also have a rental property at 4521 Oak Ridge Drive, Austin, TX 78701 that generated $24,000 in rental income. Can you help me figure out what deductions I might qualify for and whether I should itemize or take the standard deduction?",
+      "sensitivity_level": 1,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The user's full social security number is explicitly stated in the message. An SSN is one of the most critical pieces of PII — it enables identity theft and financial fraud. Even if the SSN were masked, the remaining query about tax deductions is generic enough to answer without any personal data, but the system should block rather than selectively mask because the user is directly providing core PII as part of their request context, and the SSN combined with name, address, and income creates a high-risk identity exposure. Blocking prevents the SSN from ever reaching the external API."
+    },
+    {
+      "id": "personal_contextual_en_L1_02",
+      "text": "My Wells Fargo checking account number is 7392018456 and my routing number is 121000248. I noticed three suspicious charges last week — one for $349.99 at an electronics store I've never visited, another for $1,200 wire transfer to someone named Dmitri Volkov, and a recurring $29.99 subscription I don't recognize. I've already called the bank's fraud department but I want to draft a formal dispute letter. Can you help me write a professional letter to Wells Fargo disputing these transactions and requesting a full investigation?",
+      "sensitivity_level": 1,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "block",
+      "reasoning": "The message contains the user's full bank account number and routing number — financial credentials that could be used for unauthorized transactions. Combined with the user's likely name (implied by being the account holder) and specific transaction details, this creates a severe financial fraud risk. The sensitive financial credentials are not incidental — they are embedded in the core narrative of the dispute. Even though the user's actual request (drafting a dispute letter) could theoretically be fulfilled without the account numbers, the system must block because these credentials should never be transmitted to any external API."
+    },
+    {
+      "id": "personal_contextual_en_L2_01",
+      "text": "I'm a senior engineer at Rivian working on our next-gen thermal management system for the R3 platform, internally codenamed 'Project Glacier.' The battery pack design uses a novel phase-change material that our team developed — we're targeting a 15% improvement in cold-weather range compared to current models. I'm trying to write a technical presentation for our VP of Engineering, and I want to explain the heat dissipation advantages of our approach versus the industry-standard liquid cooling systems. Can you help me structure this presentation with clear technical comparisons?",
+      "sensitivity_level": 2,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "This message contains insider-sensitive information: an internal project codename ('Project Glacier'), the specific platform (R3), proprietary performance targets (15% improvement), and details about a novel phase-change material that hasn't been publicly announced. A domain expert familiar with Rivian's product pipeline would recognize these as non-public trade secrets. However, the user's actual request — help structuring a technical presentation comparing thermal management approaches — can be fulfilled by masking the codenames, specific targets, and proprietary details while preserving the general technical question about phase-change vs. liquid cooling."
+    },
+    {
+      "id": "personal_contextual_en_L2_02",
+      "text": "Our startup just closed a Series B round led by Sequoia Capital at a $240 million pre-money valuation, and I need to prepare talking points for an upcoming all-hands meeting. The round included strategic participation from Samsung Ventures, and we're planning to use the funds primarily to expand our Seoul engineering office from 12 to about 50 people over the next 18 months. I want to frame the narrative around our growth trajectory without revealing specific financial terms to the broader team. Can you help me draft an inspiring but appropriately vague announcement speech?",
+      "sensitivity_level": 2,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "The message contains non-public financial details: specific Series B valuation ($240M pre-money), named investors (Sequoia Capital, Samsung Ventures), and strategic expansion plans (Seoul office headcount growth from 12 to 50). These are insider-sensitive details that would be meaningful to competitors, investors, or journalists. However, the user's request — drafting an appropriately vague announcement speech — can be fulfilled by masking the specific numbers, investor names, and strategic details while preserving the general framing guidance. The user even explicitly wants to avoid revealing these details, so masking aligns with their intent."
+    },
+    {
+      "id": "personal_contextual_en_L3_01",
+      "text": "I'm a PhD student in computational neuroscience at MIT, and I've been developing a new approach to decode neural signals from EEG data using a transformer-based architecture that I think could significantly outperform existing brain-computer interface methods. My advisor, Professor Sarah Chen, thinks the preliminary results are promising enough to submit to NeurIPS next year. I'm considering whether to also file a provisional patent before the paper goes on arXiv, since there might be commercial applications in assistive technology for people with motor disabilities. What factors should I weigh when deciding between open publication and patent protection?",
+      "sensitivity_level": 3,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "This sits in genuinely ambiguous territory. The research direction (transformer-based EEG decoding for BCIs) could be considered early-stage academic work that's naturally shared in the research community, or it could be seen as strategically sensitive if it represents a novel competitive advantage. The advisor's name adds a personal identifier. The publication target (NeurIPS) and patent consideration add strategic intent. Experts might disagree on whether this is sensitive — it's academic research that would eventually be public, but pre-publication strategic plans around IP protection are contextually sensitive. Masking the advisor's name and specific submission venue is appropriate, as the general question about publication vs. patent strategy can be answered without those details."
+    },
+    {
+      "id": "personal_contextual_en_L3_02",
+      "text": "I've been thinking about leaving my current position as a product manager at Google to start my own company focused on AI-powered personal finance tools for Gen Z users. I've done some preliminary market research and I think there's a real gap in the market — most existing apps like Mint and YNAB are designed for older demographics and don't integrate well with the financial products that younger people actually use, like Venmo, Cash App, and crypto wallets. I haven't told my manager or anyone at work yet. Can you help me think through a realistic timeline and key milestones for transitioning from a full-time role to running a startup?",
+      "sensitivity_level": 3,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "selective_mask",
+      "reasoning": "The strategic intention to leave a specific employer (Google) to start a competing venture could be considered sensitive — it involves career plans, competitive intelligence, and the user explicitly states they haven't disclosed this to their employer. However, the general concept of transitioning from employment to entrepreneurship is widely discussed publicly, and the specific product idea (AI personal finance for Gen Z) is broad enough that it's not clearly proprietary. This is genuinely ambiguous — some would consider it sensitive career information, others would see it as a normal career planning question. Masking the specific employer name is appropriate, as the general advice about startup timelines can be provided without knowing where the user currently works."
+    },
+    {
+      "id": "personal_contextual_en_L4_01",
+      "text": "I'm trying to understand the key differences between REST and GraphQL APIs for a web application I'm building. The app will need to handle real-time updates for a dashboard that displays things like stock prices, weather data, and news feeds. I've used REST before but I've never worked with GraphQL, and I'm not sure which approach would be better for handling frequent data updates with minimal bandwidth usage. Could you explain the trade-offs between these two approaches and recommend which one might be more suitable for my use case?",
+      "sensitivity_level": 4,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This message contains no sensitive information whatsoever. It describes a general technical question about API architecture choices (REST vs. GraphQL) using publicly available technology concepts. The use case described (dashboard with stock prices, weather, news) is generic and hypothetical. There are no personal identifiers, no proprietary information, no internal project details, and no strategic business information. This is a straightforward technical question that should be passed through without any modification."
+    },
+    {
+      "id": "personal_contextual_en_L4_02",
+      "text": "My daughter is turning 10 next month and I want to plan a really fun birthday party for her. She loves art and science, so I was thinking of doing some kind of combined theme — maybe a 'mad scientist artist' party where kids do experiments that create art, like making slime with food coloring or doing baking soda volcano paintings. We're expecting about 15 to 20 kids from her school. Could you suggest some age-appropriate activities that combine science and art, along with a rough timeline for a 3-hour party and tips for keeping a group of that size engaged?",
+      "sensitivity_level": 4,
+      "context": "personal",
+      "type": "contextual",
+      "language": "en",
+      "expected_action": "allow",
+      "reasoning": "This message describes a common parenting scenario — planning a child's birthday party. While it mentions a child's age and general interests, this is routine family information shared in a benign context, not sensitive PII. There are no identifying details like full names, school names, addresses, or other information that could be used to identify or harm the family. The request is for general party planning advice that any parent might ask. This should be allowed through without any masking or blocking."
+    }
+  ]
+}

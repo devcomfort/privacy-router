@@ -57,7 +57,7 @@ class Judgment(BaseModel):
     meaningful_after_masking : MeaningfulnessAssessment
         Whether the query survives masking.
     policy_action : str
-        One of ``"allow"``, ``"mask_and_send"``, or ``"process_locally"``.
+        One of ``"allow"``, ``"selective_mask"``, or ``"block"``.
     strategy : str
         Korean recommendation for the routing layer.
     rationale : str
@@ -66,9 +66,9 @@ class Judgment(BaseModel):
     Examples
     --------
     >>> mam = MeaningfulnessAssessment(is_meaningful_after_masking=True, rationale="컨텍스트")
-    >>> j = Judgment(meaningful_after_masking=mam, policy_action="mask_and_send", strategy="마스킹 후 전송", rationale="컨텍스트이므로")
+    >>> j = Judgment(meaningful_after_masking=mam, policy_action="selective_mask", strategy="마스킹 후 전송", rationale="컨텍스트이므로")
     >>> j.policy_action
-    'mask_and_send'
+    'selective_mask'
     """
 
     meaningful_after_masking: MeaningfulnessAssessment = Field(
@@ -77,8 +77,8 @@ class Judgment(BaseModel):
     )
     policy_action: str = Field(
         ...,
-        description="Recommended action: 'allow', 'mask_and_send', or 'process_locally'.",
-        examples=["mask_and_send", "process_locally", "allow"],
+        description="Recommended action: 'allow', 'selective_mask', or 'block'.",
+        examples=["selective_mask", "block", "allow"],
     )
     strategy: str = Field(
         ...,

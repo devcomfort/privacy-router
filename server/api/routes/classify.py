@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
-import hashlib
-import os
-
-import litellm
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlmodel import select
 
-from agents.extractor import ExtractionRecord, Extractor
-from agents.masker import Masker
-from agents.router import PrivacyRouter, RouteResult
-from db.models import AgentConfig
-from db.session import get_session
-from server.api.auth import require_auth
-from server.api.main import app
+from agents import (
+    ContractStore,
+    Masker,
+    PipelineResult,
+    PrivacyAnalysisUnavailable,
+    PrivacyRouter,
+    RouteResult,
+    call_llm,
+    redact_extraction_records,
+)
+from config import resolve_generation_binding
+from db import UsageLog, get_session
+from server.api import app, require_auth
+from server.config import get_config
 
 
 class ClassifyRequest(BaseModel):
@@ -24,7 +26,7 @@ class ClassifyRequest(BaseModel):
 
 
 class ClassificationResponse(BaseModel):
-    records: list[ExtractionRecord] = Field(default_factory=list)
+    records: list[dict[str, str | float | bool | int]] = Field(default_factory=list)
     is_sensitive: bool
     policy_action: str
     route: RouteResult
@@ -32,9 +34,11 @@ class ClassificationResponse(BaseModel):
     strategy: str = ""
     rationale: str = ""
 
+
 class GenerateRequest(BaseModel):
     text: str = Field(...)
     stream: bool = Field(default=False)
+    model: str | None = Field(default=None)
 
 
 class GenerateResponse(BaseModel):
@@ -43,45 +47,34 @@ class GenerateResponse(BaseModel):
     policy_action: str
     model_used: str
     records: list[dict] = Field(default_factory=list)
+    masking_session_id: str | None = None
 
 
-def _load_agent_models(session) -> dict[str, str]:
-    configs = session.exec(select(AgentConfig)).all()
-    return {c.agent_name: c.model_id for c in configs}
+def _analyze(text: str) -> PipelineResult:
+    """Normalize every privacy-analysis failure to the public safe error."""
+    try:
+        return PrivacyRouter().process(text)
+    except PrivacyAnalysisUnavailable:
+        raise
+    except Exception as exc:
+        raise PrivacyAnalysisUnavailable("Sensitive-information analysis unavailable.") from exc
 
 
 @app.post("/api/v1/classify", response_model=ClassificationResponse)
 def classify_endpoint(body: ClassifyRequest, _auth: str = Depends(require_auth)):
     """Analyse text through the privacy pipeline (no LLM call)."""
-    session = get_session()
-    try:
-        agent_models = _load_agent_models(session)
-    finally:
-        session.close()
+    config = get_config()
+    result = _analyze(body.text)
 
-    extractor = agent_models.get("extractor", "openrouter/mistralai/ministral-3b-2512")
-    judge = agent_models.get("judge", "openrouter/google/gemini-3.1-flash-lite")
-    generator = agent_models.get("generator", extractor)
-    local = agent_models.get("local", extractor)
-
-    pr = PrivacyRouter(extractor_model=extractor, judge_model=judge)
-    result = pr.process(body.text)
-
-    if result.route.endpoint == "local_api":
-        recommended_model = local
-    elif result.route.endpoint in ("blocked", "prompt"):
-        recommended_model = "none"
-    else:
-        recommended_model = generator
+    recommended_model = config.local.model if result.route.endpoint == "local_api" else config.external.model
 
     _log_classify_usage(
-        body.text,
         result.sensitivity.is_sensitive,
         len(result.records),
         result.judgment.policy_action,
     )
     return ClassificationResponse(
-        records=result.records,
+        records=redact_extraction_records(result.records),
         is_sensitive=result.sensitivity.is_sensitive,
         policy_action=result.judgment.policy_action,
         route=result.route,
@@ -94,86 +87,84 @@ def classify_endpoint(body: ClassifyRequest, _auth: str = Depends(require_auth))
 @app.post("/api/v1/generate", response_model=GenerateResponse)
 def generate_endpoint(body: GenerateRequest, _auth: str = Depends(require_auth)):
     """Analyse text + forward to LLM."""
-    session = get_session()
-    try:
-        agent_models = _load_agent_models(session)
-    finally:
-        session.close()
+    config = get_config()
+    result = _analyze(body.text)
 
-    extractor = agent_models.get("extractor", "openrouter/mistralai/ministral-3b-2512")
-    judge = agent_models.get("judge", "openrouter/google/gemini-3.1-flash-lite")
-    generator = agent_models.get("generator", extractor)
-    local = agent_models.get("local", extractor)
-
-    pr = PrivacyRouter(extractor_model=extractor, judge_model=judge)
-    result = pr.process(body.text)
-
-    records = [
-        {"category": r.category, "span": r.span, "confidence": r.confidence}
-        for r in result.records
-    ]
+    records = redact_extraction_records(result.records)
+    record_payloads = [record.model_dump() for record in result.records]
     is_sensitive = result.sensitivity.is_sensitive
     policy_action = result.judgment.policy_action
+    try:
+        model_used, generation_config, api_base = resolve_generation_binding(
+            config,
+            policy_action,
+            body.model,
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid generator model",
+        ) from exc
 
-    # ── Route ────────────────────────────────────────────────────────────
-    if result.route.endpoint == "blocked":
-        content = "🚫 요청이 차단되었습니다."
-        model_used = "none"
-    elif result.route.endpoint == "prompt":
-        content = "⚠️ 확인이 필요합니다. X-Privacy-Router-Confirm: true 헤더로 재요청하세요."
-        model_used = "none"
-    elif result.route.endpoint == "external_api":
-        forward_text = body.text
-        if result.route.requires_masking:
-            ext = Extractor()
-            extraction = ext.extract(body.text)
-            masker = Masker()
-            mask_result = masker.mask(body.text, [r.model_dump() for r in extraction.records])
-            forward_text = mask_result.masked_text
-        try:
-            resp = litellm.completion(
-                model=generator,
-                messages=[{"role": "user", "content": forward_text}],
-                max_tokens=512,
-                api_key=os.getenv("OPENROUTER_API_KEY", ""),
+    forward_text = body.text
+    masking_result = None
+    masking_session_id = None
+    if result.route.requires_masking:
+        masker = Masker()
+        masking_result = masker.mask(body.text, record_payloads)
+        forward_text = masking_result.masked_text
+
+    content = call_llm(
+        [{"role": "user", "content": forward_text}],
+        model=model_used,
+        api_base=api_base,
+        **generation_config,
+    )
+    if masking_result is not None:
+        content = (
+            Masker()
+            .hydrate(
+                content,
+                masking_result.contract,
             )
-            content = resp.choices[0].message.content or ""
-            model_used = generator
-        except Exception as exc:
-            content = f"Error: {exc}"
-            model_used = "error"
-    else:
-        content = "⚠️ 로컬에서 처리해야 합니다."
-        model_used = local
-
+            .hydrated_text
+        )
+        store = ContractStore()
+        masking_session_id = store.create_session(
+            chat_id=None,
+            record_count=len(record_payloads),
+            policy_action=policy_action,
+            owner_id=_auth,
+        )
+        store.save_records(
+            masking_session_id,
+            record_payloads,
+            masking_result.contract.placeholder_map,
+        )
 
     # Record usage
-    _log_classify_usage(body.text, is_sensitive, len(records), policy_action)
+    _log_classify_usage(is_sensitive, len(records), policy_action)
     return GenerateResponse(
         content=content,
         is_sensitive=is_sensitive,
         policy_action=policy_action,
         model_used=model_used,
         records=records,
+        masking_session_id=masking_session_id,
     )
 
 
 def _log_classify_usage(
-    text: str,
     is_sensitive: bool,
     records_count: int,
     policy_action: str | None,
 ) -> None:
     """Record a usage log entry (never fails the request)."""
     try:
-        from db.models import UsageLog
-        from db.session import get_session
-
         session = get_session()
         try:
             log = UsageLog(
                 event="classify",
-                input_hash=hashlib.sha256(text.encode()).hexdigest()[:16],
                 is_sensitive=is_sensitive,
                 records_count=records_count,
                 policy_action=policy_action,

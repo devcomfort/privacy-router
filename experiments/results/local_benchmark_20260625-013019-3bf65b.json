@@ -1,0 +1,24 @@
+{
+  "run_id": "20260625-013019-3bf65b",
+  "schema_version": "v2-extractor-judge",
+  "pipeline": "extractor_judge",
+  "prompt_file": "extract.fewshot_v3.prompt",
+  "n_cases": 120,
+  "timestamp": "2026-06-25T01:46:15.612645",
+  "models": {
+    "Gemma4-E4B": {
+      "overall_pct": 74.16666666666667,
+      "morph_pct": 74.07407407407408,
+      "ctx_pct": 68.51851851851852,
+      "ko_pct": 75.0,
+      "en_pct": 73.33333333333333,
+      "avg_ttft_ms": 5761.199140548706,
+      "avg_tpot_ms": 115.49475463040537,
+      "avg_tps": 8.87941237800628,
+      "avg_latency_s": 5.761199140548706,
+      "avg_retries": 0.0,
+      "structured_rate_pct": 100.0,
+      "n_cases": 120
+    }
+  }
+}

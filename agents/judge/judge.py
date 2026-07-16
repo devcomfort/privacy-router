@@ -15,12 +15,12 @@ Examples
 ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
 ... )
 >>> j.policy_action
-'mask_and_send'
+'selective_mask'
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from .schemas import Judgment, MeaningfulnessAssessment
 
@@ -28,6 +28,31 @@ from .schemas import Judgment, MeaningfulnessAssessment
 
 _DEFAULT_JUDGE: Judge | None = None
 """Module-level singleton, populated on first call to :func:`judge`."""
+_ASSESSMENT_CACHE: dict[tuple[bool, str], MeaningfulnessAssessment] = {}
+
+
+def _meaningfulness(is_meaningful: bool, rationale: str) -> MeaningfulnessAssessment:
+    """Return a cached masking-meaningfulness assessment."""
+    key = (is_meaningful, rationale)
+    assessment = _ASSESSMENT_CACHE.get(key)
+    if assessment is None:
+        assessment = MeaningfulnessAssessment(
+            is_meaningful_after_masking=is_meaningful,
+            rationale=rationale,
+        )
+        _ASSESSMENT_CACHE[key] = assessment
+    return assessment
+
+
+def resolve_policy_action(
+    declared_sensitive: bool,
+    record_count: int,
+    essential_count: int,
+) -> Literal["allow", "selective_mask", "block"]:
+    """Resolve the fail-closed action for an extraction state."""
+    if record_count == 0:
+        return "block" if declared_sensitive else "allow"
+    return "block" if essential_count > 0 else "selective_mask"
 
 
 # ── Judge ────────────────────────────────────────────────────────────────────
@@ -85,43 +110,59 @@ class Judge:
         ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
         ... )
         >>> j.policy_action
-        'mask_and_send'
+        'selective_mask'
         """
-        is_sensitive = sensitivity.get("is_sensitive", len(records) > 0)
+        declared_sensitive = bool(sensitivity.get("is_sensitive", False))
+        essential_count = sum(1 for r in records if r.get("is_essential", False))
+        policy_action = resolve_policy_action(
+            declared_sensitive,
+            len(records),
+            essential_count,
+        )
 
-        # No sensitive info → allow
-        if not is_sensitive or not records:
+        if policy_action == "allow":
             return Judgment(
-                meaningful_after_masking=MeaningfulnessAssessment(
-                    is_meaningful_after_masking=True,
-                    rationale="민감 정보가 없습니다.",
+                meaningful_after_masking=_meaningfulness(
+                    True,
+                    "마스킹할 민감 정보가 없습니다.",
                 ),
-                policy_action="route_to_external",
-                strategy="민감 정보가 없으므로 외부 API를 사용합니다.",
-                rationale=sensitivity.get("rationale", "탐지된 민감 정보가 없습니다."),
+                policy_action="allow",
+                strategy="외부 LLM에 원문을 전송합니다.",
+                rationale=sensitivity.get("rationale", "민감 정보 없음"),
             )
 
-        # Check is_essential flags
-        essential_count = sum(1 for r in records if r.get("is_essential", False))
-
-        if essential_count > 0:
+        if not records:
             return Judgment(
-                meaningful_after_masking=MeaningfulnessAssessment(
-                    is_meaningful_after_masking=False,
-                    rationale=f"essential: {essential_count}/{len(records)} records",
+                meaningful_after_masking=_meaningfulness(
+                    False,
+                    "민감 정보로 판정되었지만 마스킹할 범위를 확인할 수 없습니다.",
                 ),
-                policy_action="route_to_local",
+                policy_action="block",
+                strategy="원문을 외부로 전송하지 않고 로컬 LLM으로 라우팅합니다.",
+                rationale=sensitivity.get(
+                    "rationale",
+                    "민감 정보로 판정되었지만 마스킹 범위가 없습니다.",
+                ),
+            )
+
+        if policy_action == "block":
+            return Judgment(
+                meaningful_after_masking=_meaningfulness(
+                    False,
+                    f"essential: {essential_count}/{len(records)} records",
+                ),
+                policy_action="block",
                 strategy="민감 정보가 질의의 핵심이므로 로컬에서 처리합니다.",
                 rationale=f"essential: {essential_count}/{len(records)} records",
             )
 
         # All records are maskable
         return Judgment(
-            meaningful_after_masking=MeaningfulnessAssessment(
-                is_meaningful_after_masking=True,
-                rationale=f"마스킹 가능: {len(records)} records",
+            meaningful_after_masking=_meaningfulness(
+                True,
+                f"마스킹 가능: {len(records)} records",
             ),
-            policy_action="mask_and_send",
+            policy_action="selective_mask",
             strategy="민감 정보를 마스킹 후 요청을 수행합니다.",
             rationale=f"마스킹 가능: {len(records)} records",
         )

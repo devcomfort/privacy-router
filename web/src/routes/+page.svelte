@@ -64,14 +64,14 @@
 				<p class="text-sm text-slate-400">{$t('landing.card.dashboard.desc')}</p>
 			</div>
 			<a
-				href="/documentation"
+			href="/docs"
 				class="group rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-left transition hover:border-slate-700 hover:bg-slate-900"
 			>
 				<div class="text-2xl mb-2">📚</div>
 				<h2 class="font-semibold text-white group-hover:text-blue-400 transition">
 					{$t('nav.docs')}
 				</h2>
-				<p class="text-sm text-slate-400">Architecture, pipeline, and integration docs</p>
+				<p class="text-sm text-slate-400">{$t('landing.card.docs.desc')}</p>
 			</a>
 			<a
 				href="/demo"

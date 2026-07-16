@@ -27,9 +27,12 @@ True
 
 from __future__ import annotations
 
+import secrets
 from typing import Any
 
 from .schemas import HydrationResult, MaskingContract, MaskingResult
+
+_PLACEHOLDER_LABEL = "SENSITIVE_DATA"
 
 
 class HydrationError(Exception):
@@ -44,8 +47,7 @@ class HydrationError(Exception):
     def __init__(self, unresolved: list[str]) -> None:
         self.unresolved = unresolved
         super().__init__(
-            f"Hydration failed: {len(unresolved)} unresolvable "
-            f"placeholder(s) found: {', '.join(unresolved[:5])}"
+            f"Hydration failed: {len(unresolved)} unresolvable placeholder(s) found: {', '.join(unresolved[:5])}"
         )
 
 
@@ -66,41 +68,38 @@ class Masker:
     Refer to the :ref:`module-level example <masker-example>`.
     """
 
-    def mask(self, text: str, records: list[dict[str, Any]]) -> MaskingResult:
-        """Replace sensitive spans with stable UID-based placeholders.
+    def mask(
+        self,
+        text: str,
+        records: list[dict[str, Any]],
+        *,
+        placeholder_registry: dict[str, str] | None = None,
+    ) -> MaskingResult:
+        """Replace sensitive spans with request-scoped opaque placeholders.
 
-        Placeholders use the format CATEGORY#hash8 where hash8 is the
-        first 8 chars of SHA-256 of the original value. This makes
-        placeholders deterministic — the same value always gets the same
-        placeholder, even across different masking operations. No brackets
-        are used so the placeholder reads naturally in LLM output.
-
-        Parameters
-        ----------
-        text : str
-            The original text to mask.
-        records : list of dict
-            Extraction records. Each must have ``category``, ``span``,
-            ``start``, and ``end``.
-
-        Returns
-        -------
-        MaskingResult
-            Masked text and the immutable hydration contract.
+        Placeholders use ``SENSITIVE_DATA#random8``. A caller that masks
+        multiple fields from one request can share ``placeholder_registry`` so
+        repeated values use one token. A new registry per request prevents
+        cross-request linkage, and prompt-derived categories never cross the
+        trust boundary.
         """
-        import hashlib
-
-        sorted_records = sorted(
-            records,
-            key=lambda r: r.get("start", 0),
-            reverse=True,
-        )
+        if len(records) <= 1:
+            sorted_records = records
+        else:
+            sorted_records = sorted(
+                records,
+                key=lambda record: record.get("start", 0),
+                reverse=True,
+            )
 
         placeholder_map: dict[str, str] = {}
+        placeholders_by_span = placeholder_registry if placeholder_registry is not None else {}
+        reserved_placeholders = set(placeholders_by_span.values())
+        if len(reserved_placeholders) != len(placeholders_by_span):
+            raise ValueError("Placeholder registry contains duplicate tokens.")
         masked = text
 
         for record in sorted_records:
-            category = record.get("category", "REDACTED")
             span = record.get("span", "")
             start = record.get("start", 0)
             end = record.get("end", 0)
@@ -108,15 +107,20 @@ class Masker:
             if masked[start:end] != span:
                 found = masked.find(span)
                 if found == -1:
-                    # Span not found — skip (SLM non-determinism)
                     continue
                 start, end = found, found + len(span)
 
-            # Deterministic UID: first 8 chars of SHA-256
-            uid = hashlib.sha256(span.encode()).hexdigest()[:8]
-            placeholder = f"{category}#{uid}"
-            masked = masked[:start] + placeholder + masked[end:]
+            placeholder = placeholders_by_span.get(span)
+            if placeholder is None:
+                while True:
+                    candidate = f"{_PLACEHOLDER_LABEL}#{secrets.token_hex(4)}"
+                    if candidate not in reserved_placeholders:
+                        placeholder = candidate
+                        break
+                placeholders_by_span[span] = placeholder
+                reserved_placeholders.add(placeholder)
             placeholder_map[placeholder] = span
+            masked = masked[:start] + placeholder + masked[end:]
 
         return MaskingResult(
             masked_text=masked,
@@ -156,9 +160,7 @@ class Masker:
         to_mask = [records[i] for i in mask_indices if 0 <= i < len(records)]
         return self.mask(text, to_mask)
 
-    def hydrate(
-        self, text: str, contract: MaskingContract
-    ) -> HydrationResult:
+    def hydrate(self, text: str, contract: MaskingContract) -> HydrationResult:
         """Restore placeholders to their original values.
 
         Matches both bracketed ``[CATEGORY#hash]`` and bare
@@ -193,17 +195,7 @@ class Masker:
         if unresolved:
             raise HydrationError(unresolved)
 
-        hydrated = text
-        restored = 0
-        for placeholder, original in contract.placeholder_map.items():
-            # Match both [CATEGORY#hash] and CATEGORY#hash (no brackets)
-            bare = placeholder.strip("[]")
-            if placeholder in hydrated:
-                hydrated = hydrated.replace(placeholder, original)
-                restored += 1
-            elif bare in hydrated:
-                hydrated = hydrated.replace(bare, original)
-                restored += 1
+        hydrated, restored = contract.replace_registered(text)
 
         return HydrationResult(
             hydrated_text=hydrated,

@@ -22,7 +22,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,79 +35,374 @@ RESULTS_DIR = ROOT / "docs" / "devlog" / "results"
 # ── Test cases ───────────────────────────────────────────────────────────────
 
 CASES = [
-    {"name": "PII 포함(creation)", "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.", "action": "selective_mask", "tags": ["identity", "creation"]},
-    {"name": "PII 직접(interrogation)", "text": "내 주민등록번호가 뭐야?", "action": "block", "tags": ["identity", "interrogation"]},
-    {"name": "이름+소속", "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.", "action": "selective_mask", "tags": ["identity", "competitive"]},
-    {"name": "사업비밀(creation)", "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.", "action": "selective_mask", "tags": ["competitive", "creation"]},
-    {"name": "연구아이디어(consultation)", "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.", "action": "block", "tags": ["competitive", "consultation"]},
-    {"name": "전략근거(statement)", "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.", "action": "block", "tags": ["competitive", "statement"]},
-    {"name": "모호한실험결과(creation)", "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.", "action": "selective_mask", "tags": ["competitive", "creation"]},
-    {"name": "연구방법론(consultation)", "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.", "action": "block", "tags": ["identity", "competitive", "consultation"]},
-    {"name": "미공개상태", "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.", "action": "selective_mask", "tags": ["competitive", "creation"]},
-    {"name": "프로젝트예산(statement)", "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.", "action": "block", "tags": ["competitive", "statement"]},
-    {"name": "내부URL", "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.", "action": "block", "tags": ["safety", "access"]},
-    {"name": "비밀유지마커", "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.", "action": "block", "tags": ["competitive", "statement"]},
-    {"name": "다중span+혼합동사", "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.", "action": "block", "tags": ["identity", "competitive", "interrogation"]},
-    {"name": "전화번호포함(creation)", "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.", "action": "selective_mask", "tags": ["identity", "creation"]},
+    {
+        "name": "PII 포함(creation)",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "action": "selective_mask",
+        "tags": ["identity", "creation"],
+    },
+    {
+        "name": "PII 직접(interrogation)",
+        "text": "내 주민등록번호가 뭐야?",
+        "action": "block",
+        "tags": ["identity", "interrogation"],
+    },
+    {
+        "name": "이름+소속",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "action": "selective_mask",
+        "tags": ["identity", "competitive"],
+    },
+    {
+        "name": "사업비밀(creation)",
+        "text": "TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.",
+        "action": "selective_mask",
+        "tags": ["competitive", "creation"],
+    },
+    {
+        "name": "연구아이디어(consultation)",
+        "text": "이 새로운 Attention 대체 아이디어를 바탕으로 실험 설계를 도와줘.",
+        "action": "block",
+        "tags": ["competitive", "consultation"],
+    },
+    {
+        "name": "전략근거(statement)",
+        "text": "경영진 회의에서 TSMC 대신 삼성 파운드리를 선택하기로 결정했어. 이유는 단가가 15% 저렴해서야.",
+        "action": "block",
+        "tags": ["competitive", "statement"],
+    },
+    {
+        "name": "모호한실험결과(creation)",
+        "text": "이 실험 결과를 바탕으로 논문 초안을 작성해줘.",
+        "action": "selective_mask",
+        "tags": ["competitive", "creation"],
+    },
+    {
+        "name": "연구방법론(consultation)",
+        "text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.",
+        "action": "block",
+        "tags": ["identity", "competitive", "consultation"],
+    },
+    {
+        "name": "미공개상태",
+        "text": "아직 논문에 제출하지 않은 연구 아이디어를 정리해줘.",
+        "action": "selective_mask",
+        "tags": ["competitive", "creation"],
+    },
+    {
+        "name": "프로젝트예산(statement)",
+        "text": "프로젝트 블루스카이 예산은 1,200억원이고 인건비는 350억원이야.",
+        "action": "block",
+        "tags": ["competitive", "statement"],
+    },
+    {
+        "name": "내부URL",
+        "text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+        "action": "block",
+        "tags": ["safety", "access"],
+    },
+    {
+        "name": "비밀유지마커",
+        "text": "우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.",
+        "action": "block",
+        "tags": ["competitive", "statement"],
+    },
+    {
+        "name": "다중span+혼합동사",
+        "text": "김철수 과장이 010-1234-5678로 연락해서 TSMC 3nm 공정 결정을 알려달라고 했어.",
+        "action": "block",
+        "tags": ["identity", "competitive", "interrogation"],
+    },
+    {
+        "name": "전화번호포함(creation)",
+        "text": "연락처: hong@example.com, 010-1234-5678. 위 연락처를 포함한 안내 메일을 작성해줘.",
+        "action": "selective_mask",
+        "tags": ["identity", "creation"],
+    },
     {"name": "일반날씨", "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.", "action": "allow", "tags": ["none"]},
     {"name": "일반지식", "text": "Python에서 리스트를 정렬하는 방법을 알려줘.", "action": "allow", "tags": ["none"]},
-    {"name": "일반창업조언", "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?", "action": "allow", "tags": ["none"]},
+    {
+        "name": "일반창업조언",
+        "text": "스타트업을 창업하려고 하는데, 사업계획서 작성을 도와줄 수 있어?",
+        "action": "allow",
+        "tags": ["none"],
+    },
 ]
 
 SENSITIVE_CASES = {c["name"] for c in CASES if c["action"] != "allow"}
-
-# ── Policy action normalization ──────────────────────────────────────────────
-# Local vLLM models may return different policy names than OpenRouter.
-# Normalize to the expected values before comparison.
-POLICY_NORMALIZE = {
-    "route_to_external": "allow",
-    "route_to_local": "block",
-    "mask_and_send": "selective_mask",
-    "process_locally": "block",
-}
-
-def normalize_policy(action: str) -> str:
-    return POLICY_NORMALIZE.get(action, action)
-
 
 
 # ── Model configs ────────────────────────────────────────────────────────────
 
 MODELS = {
     # OpenRouter models
-    "ministral-3b-2512": {"model": "openrouter/mistralai/ministral-3b-2512", "api_base": None, "tier": "edge", "params": "3B", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.10, "note": "초경량 SLM"},
-    "granite-4.1-8b": {"model": "openrouter/ibm-granite/granite-4.1-8b", "api_base": None, "tier": "edge", "params": "8B", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.05, "note": "이 파이프라인에 부적합"},
-    "qwen3.5-9b": {"model": "openrouter/qwen/qwen3.5-9b", "api_base": None, "tier": "performant", "params": "9B", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.04, "note": "느리고 부정확"},
-    "deepseek-v4-flash": {"model": "openrouter/deepseek/deepseek-v4-flash", "api_base": None, "tier": "performant", "params": "—", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.10, "note": "양호한 성능"},
-    "gemma-4-26b-a4b-it": {"model": "openrouter/google/gemma-4-26b-a4b-it", "api_base": None, "tier": "performant", "params": "26B", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.06, "note": "100% 정확도, 가성비 최고"},
-    "gemini-3.1-flash-lite": {"model": "openrouter/google/gemini-3.1-flash-lite", "api_base": None, "tier": "frontier", "params": "—", "platform": "OpenRouter", "quantization": "—", "cost_input": 0.25, "note": "100% 정확도, 속도 최고"},
-    "gemma-4-26b-a4b-local": {"model": "openai/google/gemma-4-26B-A4B-it", "api_base": "http://localhost:8000/v1", "tier": "frontier", "params": "26B MoE", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "26B MoE 로컬 (OpenRouter와 비교용)"},
+    "ministral-3b-2512": {
+        "model": "openrouter/mistralai/ministral-3b-2512",
+        "api_base": None,
+        "tier": "edge",
+        "params": "3B",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.10,
+        "note": "초경량 SLM",
+    },
+    "granite-4.1-8b": {
+        "model": "openrouter/ibm-granite/granite-4.1-8b",
+        "api_base": None,
+        "tier": "edge",
+        "params": "8B",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.05,
+        "note": "이 파이프라인에 부적합",
+    },
+    "qwen3.5-9b": {
+        "model": "openrouter/qwen/qwen3.5-9b",
+        "api_base": None,
+        "tier": "performant",
+        "params": "9B",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.04,
+        "note": "느리고 부정확",
+    },
+    "deepseek-v4-flash": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "api_base": None,
+        "tier": "performant",
+        "params": "—",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.10,
+        "note": "양호한 성능",
+    },
+    "gemma-4-26b-a4b-it": {
+        "model": "openrouter/google/gemma-4-26b-a4b-it",
+        "api_base": None,
+        "tier": "performant",
+        "params": "26B",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.06,
+        "note": "100% 정확도, 가성비 최고",
+    },
+    "gemini-3.1-flash-lite": {
+        "model": "openrouter/google/gemini-3.1-flash-lite",
+        "api_base": None,
+        "tier": "frontier",
+        "params": "—",
+        "platform": "OpenRouter",
+        "quantization": "—",
+        "cost_input": 0.25,
+        "note": "100% 정확도, 속도 최고",
+    },
+    "gemma-4-26b-a4b-local": {
+        "model": "openai/google/gemma-4-26B-A4B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "frontier",
+        "params": "26B MoE",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "26B MoE 로컬 (OpenRouter와 비교용)",
+    },
     # Local models (vLLM, GPU) — 한 번에 하나씩 서버 시작 필요
-    "gemma-4-e4b-bf16": {"model": "openai/google/gemma-4-E4B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "4B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E4B 원본"},
-    "gemma-4-e2b-bf16": {"model": "openai/google/gemma-4-E2B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "2B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E2B 원본"},
-    "exaone-4.0-1.2b-vllm": {"model": "openai/LGAI-EXAONE/EXAONE-4.0-1.2B", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "1.2B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "EXAONE 1.2B (response_format=json_object 필요)"},
-    "ministral-3b-local": {"model": "openai/mistralai/Ministral-3-3B-Instruct-2512", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "3B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "Ministral 3B 로컬 BF16"},
-    "granite-4.1-8b-local": {"model": "openai/ibm-granite/granite-4.1-8b", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "8B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "Granite 8B 로컬 BF16"},
-    "qwen3.5-9b-local": {"model": "openai/Qwen/Qwen3.5-9B", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "9B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "Qwen 3.5 9B 로컬 BF16"},
-    "exaone-4.5-33b-bf16": {"model": "openai/LGAI-EXAONE/EXAONE-4.5-33B", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "33B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "EXAONE 33B BF16 (vLLM 호환 불가)"},
-    "exaone-4.5-33b-openrouter": {"model": "openrouter/lgai-exaone/exaone-4.5-33b-fp8", "tier": "performant", "params": "33B", "platform": "OpenRouter", "quantization": "FP8", "cost_input": 0.0, "note": "EXAONE 33B FP8 via OpenRouter"},
-    "exaone-4.5-33b-fp8-local": {"model": "openai//models/exaone", "api_base": "http://localhost:8001/v1", "tier": "performant", "params": "33B", "platform": "로컬 GPU (vLLM+패치)", "quantization": "FP8", "cost_input": 0.0, "note": "EXAONE 33B FP8 로컬 (몽키패치)"},
-    "gemma-4-26b-a4b-bf16": {"model": "openai/google/gemma-4-26B-A4B-it", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "26B MoE", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "Gemma 26B BF16 (순수 정확도)"},
-    "gemma-4-e2b-bf16-ret": {"model": "openai/google/gemma-4-E2B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "2B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E2B 재테스트"},
-    "gemma-4-e4b-bf16-ret": {"model": "openai/google/gemma-4-E4B-it", "api_base": "http://localhost:8000/v1", "tier": "edge", "params": "4B", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "E4B 재테스트"},
-    "gemma-4-12b-bf16-ret": {"model": "openai/google/gemma-4-12B-it", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "12B", "platform": "로컬 GPU (vLLM nightly)", "quantization": "BF16", "cost_input": 0.0, "note": "12B 재테스트"},
+    "gemma-4-e4b-bf16": {
+        "model": "openai/google/gemma-4-E4B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "4B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "E4B 원본",
+    },
+    "gemma-4-e2b-bf16": {
+        "model": "openai/google/gemma-4-E2B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "2B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "E2B 원본",
+    },
+    "exaone-4.0-1.2b-vllm": {
+        "model": "openai/LGAI-EXAONE/EXAONE-4.0-1.2B",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "1.2B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "EXAONE 1.2B (response_format=json_object 필요)",
+    },
+    "ministral-3b-local": {
+        "model": "openai/mistralai/Ministral-3-3B-Instruct-2512",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "3B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "Ministral 3B 로컬 BF16",
+    },
+    "granite-4.1-8b-local": {
+        "model": "openai/ibm-granite/granite-4.1-8b",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "8B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "Granite 8B 로컬 BF16",
+    },
+    "qwen3.5-9b-local": {
+        "model": "openai/Qwen/Qwen3.5-9B",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "9B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "Qwen 3.5 9B 로컬 BF16",
+    },
+    "exaone-4.5-33b-bf16": {
+        "model": "openai/LGAI-EXAONE/EXAONE-4.5-33B",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "33B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "EXAONE 33B BF16 (vLLM 호환 불가)",
+    },
+    "exaone-4.5-33b-openrouter": {
+        "model": "openrouter/lgai-exaone/exaone-4.5-33b-fp8",
+        "tier": "performant",
+        "params": "33B",
+        "platform": "OpenRouter",
+        "quantization": "FP8",
+        "cost_input": 0.0,
+        "note": "EXAONE 33B FP8 via OpenRouter",
+    },
+    "exaone-4.5-33b-fp8-local": {
+        "model": "openai//models/exaone",
+        "api_base": "http://localhost:8001/v1",
+        "tier": "performant",
+        "params": "33B",
+        "platform": "로컬 GPU (vLLM+패치)",
+        "quantization": "FP8",
+        "cost_input": 0.0,
+        "note": "EXAONE 33B FP8 로컬 (몽키패치)",
+    },
+    "gemma-4-26b-a4b-bf16": {
+        "model": "openai/google/gemma-4-26B-A4B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "26B MoE",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "Gemma 26B BF16 (순수 정확도)",
+    },
+    "gemma-4-e2b-bf16-ret": {
+        "model": "openai/google/gemma-4-E2B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "2B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "E2B 재테스트",
+    },
+    "gemma-4-e4b-bf16-ret": {
+        "model": "openai/google/gemma-4-E4B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "edge",
+        "params": "4B",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "E4B 재테스트",
+    },
+    "gemma-4-12b-bf16-ret": {
+        "model": "openai/google/gemma-4-12B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "12B",
+        "platform": "로컬 GPU (vLLM nightly)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "12B 재테스트",
+    },
     # New models: DiffusionGemma + Qwen3.6
-    "diffusiongemma-26b-a4b": {"model": "openai/google/diffusiongemma-26B-A4B-it", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "26B MoE", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "DiffusionGemma 26B MoE (디퓨전 샘플링)"},
-    "qwen3.6-35b-a3b": {"model": "openai/Qwen/Qwen3.6-35B-A3B", "api_base": "http://localhost:8000/v1", "tier": "performant", "params": "35B MoE", "platform": "로컬 GPU (vLLM)", "quantization": "BF16", "cost_input": 0.0, "note": "Qwen3.6 35B MoE (DeltaNet)"},
+    "diffusiongemma-26b-a4b": {
+        "model": "openai/google/diffusiongemma-26B-A4B-it",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "26B MoE",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "DiffusionGemma 26B MoE (디퓨전 샘플링)",
+    },
+    "qwen3.6-35b-a3b": {
+        "model": "openai/Qwen/Qwen3.6-35B-A3B",
+        "api_base": "http://localhost:8000/v1",
+        "tier": "performant",
+        "params": "35B MoE",
+        "platform": "로컬 GPU (vLLM)",
+        "quantization": "BF16",
+        "cost_input": 0.0,
+        "note": "Qwen3.6 35B MoE (DeltaNet)",
+    },
     # GGUF models via llama-server (port 8002)
-    "diffusiongemma-q4km": {"model": "openai/diffusiongemma-26B-A4B-it-Q4_K_M", "api_base": "http://localhost:8002/v1", "tier": "performant", "params": "26B MoE", "platform": "로컬 GPU (llama-server)", "quantization": "Q4_K_M", "cost_input": 0.0, "note": "DiffusionGemma Q4_K_M GGUF"},
-    "diffusiongemma-q8": {"model": "openai/diffusiongemma-26B-A4B-it-Q8_0", "api_base": "http://localhost:8002/v1", "tier": "performant", "params": "26B MoE", "platform": "로컬 GPU (llama-server)", "quantization": "Q8_0", "cost_input": 0.0, "note": "DiffusionGemma Q8_0 GGUF"},
-    "qwen3.6-q4km": {"model": "openai/Qwen3.6-35B-A3B-MTP-Q4_K_M", "api_base": "http://localhost:8002/v1", "tier": "performant", "params": "35B MoE", "platform": "로컬 GPU (llama-server)", "quantization": "Q4_K_M", "cost_input": 0.0, "note": "Qwen3.6 Q4_K_M GGUF"},
-    "qwen3.6-q8": {"model": "openai/Qwen3.6-35B-A3B-MTP-Q8_0", "api_base": "http://localhost:8002/v1", "tier": "performant", "params": "35B MoE", "platform": "로컬 GPU (llama-server)", "quantization": "Q8_0", "cost_input": 0.0, "note": "Qwen3.6 Q8_0 GGUF"},
+    "diffusiongemma-q4km": {
+        "model": "openai/diffusiongemma-26B-A4B-it-Q4_K_M",
+        "api_base": "http://localhost:8002/v1",
+        "tier": "performant",
+        "params": "26B MoE",
+        "platform": "로컬 GPU (llama-server)",
+        "quantization": "Q4_K_M",
+        "cost_input": 0.0,
+        "note": "DiffusionGemma Q4_K_M GGUF",
+    },
+    "diffusiongemma-q8": {
+        "model": "openai/diffusiongemma-26B-A4B-it-Q8_0",
+        "api_base": "http://localhost:8002/v1",
+        "tier": "performant",
+        "params": "26B MoE",
+        "platform": "로컬 GPU (llama-server)",
+        "quantization": "Q8_0",
+        "cost_input": 0.0,
+        "note": "DiffusionGemma Q8_0 GGUF",
+    },
+    "qwen3.6-q4km": {
+        "model": "openai/Qwen3.6-35B-A3B-MTP-Q4_K_M",
+        "api_base": "http://localhost:8002/v1",
+        "tier": "performant",
+        "params": "35B MoE",
+        "platform": "로컬 GPU (llama-server)",
+        "quantization": "Q4_K_M",
+        "cost_input": 0.0,
+        "note": "Qwen3.6 Q4_K_M GGUF",
+    },
+    "qwen3.6-q8": {
+        "model": "openai/Qwen3.6-35B-A3B-MTP-Q8_0",
+        "api_base": "http://localhost:8002/v1",
+        "tier": "performant",
+        "params": "35B MoE",
+        "platform": "로컬 GPU (llama-server)",
+        "quantization": "Q8_0",
+        "cost_input": 0.0,
+        "note": "Qwen3.6 Q8_0 GGUF",
+    },
 }
 
 
 # ── File helpers ─────────────────────────────────────────────────────────────
+
 
 def safe_name(s: str) -> str:
     """Convert string to filesystem-safe name."""
@@ -140,27 +435,39 @@ def load_result(model_key: str, case_name: str, trial: int) -> dict | None:
 
 # ── Runner ───────────────────────────────────────────────────────────────────
 
+
 def run_single(model_key: str, case: dict, trial: int) -> dict:
     """Run one model × case × trial. Returns result dict."""
-    from agents.router import PrivacyRouter
-    import litellm
+
     from agents.llm import load_prompt, render_prompt
+    from agents.router import PrivacyRouter
 
     cfg = MODELS[model_key]
     model_id = cfg["model"]
     api_base = cfg.get("api_base")
 
-    router = PrivacyRouter(extractor_model=model_id, api_base=api_base)
+    router = PrivacyRouter(decision_model=model_id, api_base=api_base)
 
     result = {
-        "model_key": model_key, "model_id": model_id,
-        "case_name": case["name"], "text": case["text"],
-        "expected_action": case["action"], "tags": case["tags"],
-        "trial": trial, "timestamp": datetime.now(timezone.utc).isoformat(),
-        "llm_input": None, "llm_output_content": None, "llm_output_reasoning": None,
-        "extracted_records": [], "sensitivity": None,
-        "actual_action": None, "target_ok": None, "context_ok": None,
-        "ok": None, "time_s": None, "error": None,
+        "model_key": model_key,
+        "model_id": model_id,
+        "case_name": case["name"],
+        "text": case["text"],
+        "expected_action": case["action"],
+        "tags": case["tags"],
+        "trial": trial,
+        "timestamp": datetime.now(UTC).isoformat(),
+        "llm_input": None,
+        "llm_output_content": None,
+        "llm_output_reasoning": None,
+        "extracted_records": [],
+        "sensitivity": None,
+        "actual_action": None,
+        "target_ok": None,
+        "context_ok": None,
+        "ok": None,
+        "time_s": None,
+        "error": None,
     }
 
     t0 = time.time()
@@ -168,6 +475,7 @@ def run_single(model_key: str, case: dict, trial: int) -> dict:
     try:
         # Store prompt for logging (no separate LLM call)
         from agents.llm import load_prompt, render_prompt
+
         prompt = load_prompt(str(ROOT / "agents" / "extractor" / "extract.prompt"))
         result["llm_input"] = render_prompt(prompt["template"], text=case["text"])[:3000]
 
@@ -176,20 +484,22 @@ def run_single(model_key: str, case: dict, trial: int) -> dict:
 
         result["sensitivity"] = {"is_sensitive": r.sensitivity.is_sensitive, "rationale": r.sensitivity.rationale}
         result["extracted_records"] = [
-            {"category": rec.category, "span": rec.span, "confidence": rec.confidence,
-             "detection_type": rec.detection_type, "reasoning": rec.reasoning,
-             "is_essential": rec.is_essential}
+            {
+                "category": rec.category,
+                "span": rec.span,
+                "confidence": rec.confidence,
+                "detection_type": rec.detection_type,
+                "reasoning": rec.reasoning,
+                "is_essential": rec.is_essential,
+            }
             for rec in r.records
         ]
-        result["actual_action"] = normalize_policy(r.judgment.policy_action)
+        result["actual_action"] = r.judgment.policy_action
 
         expected_sensitive = case["name"] in SENSITIVE_CASES
         actual_sensitive = r.sensitivity.is_sensitive or len(r.records) > 0
-        result["target_ok"] = (expected_sensitive == actual_sensitive)
-        result["context_ok"] = (
-            normalize_policy(r.judgment.policy_action) == case["action"]
-            or r.judgment.policy_action == "process_locally" and case["action"] == "block"
-        )
+        result["target_ok"] = expected_sensitive == actual_sensitive
+        result["context_ok"] = r.judgment.policy_action == case["action"]
         result["ok"] = result["target_ok"] and result["context_ok"]
 
     except Exception as e:
@@ -203,6 +513,7 @@ def run_single(model_key: str, case: dict, trial: int) -> dict:
 
 
 # ── Aggregation ──────────────────────────────────────────────────────────────
+
 
 def aggregate_model(model_key: str, n_trials: int) -> dict:
     """Aggregate N trials per case for a model."""
@@ -233,21 +544,25 @@ def aggregate_model(model_key: str, n_trials: int) -> dict:
             action_votes[a] = action_votes.get(a, 0) + 1
         majority_action = max(action_votes, key=lambda k: action_votes[k]) if action_votes else "ERROR"
 
-        case_results.append({
-            "name": case["name"], "text": case["text"],
-            "expected_action": case["action"], "tags": case["tags"],
-            "actual_action": majority_action,
-            "trials_total": len(trials),
-            "ok_rate": round(ok_count / len(trials), 2),
-            "target_ok_rate": round(target_ok_count / len(trials), 2),
-            "context_ok_rate": round(context_ok_count / len(trials), 2),
-            "ok": ok_count == len(trials),
-            "target_ok": target_ok_count == len(trials),
-            "context_ok": context_ok_count == len(trials),
-            "avg_time_s": round(sum(times) / len(times), 1) if times else 0,
-            "avg_records": round(sum(records_counts) / len(records_counts), 1) if records_counts else 0,
-            "trials": trials,  # full trial data for HTML drill-down
-        })
+        case_results.append(
+            {
+                "name": case["name"],
+                "text": case["text"],
+                "expected_action": case["action"],
+                "tags": case["tags"],
+                "actual_action": majority_action,
+                "trials_total": len(trials),
+                "ok_rate": round(ok_count / len(trials), 2),
+                "target_ok_rate": round(target_ok_count / len(trials), 2),
+                "context_ok_rate": round(context_ok_count / len(trials), 2),
+                "ok": ok_count == len(trials),
+                "target_ok": target_ok_count == len(trials),
+                "context_ok": context_ok_count == len(trials),
+                "avg_time_s": round(sum(times) / len(times), 1) if times else 0,
+                "avg_records": round(sum(records_counts) / len(records_counts), 1) if records_counts else 0,
+                "trials": trials,  # full trial data for HTML drill-down
+            }
+        )
 
     total = len(case_results)
     if total == 0:
@@ -261,10 +576,15 @@ def aggregate_model(model_key: str, n_trials: int) -> dict:
     return {
         "model_key": model_key,
         "model_id": cfg["model"],
-        "tier": cfg["tier"], "params": cfg["params"],
-        "platform": cfg["platform"], "quantization": cfg["quantization"],
-        "cost_input": cfg["cost_input"], "note": cfg["note"],
-        "passed": passed, "failed": total - passed, "total": total,
+        "tier": cfg["tier"],
+        "params": cfg["params"],
+        "platform": cfg["platform"],
+        "quantization": cfg["quantization"],
+        "cost_input": cfg["cost_input"],
+        "note": cfg["note"],
+        "passed": passed,
+        "failed": total - passed,
+        "total": total,
         "accuracy_pct": round(100 * passed / total, 1),
         "target_pct": round(100 * target_passed / total, 1),
         "context_pct": round(100 * context_passed / total, 1),
@@ -275,12 +595,13 @@ def aggregate_model(model_key: str, n_trials: int) -> dict:
 
 # ── HTML report ──────────────────────────────────────────────────────────────
 
+
 def generate_report(all_results: list[dict], n_trials: int) -> str:
     """Generate HTML report from aggregated results."""
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    ts = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     data_json = json.dumps({"timestamp": ts, "n_trials": n_trials, "models": all_results}, ensure_ascii=False)
 
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -435,10 +756,11 @@ function esc(s){{const d=document.createElement('div');d.textContent=s;return d.
 init();
 </script>
 </body>
-</html>'''
+</html>"""
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -461,9 +783,9 @@ def main():
                 continue
 
             cfg = MODELS[mk]
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Model: {mk} ({cfg['model']})")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
             for case in CASES:
                 for t in range(1, n_trials + 1):
@@ -480,13 +802,26 @@ def main():
                         print(f" {mark} {result['actual_action']} ({result['time_s']}s)")
                     except Exception as e:
                         print(f" 💥 {e}")
-                        save_result(mk, case["name"], t, {
-                            "model_key": mk, "case_name": case["name"], "trial": t,
-                            "ok": False, "target_ok": False, "context_ok": False,
-                            "actual_action": "ERROR", "error": str(e), "time_s": 0,
-                            "extracted_records": [], "sensitivity": None,
-                            "expected_action": case["action"], "tags": case["tags"],
-                        })
+                        save_result(
+                            mk,
+                            case["name"],
+                            t,
+                            {
+                                "model_key": mk,
+                                "case_name": case["name"],
+                                "trial": t,
+                                "ok": False,
+                                "target_ok": False,
+                                "context_ok": False,
+                                "actual_action": "ERROR",
+                                "error": str(e),
+                                "time_s": 0,
+                                "extracted_records": [],
+                                "sensitivity": None,
+                                "expected_action": case["action"],
+                                "tags": case["tags"],
+                            },
+                        )
 
         print(f"\n📊 New: {total_new} | Cached: {total_cached}")
 
@@ -505,7 +840,12 @@ def main():
     # Also save aggregated JSON
     agg_path = RESULTS_DIR / "eval_aggregated.json"
     with open(agg_path, "w", encoding="utf-8") as f:
-        json.dump({"timestamp": datetime.now(timezone.utc).isoformat(), "n_trials": n_trials, "models": all_results}, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"timestamp": datetime.now(UTC).isoformat(), "n_trials": n_trials, "models": all_results},
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
 
     print(f"\n📄 JSON: {agg_path}")
     print(f"🌐 HTML: {report_path}")
@@ -516,7 +856,9 @@ def main():
     for m in sorted(all_results, key=lambda x: x.get("accuracy_pct", 0), reverse=True):
         if m["total"] == 0:
             continue
-        print(f"{m['model_key']:<25} | {m['target_pct']:>7.1f}% | {m['context_pct']:>7.1f}% | {m['accuracy_pct']:>7.1f}% | {m['avg_s']:>7.1f}s")
+        print(
+            f"{m['model_key']:<25} | {m['target_pct']:>7.1f}% | {m['context_pct']:>7.1f}% | {m['accuracy_pct']:>7.1f}% | {m['avg_s']:>7.1f}s"
+        )
 
 
 if __name__ == "__main__":

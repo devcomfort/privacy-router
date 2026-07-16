@@ -31,6 +31,5 @@ def adapter_for(model_id: str) -> LiteLLMAdapter:
         if a.supports_model(model_id):
             return a
     raise ValueError(
-        f"No adapter found for model {model_id!r}. "
-        f"Supported prefixes: {[a.provider_prefix for a in adapters]}"
+        f"No adapter found for model {model_id!r}. Supported prefixes: {[a.provider_prefix for a in adapters]}"
     )

@@ -46,7 +46,7 @@ def _run_compliance(filter_ids: list[str] | None = None) -> dict:
         "--api-key",
         API_KEY,
         "--model",
-        "openrouter/google/gemma-4-26b-a4b-it",
+        "openrouter/google/gemma-4-26b-it",
         "--json",
     ]
     if filter_ids:
@@ -96,10 +96,7 @@ class TestOpenResponsesCompliance:
         results = _run_compliance(filter_ids=["basic-response"])
         if "summary" in results:
             s = results["summary"]
-            print(
-                f"\n  basic-response: {s.get('passed', 0)} passed, "
-                f"{s.get('failed', 0)} failed"
-            )
+            print(f"\n  basic-response: {s.get('passed', 0)} passed, {s.get('failed', 0)} failed")
             assert True
         else:
             pytest.skip(f"Could not run compliance: {results}")
@@ -109,10 +106,7 @@ class TestOpenResponsesCompliance:
         results = _run_compliance(filter_ids=["streaming-response"])
         if "summary" in results:
             s = results["summary"]
-            print(
-                f"\n  streaming-response: {s.get('passed', 0)} passed, "
-                f"{s.get('failed', 0)} failed"
-            )
+            print(f"\n  streaming-response: {s.get('passed', 0)} passed, {s.get('failed', 0)} failed")
             assert True
         else:
             pytest.skip(f"Could not run compliance: {results}")

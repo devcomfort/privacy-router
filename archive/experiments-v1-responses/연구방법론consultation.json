@@ -1,0 +1,31 @@
+{
+  "case_name": "연구방법론(consultation)",
+  "input_text": "안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"미공개 연구 내용 언급\"}, \"records\": [{\"category\": \"UNPUBLISHED_RESEARCH_CONCEPT\", \"span\": \"contextual distillation 연구\", \"confidence\": 0.85, \"reasoning\": \"진행 중인 연구 주제 언급\", \"is_essential\": true}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "미공개 연구 내용 언급"
+    },
+    "records": [
+      {
+        "category": "UNPUBLISHED_RESEARCH_CONCEPT",
+        "span": "contextual distillation 연구",
+        "confidence": 0.85,
+        "reasoning": "진행 중인 연구 주제 언급",
+        "is_essential": true
+      }
+    ]
+  },
+  "actual": {
+    "action": "block",
+    "sensitive": true
+  },
+  "passed": true,
+  "failure_reason": null,
+  "error": null
+}

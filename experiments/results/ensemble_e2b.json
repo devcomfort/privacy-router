@@ -1,0 +1,2397 @@
+[
+  {
+    "id": "l1_per_m_KO_000",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "주민등록번호와 개인 식별 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "901212-1234567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_001",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "여권번호와 같은 개인 식별 정보(PII)가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "PASSPORT",
+          "span": "AB1234567",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2023년 5월 10일",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2033년 5월 9일",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_KO_002",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호, 유효기간, CVV 등 결제 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD_NUMBER",
+          "span": "6011-1111-1111-1117",
+          "is_essential": true
+        },
+        {
+          "category": "CREDIT_CARD_EXPIRATION_DATE",
+          "span": "09/26",
+          "is_essential": false
+        },
+        {
+          "category": "CVV",
+          "span": "789",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "서울시 강남구 테헤란로 123",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "15만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_003",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "사회보장번호와 개인 식별 정보(이름, 생년월일)가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "SSN/TAX_ID",
+          "span": "123-45-6789",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "Sarah Lee",
+          "is_essential": false
+        },
+        {
+          "category": "DATE_OF_BIRTH",
+          "span": "March 15 1990",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_004",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "여권 번호와 만료일 등 개인 식별 정보가 포함되어 있습니다."
+      },
+      "records": [
+        {
+          "category": "PASSPORT",
+          "span": "AB1234567",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "May 10, 2023",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "May 9, 2033",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_m_EN_005",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호, 만료일, CVV 등 결제 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "6011-1111-1111-1117",
+          "is_essential": true
+        },
+        {
+          "category": "CREDIT_CARD",
+          "span": "09/26",
+          "is_essential": false
+        },
+        {
+          "category": "CREDIT_CARD",
+          "span": "789",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "123 Tech Avenue, San Francisco, CA 94102",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_006",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "의료 기록 및 개인 건강 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "정신과 상담 기록",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICATION",
+          "span": "세르트랄린 50mg",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_PROCEDURE",
+          "span": "인지행동치료",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_007",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계좌번호와 금융 거래 내역 분석 요청으로 인해 민감한 금융 정보가 포함됨"
+      },
+      "records": [
+        {
+          "category": "ACCOUNT_NUMBER",
+          "span": "210-567-890123",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "500만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_KO_008",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "상담 기록 및 법적/의료적 민감 정보가 포함되어 있어 보호가 필요함"
+      },
+      "records": [
+        {
+          "category": "MEDICAL_RECORD",
+          "span": "성폭력 피해 상담 기록",
+          "is_essential": false
+        },
+        {
+          "category": "LEGAL_ACTION",
+          "span": "경찰 신고, 병원 진단서, 법률 상담",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_CONTEXT",
+          "span": "가해자는 직장 상사이며, 현재 접근금지 명령이 내려진 상태야",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_009",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자의 정신 건강 기록과 진단 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "MEDICAL",
+          "span": "psychiatric counseling records",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL",
+          "span": "depression diagnosis",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL",
+          "span": "medication prescription history for Sertraline 50mg",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL",
+          "span": "cognitive behavioral therapy progress",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_010",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계좌번호와 법적 상황에 대한 민감한 정보가 포함되어 있습니다."
+      },
+      "records": [
+        {
+          "category": "ACCOUNT_NUMBER",
+          "span": "210-567-890123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_per_c_EN_011",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인적인 사건 및 법적 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "DATE",
+          "span": "March 15, 2024",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_012",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 URL과 급여 데이터 분석 요청으로 인해 기밀 정보에 해당함"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL",
+          "span": "급여 데이터",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL",
+          "span": "평균 연봉",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_013",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "API 키는 민감한 자격 증명에 해당함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_KO_014",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "데이터베이스 접속 정보(호스트, 사용자명, 비밀번호)가 포함되어 있어 민감합니다."
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "db.internal.corp.com",
+          "is_essential": true
+        },
+        {
+          "category": "CREDENTIAL",
+          "span": "Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_015",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "내부 시스템 URL과 민감한 급여 데이터 분석 요청이 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "https://internal.corp.com/salary",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL_DATA",
+          "span": "employee salary database",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "confidential report marked for executive eyes only with 3-year trend analysis",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_016",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "API 키가 포함되어 있어 자격 증명으로 간주됨"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "gsk_abc123def456ghi789jkl",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_m_EN_017",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "데이터베이스 자격 증명(호스트, 사용자 이름, 비밀번호)이 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "host db.internal.corp.com, port 5432, username admin, password Pr0d!Sec#2025",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_018",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A 대상 기업 정보와 인수 가격 등 비공개 사업 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "M&A 대상 기업 리스트",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "500억원",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "300억원",
+          "is_essential": true
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "극비이고 공개 시 자본시장법 위반 가능성이 있어",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_019",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비공개 협상 내용 및 구체적인 비즈니스 조건(단가, 생산량)이 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "비공개 협상 내용",
+          "is_essential": true
+        },
+        {
+          "category": "PRICE_DATA",
+          "span": "3nm 공정 웨이퍼 단가가 장당 18,000달러로 합의되었고",
+          "is_essential": true
+        },
+        {
+          "category": "PRODUCTION_VOLUME",
+          "span": "월 생산량은 5,000장이야",
+          "is_essential": true
+        },
+        {
+          "category": "CONTRACT_TERM",
+          "span": "독점 공급 기간 2년",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_KO_020",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기술적 우위 수치와 특허 전략 등 기밀 정보가 포함되어 있어 보호가 필요함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "전력 효율 35% 우위, 수율 차이 8%p 이점",
+          "is_essential": true
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "아직 외부에 공개된 적 없는 기밀 정보야",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_021",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "M&A 가격 및 재무 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$400M",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$50M annually",
+          "is_essential": true
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$240M",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_022",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비공개 협상 내용과 구체적인 가격 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "$18,000 per wafer",
+          "is_essential": true
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "3nm process",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "5,000 wafers",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_corp_c_EN_023",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비공개 정보(기밀)가 포함되어 있어 민감하다고 판단됨"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "35% power efficiency advantage and 8 percentage point yield differential",
+          "is_essential": true
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "patent portfolio strategy for defensive IP positioning",
+          "is_essential": true
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "These figures are strictly confidential",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_024",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "서버 접속 정보와 비밀번호가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "Str0ng!Pass#2024",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "192.168.1.100",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_025",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "이메일 주소와 학술 정보가 포함되어 있어 개인 식별 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "kim.dh@example.com",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "lee@stanford.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "chen@tsinghua.edu.cn",
+          "is_essential": false
+        },
+        {
+          "category": "RESEARCH_CONTEXT",
+          "span": "NeurIPS 2026",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_KO_026",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 출원 번호와 발명자 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "박민수",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2024년 6월 15일",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_027",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "SSH 접속 정보와 자격 증명이 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDENTIAL",
+          "span": "lab_admin / Str0ng!Pass#2024",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "192.168.1.100",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_028",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "이메일 주소와 같은 개인 식별 정보(PII)가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "EMAIL",
+          "span": "smith.j@mit.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "lee@stanford.edu",
+          "is_essential": false
+        },
+        {
+          "category": "EMAIL",
+          "span": "chen@tsinghua.edu.cn",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_m_EN_029",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호와 개인 이름이 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "US-11-2024-0045678",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "Jessica Wang",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_030",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 결과 및 제출 계획에 대한 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "새로운 양자 오류 정정 코드의 수학적 증명",
+          "is_essential": true
+        },
+        {
+          "category": "RESEARCH_PERFORMANCE",
+          "span": "Nature에 제출할 예정",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_KO_031",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l1_res_c_KO_032",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "연구비 및 성과 관련 정보는 일반적인 보고서 작성 요청에 해당하며, 개인 식별 정보나 핵심 기밀 정보는 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l1_res_c_EN_033",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 내용과 제출 계획에 대한 기밀 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "novel quantum error correction code",
+          "is_essential": true
+        },
+        {
+          "category": "UNPUBLISHED_RESEARCH",
+          "span": "submit to Nature next month",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l1_res_c_EN_034",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "제공된 텍스트는 일반적인 학술 피드백 분석 요청이며 민감한 개인 식별 정보나 기밀 정보를 포함하고 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l1_res_c_EN_035",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "재정 정보는 분석을 위한 일반적인 데이터이며, 특정 개인이나 기밀 정보는 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_per_m_KO_036",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "건강검진 결과와 환자번호 등 개인 건강 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "PT-2024-0892",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_037",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "주민등록번호와 구체적인 소득 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "RESIDENT_REGISTRATION_NUMBER",
+          "span": "880515-2345678",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_DATA",
+          "span": "근로소득 7,200만원, 사업소득 3,500만원, 이자소득 180만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_KO_038",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "보험금 청구 관련 금액과 보험번호 등 개인/금융 정보가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1,200만원, 800만원, 500만원",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-5678",
+          "is_essential": false
+        },
+        {
+          "category": "DATE",
+          "span": "2024년 9월 3일",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_039",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "건강검진 결과와 환자 ID가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "PT-2024-0892",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_040",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인 식별 정보(Tax ID)가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "TAX_ID",
+          "span": "234-56-7890",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_m_EN_041",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "보험 정보 및 재정적 세부 사항이 포함되어 있어 선택적 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "INS-2024-9012",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000 hospital bills, $6,500 lost income, $4,000 pain and suffering",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_042",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인적인 연봉 정보와 직장 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "SALARY_INFO",
+          "span": "현재 연봉이 8,500만원이고 희망 연봉은 1억원이야",
+          "is_essential": false
+        },
+        {
+          "category": "EMPLOYER_INFO",
+          "span": "삼성전자 반도체事业部",
+          "is_essential": false
+        },
+        {
+          "category": "STOCK_OPTION",
+          "span": "인센티브로 연 200% 스톡옵션도 보유 중이야",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_KO_043",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인적인 상담 요청이며 민감한 식별 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_per_c_KO_044",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자번호와 병원 정보 등 개인 식별 정보가 포함되어 있어 선택적 마스킹이 필요합니다."
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "MEDICAL_CONTEXT",
+          "span": "강남세브란스병원 피부과",
+          "is_essential": false
+        },
+        {
+          "category": "DOCTOR_NAME",
+          "span": "김영수 교수님",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_045",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연봉 및 스톡옵션 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "SALARY_INFORMATION",
+          "span": "$70,000",
+          "is_essential": false
+        },
+        {
+          "category": "SALARY_INFORMATION",
+          "span": "$85,000",
+          "is_essential": false
+        },
+        {
+          "category": "STOCK_OPTIONS",
+          "span": "200% annual bonus",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_per_c_EN_046",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인적인 상담 내용이며 식별 가능한 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_per_c_EN_047",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "환자 식별 정보(환자 번호, 보험 정보)가 포함되어 있어 선택적 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "PATIENT_ID",
+          "span": "2024-P-12345",
+          "is_essential": false
+        },
+        {
+          "category": "INSURANCE_NUMBER",
+          "span": "insurance general dependent",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_048",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "VPN 서버 주소, 인증서 정보, 인증 토큰 등 민감한 인증 정보가 포함되어 있습니다."
+      },
+      "records": [
+        {
+          "category": "INTERNAL_URL",
+          "span": "vpn.corp.internal",
+          "is_essential": true
+        },
+        {
+          "category": "CREDENTIAL",
+          "span": "CN=employee-2024-kdh",
+          "is_essential": true
+        },
+        {
+          "category": "CREDENTIAL",
+          "span": "eyJhbGciOiJIUzI1NiJ9.abc123",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_049",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직원 급여 명세서와 사번, 급여 정보 등 개인 식별 및 재무 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_DATA",
+          "span": "기본급 5,200만원, 상여금 1,200만원, 주식옵션 3,000주(행사가격 25,000원)",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_KO_050",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "AWS 계정 ID와 인스턴스 ID는 클라우드 자원 식별자로 민감 정보에 해당함"
+      },
+      "records": [
+        {
+          "category": "AWS_ACCOUNT_ID",
+          "span": "555544443333",
+          "is_essential": false
+        },
+        {
+          "category": "AWS_REGION",
+          "span": "ap-northeast-2",
+          "is_essential": false
+        },
+        {
+          "category": "EC2_INSTANCE_ID",
+          "span": "i-0ghi345def678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_051",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "인증 토큰과 내부 서버 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "AUTH_TOKEN",
+          "span": "eyJhbGciOiJIUzI1NiJ9.def456",
+          "is_essential": true
+        },
+        {
+          "category": "INTERNAL_URL",
+          "span": "vpn.corp.internal",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_052",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "직원 ID와 급여 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "EMPLOYEE_ID",
+          "span": "EMP-2024-0289",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$43,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "3,000 shares at $20 exercise price",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_m_EN_053",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "AWS 계정 ID와 인스턴스 ID는 클라우드 자원 정보로 식별 가능함"
+      },
+      "records": [
+        {
+          "category": "AWS_ACCOUNT_ID",
+          "span": "555544443333",
+          "is_essential": false
+        },
+        {
+          "category": "INSTANCE_ID",
+          "span": "i-0ghi345def678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_054",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "퇴직금, 채용 비용 추정 및 조직 변경 계획은 기업의 민감한 경영 정보에 해당함"
+      },
+      "records": [
+        {
+          "category": "CAREER",
+          "span": "퇴직금 총액",
+          "is_essential": false
+        },
+        {
+          "category": "CAREER",
+          "span": "신규 채용 비용",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "경영진 승인 전까지 절대 비밀로 해야 해",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_055",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호와 구체적인 소송 관련 재무 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "20억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_KO_056",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "계약 규모, 인상률, 할인율 등 비즈니스 민감 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "50억원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "12%",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "8%",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_057",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "업무 전략 및 내부 기밀 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "BUSINESS_STRATEGY",
+          "span": "workforce restructuring",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_STRATEGY",
+          "span": "Engineering reduction of 5, marketing expansion of 3 positions",
+          "is_essential": false
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "Must remain strictly confidential until executive approval",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_058",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "특허 번호와 재정적 정보가 포함되어 있어 민감하다고 판단됨"
+      },
+      "records": [
+        {
+          "category": "PATENT_NUMBER",
+          "span": "KR-10-2023-0078901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$16M",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_corp_c_EN_059",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "비즈니스 전략 및 재무 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$40M",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_PERCENTAGE",
+          "span": "12%",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_PERCENTAGE",
+          "span": "8%",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_060",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "ORCID와 같은 개인 식별 정보가 포함되어 있어 선택적 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0002-1234-5678",
+          "is_essential": false
+        },
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        },
+        {
+          "category": "JOURNAL",
+          "span": "NeurIPS 2026",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_061",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB 승인 번호와 임상시험 관련 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-KAIST-0567",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_KO_062",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구비 카드 정보와 재정 관련 세부 사항이 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "5361-XXXX-XXXX-8901",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "450만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "1,200만원",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "180만원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_063",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "ORCID와 같은 개인 식별 정보가 포함되어 있어 선택적 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        },
+        {
+          "category": "ORCID",
+          "span": "0000-0003-9876-5432",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_064",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "IRB 번호와 임상시험 프로토콜 정보가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB-2024-GIST-0234",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_m_EN_065",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "신용카드 번호와 재정 정보가 포함되어 있어 민감함"
+      },
+      "records": [
+        {
+          "category": "CREDIT_CARD",
+          "span": "4111-XXXX-XXXX-2345",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$3,750",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$10,000",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$1,500",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_KO_066",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "제공된 정보는 연구 성과 요약 및 계획 수립을 위한 일반적인 학술/연구 정보이며 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_KO_067",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "학술 리뷰 피드백은 일반적인 학술 작업 맥락이며 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_KO_068",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "기업명, 지원금 규모 등 비즈니스 관련 민감 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "COMPANY_NAME",
+          "span": "삼성전자",
+          "is_essential": false
+        },
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "3억원",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l2_res_c_EN_069",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "연구 성과에 대한 일반적인 정보이며 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_EN_070",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "학술 리뷰 결과에 대한 일반적인 피드백이며 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l2_res_c_EN_071",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 주제와 비즈니스 협상 조건 등 기밀 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "FINANCIAL_AMOUNT",
+          "span": "$240K",
+          "is_essential": false
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "next-generation DRAM process optimization",
+          "is_essential": true
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "technology transfer conditions",
+          "is_essential": true
+        },
+        {
+          "category": "BUSINESS_SECRET",
+          "span": "equity stake negotiations",
+          "is_essential": true
+        },
+        {
+          "category": "CONFIDENTIAL_MARKER",
+          "span": "NDA clause summary",
+          "is_essential": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_072",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "차량번호와 주소 등 개인 식별 정보가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "123가 4567",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "주소",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_073",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "운송장번호, 이름, 주소 등 개인 식별 정보가 포함되어 있어 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "9876543210987",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "이서연",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "서울시 강남구 테헤란로 123",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_KO_074",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인 소셜 미디어 계정 정보(ID)가 포함되어 있어 민감 정보로 간주됨"
+      },
+      "records": [
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@kdonghyeon",
+          "is_essential": false
+        },
+        {
+          "category": "SOCIAL_MEDIA_HANDLE",
+          "span": "@donghyeon_lab",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_075",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "차량 번호와 주소 확인 요청이 포함되어 있어 개인 식별 정보에 해당함"
+      },
+      "records": [
+        {
+          "category": "VEHICLE_PLATE",
+          "span": "XYZ-5678",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_076",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "운송장 번호, 이름, 주소 등 개인 식별 정보가 포함되어 있어 선택적 마스킹이 필요합니다."
+      },
+      "records": [
+        {
+          "category": "TRACKING_NUMBER",
+          "span": "1234567890123",
+          "is_essential": false
+        },
+        {
+          "category": "PERSON_NAME",
+          "span": "David Kim",
+          "is_essential": false
+        },
+        {
+          "category": "ADDRESS",
+          "span": "123 Tech Avenue San Francisco",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_per_m_EN_077",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "소셜 미디어 계정 이름은 공개된 정보이며 민감한 개인 식별 정보는 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_KO_078",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 건강 정보이지만, 구체적인 식별 정보(이름, ID 등)가 없어 일반적인 건강 상담 요청으로 간주됨"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_KO_079",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인적인 재정 및 주거 정보이지만, 분석 요청을 위한 일반적인 맥락 정보로 판단되어 마스킹 없이 허용함"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_KO_080",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않으며 일반적인 육아 상담 요청임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_EN_081",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인적인 수면 패턴에 대한 일반적인 분석 요청이며 민감한 개인 식별 정보는 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_EN_082",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 재정 및 주거 정보이지만, 구체적인 식별 정보(이름, 계좌번호 등)는 포함되어 있지 않아 안전함"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_per_c_EN_083",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_084",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "개인 이름과 내부 문서/프로젝트 정보가 포함되어 있어 선택적 마스킹이 필요함"
+      },
+      "records": [
+        {
+          "category": "PERSON_NAME",
+          "span": "김영희",
+          "is_essential": false
+        },
+        {
+          "category": "INTERNAL_DOCUMENT",
+          "span": "project_schedule_v3.xlsx",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_085",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_KO_086",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 핵심 기밀 정보가 포함되어 있지 않으며, 출장 보고서 작성을 위한 일반적인 비즈니스 정보임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_087",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 핵심 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_088",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "회의 일정 및 일반적인 업무 요청으로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_m_EN_089",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "여행 보고서 작성 요청으로 개인 식별 정보나 핵심 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_090",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보 없이 일반적인 업무 지원 요청임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_091",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보 없이 일반적인 데이터 분석 요청임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_KO_092",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 비즈니스 분석 및 평가 요청이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_093",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_094",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_corp_c_EN_095",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "텍스트는 일반적인 비즈니스 분석 요청이며 민감한 개인 식별 정보나 핵심 기밀 정보를 포함하고 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_KO_096",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "실험 참가자 정보 및 IRB 승인번호와 같은 식별 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "PARTICIPANT_ID",
+          "span": "P001-P050",
+          "is_essential": false
+        },
+        {
+          "category": "IRB_NUMBER",
+          "span": "IRB 승인번호",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_KO_097",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "데이터셋 이름과 일반적인 학술/저널 관련 질문으로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_KO_098",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "연구 계획 및 일반적인 프로젝트 정보로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_EN_099",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": true,
+        "rationale": "연구 참여자 정보 및 IRB 승인 번호와 같은 식별 가능한 정보가 포함되어 있음"
+      },
+      "records": [
+        {
+          "category": "PARTICIPANT_IDS",
+          "span": "P001-P050",
+          "is_essential": false
+        },
+        {
+          "category": "AGE_RANGE",
+          "span": "20-30",
+          "is_essential": false
+        },
+        {
+          "category": "GENDER_DATA",
+          "span": "28 male/22 female",
+          "is_essential": false
+        },
+        {
+          "category": "IRB_APPROVAL_NUMBER",
+          "span": "IRB approval number",
+          "is_essential": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "l3_res_m_EN_100",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "제공된 텍스트는 공개된 데이터셋 이름과 일반적인 연구/출판 관련 질문으로 구성되어 있어 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_m_EN_101",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_102",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "실험 설계에 대한 일반적인 요청이며 민감한 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_103",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "연구 주제 및 요청 사항으로 개인 식별 정보나 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_KO_104",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보 없이 학회 신청서 작성을 요청하는 일반적인 작업 요청임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_105",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "제공된 텍스트는 일반적인 실험 설계 및 통계 분석 요청이며 민감한 개인 식별 정보나 기밀 정보를 포함하고 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_106",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "학술 연구 주제 및 요청 사항으로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l3_res_c_EN_107",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 핵심 기밀 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_KO_108",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "날씨 정보와 일반적인 요청으로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_KO_109",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "개인 식별 정보나 기밀 정보 없이 일반적인 교통 경로 문의임"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_EN_110",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "날씨 정보 요청으로 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_per_m_EN_111",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 교통 정보에 관한 것이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_112",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 요리 레시피에 대한 것이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_KO_113",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 기술 및 함수 사용법에 대한 질문이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_114",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 요리 레시피에 대한 것이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_corp_m_EN_115",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 엑셀 기능에 대한 설명이므로 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_KO_116",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 학술적 방법론에 대한 정보 요청이며 민감 정보가 포함되어 있지 않음"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_KO_117",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 프로그래밍 개념에 대한 질문이며 민감 정보가 포함되어 있지 않습니다"
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_EN_118",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 텍스트는 일반적인 프로그래밍 개념에 대한 설명 요청이며 민감 정보가 포함되어 있지 않습니다."
+      },
+      "records": []
+    }
+  },
+  {
+    "id": "l4_res_m_EN_119",
+    "model": "google/gemma-4-E2B-it",
+    "parse_ok": true,
+    "extraction": {
+      "sensitivity": {
+        "is_sensitive": false,
+        "rationale": "요청된 내용은 일반적인 학술적 조언이며 민감 정보가 포함되어 있지 않습니다"
+      },
+      "records": []
+    }
+  }
+]

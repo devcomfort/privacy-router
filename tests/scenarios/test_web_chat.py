@@ -1,6 +1,6 @@
 """Scenario: Web chat frontend testing.
 
-Tests the chat UI served at GET /.
+Tests the chat UI served at GET /demo.
 Environment: Docker Compose up (db + api on localhost:8787).
 
 Run:
@@ -12,15 +12,13 @@ from __future__ import annotations
 
 import httpx
 
+from db import ApiKey, Provider, get_session, init_db
+from server.api import create_api_key
+
 BASE = "http://localhost:8787"
 
-# Create a test API key
-from server.api.auth import create_api_key
-from db.session import get_session, init_db
-from db.models import ApiKey, Provider
-import db.models  # noqa: F401
-
 init_db()
+
 
 def _get_auth_headers() -> dict:
     raw, hashed = create_api_key()
@@ -38,32 +36,30 @@ def _get_auth_headers() -> dict:
         session.close()
     return {"Authorization": f"Bearer {raw}"}
 
+
 AUTH_HEADERS = _get_auth_headers()
 
 
 class TestChatUI:
-    """Web chat UI served at GET /."""
+    """Web chat UI served at GET /demo."""
 
     def test_serves_html(self):
-        resp = httpx.get(f"{BASE}/")
+        resp = httpx.get(f"{BASE}/demo")
         assert resp.status_code == 200
         assert "text/html" in resp.headers.get("content-type", "")
 
     def test_contains_privacy_router_title(self):
-        resp = httpx.get(f"{BASE}/")
+        resp = httpx.get(f"{BASE}/demo")
         assert "Privacy Router" in resp.text
 
     def test_contains_chat_elements(self):
-        resp = httpx.get(f"{BASE}/")
+        resp = httpx.get(f"{BASE}/demo")
         html = resp.text.lower()
-        # Should have input area and send mechanism
-        assert "textarea" in html or "input" in html
+        assert "textarea" in html
 
-    def test_contains_api_reference(self):
-        resp = httpx.get(f"{BASE}/")
-        html = resp.text
-        # Should reference the API endpoint
-        assert "/v1/chat/completions" in html or "chat/completions" in html
+    def test_contains_model_selector(self):
+        resp = httpx.get(f"{BASE}/demo")
+        assert "<select" in resp.text.lower()
 
 
 class TestChatAPIIntegration:
@@ -73,25 +69,28 @@ class TestChatAPIIntegration:
         resp = httpx.post(
             f"{BASE}/v1/chat/completions",
             json={
-                "model": "privacy-router/openrouter/mistralai/ministral-3b-2512",
+                "model": "privacy-router/openrouter/google/gemma-4-26b-a4b-it",
                 "messages": [{"role": "user", "content": "안녕하세요"}],
                 "max_tokens": 32,
             },
             headers=AUTH_HEADERS,
+            timeout=60,
         )
         assert resp.status_code in (200, 502)
+
     def test_chat_completions_sensitive_returns_response(self):
         resp = httpx.post(
             f"{BASE}/v1/chat/completions",
             json={
-                "model": "privacy-router/openrouter/mistralai/ministral-3b-2512",
+                "model": "privacy-router/openrouter/google/gemma-4-26b-a4b-it",
                 "messages": [{"role": "user", "content": "주민등록번호 901212-1234567을 확인해주세요"}],
                 "max_tokens": 32,
             },
             headers=AUTH_HEADERS,
+            timeout=60,
         )
-        # Pipeline handles sensitive input — returns 200 (masked), 409 (prompt_user), or 502 (LLM error)
-        assert resp.status_code in (200, 409, 502)
+        # Sensitive input is either processed locally/masked or fails at the model boundary.
+        assert resp.status_code in (200, 502)
         if resp.status_code == 200:
             data = resp.json()
             assert "choices" in data or "privacy_router" in data

@@ -17,22 +17,25 @@ import argparse
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
-import optuna
 import litellm
+import optuna
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from agents.llm import load_prompt, render_prompt
+from agents.llm import load_prompt, render_prompt  # noqa: E402
 
 # ── Tuning cases (10 subset for fast search) ─────────────────────────────────
 TUNING_CASES = [
     {"text": "내 주민등록번호가 뭐야?", "expected_sensitive": True, "expected_essential": True},
-    {"text": "GIST 도서관 스터디룸을 예약하고 싶습니다. 학번 20251197, 이름 김동현, 전화번호 010-1234-5678.", "expected_sensitive": True, "expected_essential": True},
+    {
+        "text": "GIST 도서관 스터디룸을 예약하고 싶습니다. 학번 20251197, 이름 김동현, 전화번호 010-1234-5678.",
+        "expected_sensitive": True,
+        "expected_essential": True,
+    },
     {"text": "새로운 Attention 대체 아이디어를 실험하고 싶어", "expected_sensitive": True, "expected_essential": True},
     {"text": "주민등록번호 포함한 이메일을 작성해줘", "expected_sensitive": True, "expected_essential": False},
     {"text": "오늘 날씨가 좋네요", "expected_sensitive": False, "expected_essential": False},
@@ -109,7 +112,7 @@ def parse_response(content: str) -> dict | None:
         content = re.sub(r"<think>.*?</think>\s*", "", content, flags=re.DOTALL).strip()
 
     if not content.startswith("{"):
-        json_matches = list(re.finditer(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', content, re.DOTALL))
+        json_matches = list(re.finditer(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", content, re.DOTALL))
         if json_matches:
             content = json_matches[-1].group(0)
 
@@ -142,11 +145,16 @@ def evaluate_params(
     for case in cases:
         start = _time.time()
         try:
-            rendered = template.replace("{{text}}", case["text"]) if is_small else render_prompt(template, text=case["text"])
+            rendered = (
+                template.replace("{{text}}", case["text"]) if is_small else render_prompt(template, text=case["text"])
+            )
 
             if params.get("use_system_msg"):
                 messages = [
-                    {"role": "system", "content": "You are a privacy-sensitive information detector. Output ONLY valid JSON."},
+                    {
+                        "role": "system",
+                        "content": "You are a privacy-sensitive information detector. Output ONLY valid JSON.",
+                    },
                     {"role": "user", "content": rendered},
                 ]
             else:
@@ -176,33 +184,39 @@ def evaluate_params(
                     has_essential = any(r.get("is_essential", False) for r in records)
                     essential_ok = has_essential == case["expected_essential"]
 
-                results.append({
-                    "text": case["text"][:50],
-                    "sensitivity_ok": sensitivity_ok,
-                    "essential_ok": essential_ok,
-                    "correct": sensitivity_ok and essential_ok,
-                    "latency_s": round(latency, 2),
-                    "parsed": True,
-                })
+                results.append(
+                    {
+                        "text": case["text"][:50],
+                        "sensitivity_ok": sensitivity_ok,
+                        "essential_ok": essential_ok,
+                        "correct": sensitivity_ok and essential_ok,
+                        "latency_s": round(latency, 2),
+                        "parsed": True,
+                    }
+                )
             else:
-                results.append({
+                results.append(
+                    {
+                        "text": case["text"][:50],
+                        "sensitivity_ok": False,
+                        "essential_ok": False,
+                        "correct": False,
+                        "latency_s": round(latency, 2),
+                        "parsed": False,
+                    }
+                )
+        except Exception as e:
+            latency = _time.time() - start
+            results.append(
+                {
                     "text": case["text"][:50],
                     "sensitivity_ok": False,
                     "essential_ok": False,
                     "correct": False,
                     "latency_s": round(latency, 2),
-                    "parsed": False,
-                })
-        except Exception as e:
-            latency = _time.time() - start
-            results.append({
-                "text": case["text"][:50],
-                "sensitivity_ok": False,
-                "essential_ok": False,
-                "correct": False,
-                "latency_s": round(latency, 2),
-                "error": str(e)[:100],
-            })
+                    "error": str(e)[:100],
+                }
+            )
 
     correct = sum(1 for r in results if r["correct"])
     total = len(results)
@@ -219,13 +233,15 @@ def evaluate_params(
 
 def run_baseline(model_key: str, model_id: str, api_base: str | None) -> dict:
     """Run baseline measurement with current default parameters."""
-    print(f"\n{'─'*50}")
+    print(f"\n{'─' * 50}")
     print(f"  BASELINE: {model_key}")
-    print(f"  Params: temp={BASELINE_PROFILE['temperature']}, "
-          f"max_tok={BASELINE_PROFILE['max_tokens']}, "
-          f"top_p={BASELINE_PROFILE['top_p']}, "
-          f"json={BASELINE_PROFILE['use_json_mode']}")
-    print(f"{'─'*50}")
+    print(
+        f"  Params: temp={BASELINE_PROFILE['temperature']}, "
+        f"max_tok={BASELINE_PROFILE['max_tokens']}, "
+        f"top_p={BASELINE_PROFILE['top_p']}, "
+        f"json={BASELINE_PROFILE['use_json_mode']}"
+    )
+    print(f"{'─' * 50}")
 
     result = evaluate_params(model_id, api_base, BASELINE_PROFILE, TUNING_CASES)
     print(f"  Score: {result['score']:.1%} ({result['correct']}/{result['total']})")
@@ -252,10 +268,10 @@ def run_optuna_tuning(
     1. Plateau: best score unchanged for `patience` consecutive trials
     2. Target: best score >= `target_score`
     """
-    print(f"\n{'─'*50}")
+    print(f"\n{'─' * 50}")
     print(f"  OPTUNA TUNING: {model_key} (max {n_trials} trials)")
     print(f"  Early stopping: patience={patience}, target={target_score:.0%}")
-    print(f"{'─'*50}")
+    print(f"{'─' * 50}")
 
     all_profiles = []
     best_score = -1.0
@@ -291,9 +307,11 @@ def run_optuna_tuning(
         else:
             marker = ""
 
-        print(f"    Trial {trial.number:2d}: {result['score']:.0%} "
-              f"(temp={params['temperature']:.2f}, top_p={params['top_p']:.2f}, "
-              f"json={params['use_json_mode']}, sys={params['use_system_msg']}){marker}")
+        print(
+            f"    Trial {trial.number:2d}: {result['score']:.0%} "
+            f"(temp={params['temperature']:.2f}, top_p={params['top_p']:.2f}, "
+            f"json={params['use_json_mode']}, sys={params['use_system_msg']}){marker}"
+        )
 
         return result["score"]
 
@@ -308,25 +326,27 @@ def run_optuna_tuning(
         # Gate 2: Plateau — no improvement for `patience` trials
         trials_since_improvement = trial.number - best_trial
         if trials_since_improvement >= patience:
-            print(f"\n  ⏹ Plateau: no improvement for {patience} trials "
-                  f"(best={best_score:.0%} at trial {best_trial}). Stopping.")
+            print(
+                f"\n  ⏹ Plateau: no improvement for {patience} trials "
+                f"(best={best_score:.0%} at trial {best_trial}). Stopping."
+            )
             study.stop()
             return
 
-    study = optuna.create_study(direction="maximize", study_name=model_key,
-                                 sampler=optuna.samplers.TPESampler(seed=42))
+    study = optuna.create_study(direction="maximize", study_name=model_key, sampler=optuna.samplers.TPESampler(seed=42))
 
     # Enqueue baseline as first trial
-    study.enqueue_trial({
-        "temperature": BASELINE_PROFILE["temperature"],
-        "max_tokens": BASELINE_PROFILE["max_tokens"],
-        "top_p": BASELINE_PROFILE["top_p"],
-        "use_json_mode": BASELINE_PROFILE["use_json_mode"],
-        "use_system_msg": BASELINE_PROFILE["use_system_msg"],
-    })
+    study.enqueue_trial(
+        {
+            "temperature": BASELINE_PROFILE["temperature"],
+            "max_tokens": BASELINE_PROFILE["max_tokens"],
+            "top_p": BASELINE_PROFILE["top_p"],
+            "use_json_mode": BASELINE_PROFILE["use_json_mode"],
+            "use_system_msg": BASELINE_PROFILE["use_system_msg"],
+        }
+    )
 
-    study.optimize(objective, n_trials=n_trials, timeout=timeout,
-                   callbacks=[early_stopping_callback])
+    study.optimize(objective, n_trials=n_trials, timeout=timeout, callbacks=[early_stopping_callback])
 
     best = study.best_params
     best_score = study.best_value
@@ -344,6 +364,7 @@ def run_optuna_tuning(
         "target_score": target_score,
     }
 
+
 def run_validation(
     model_id: str,
     api_base: str | None,
@@ -357,9 +378,10 @@ def run_validation(
     for i in range(3):
         result = evaluate_params(model_id, api_base, params, TUNING_CASES)
         scores.append(result["score"])
-        print(f"    Run {i+1}: {result['score']:.1%}")
+        print(f"    Run {i + 1}: {result['score']:.1%}")
 
     import statistics
+
     mean = statistics.mean(scores)
     stdev = statistics.stdev(scores) if len(scores) > 1 else 0
 
@@ -392,11 +414,11 @@ def tune_model(
     model_id = cfg["model"]
     api_base = cfg.get("api_base")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  MODEL: {model_key}")
     print(f"  ID:    {model_id}")
     print(f"  API:   {api_base or 'OpenRouter'}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Step 1: Baseline
     baseline = run_baseline(model_key, model_id, api_base)
@@ -411,9 +433,9 @@ def tune_model(
         }
 
     # Step 2: Optuna tuning
-    tuning = run_optuna_tuning(model_key, model_id, api_base,
-                               n_trials=n_trials, timeout=timeout,
-                               patience=patience, target_score=target_score)
+    tuning = run_optuna_tuning(
+        model_key, model_id, api_base, n_trials=n_trials, timeout=timeout, patience=patience, target_score=target_score
+    )
 
     # Step 3: Validate best params
     best_params = tuning["best_params"]
@@ -455,13 +477,13 @@ def tune_model(
 
     # Print summary
     imp = result["improvement"]
-    print(f"\n  {'─'*40}")
+    print(f"\n  {'─' * 40}")
     print(f"  SUMMARY: {model_key}")
     print(f"    Baseline: {imp['baseline_score']:.1%}")
     print(f"    Tuned:    {imp['tuned_score']:.1%}")
     print(f"    Delta:    {imp['delta']:+.1%}")
     print(f"    Best params: {json.dumps(tuning['best_params'])}")
-    print(f"  {'─'*40}")
+    print(f"  {'─' * 40}")
 
     return result
 
@@ -473,7 +495,9 @@ def main():
     parser.add_argument("--trials", type=int, default=100, help="Max Optuna trials per model (default: 100)")
     parser.add_argument("--timeout", type=int, default=None, help="Timeout per model (seconds)")
     parser.add_argument("--patience", type=int, default=20, help="Early stopping patience (default: 20)")
-    parser.add_argument("--target-score", type=float, default=1.0, help="Target score for early stopping (default: 1.0)")
+    parser.add_argument(
+        "--target-score", type=float, default=1.0, help="Target score for early stopping (default: 1.0)"
+    )
     parser.add_argument("--baseline-only", action="store_true", help="Only run baseline, skip tuning")
     args = parser.parse_args()
 
@@ -502,11 +526,11 @@ def main():
 
     # Final summary
     if all_results:
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"  FINAL SUMMARY — {len(all_results)} models")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         print(f"  {'Model':<35} {'Baseline':>10} {'Tuned':>10} {'Delta':>10}")
-        print(f"  {'─'*65}")
+        print(f"  {'─' * 65}")
         for r in all_results:
             key = r["model_key"]
             bl = r.get("improvement", {}).get("baseline_score", r.get("baseline", {}).get("score", 0))

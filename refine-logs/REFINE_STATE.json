@@ -1,0 +1,16 @@
+{
+  "phase": "finalize",
+  "round": 5,
+  "status": "completed",
+  "anchor": "Prevent context-dependent sensitive information from leaking through LLM-agent egress while preserving real task completion.",
+  "title": "Closed-Loop Evaluation of Recipient-Bound Cumulative Disclosure in Tool-Using LLM Agents",
+  "dominant_contribution": "Benchmark and empirical failure study",
+  "secondary_contribution": "Stateful disclosure controller for comparisons and ablations",
+  "last_numeric_score": 8,
+  "reviewer_verdict_before_final_edit": "REVISE",
+  "final_status": "READY",
+  "final_status_basis": "The fifth reviewer stated that the sole matched-FPR revision would make the proposal READY; that revision is present in FINAL_PROPOSAL.md.",
+  "next_step": "/experiment-plan",
+  "final_proposal": "refine-logs/FINAL_PROPOSAL.md",
+  "timestamped_proposal": "refine-logs/FINAL_PROPOSAL_20260713-000000.md"
+}

@@ -23,22 +23,16 @@ Examples
 
 from __future__ import annotations
 
-import re
 from typing import Literal
 
 from .critic import Critic
-from .extractor_core import ExtractorCore
+from .extractor_core import ExtractorCore, normalize_category
 from .schemas import (
     ExtractionRecord,
     ExtractionResult,
     Sensitivity,
     _CriticItem,
 )
-
-# ── Constants ────────────────────────────────────────────────────────────────
-
-_SCREAMING_CASE_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
-"""Pattern validating SCREAMING_SNAKE_CASE tag format."""
 
 _DEFAULT_EXTRACTOR: Extractor | None = None
 """Module-level singleton, populated on first call to :func:`extract`."""
@@ -58,6 +52,8 @@ class Extractor:
         Override the model for extraction.
     api_base : str or None
         Override the API base URL.
+    max_tokens : int or None
+        Override the configured completion-token budget.
     core : ExtractorCore or None
         Inject a custom ExtractorCore (for testing).
     critic : Critic or None
@@ -69,13 +65,22 @@ class Extractor:
         precision: Literal["default", "high"] = "default",
         model: str | None = None,
         api_base: str | None = None,
+        prompt_path: str | None = None,
         core: ExtractorCore | None = None,
         critic: Critic | None = None,
+        max_tokens: int | None = None,
     ) -> None:
         self._precision = precision
-        self._core = core or ExtractorCore(model=model, api_base=api_base)
-        self._critic = critic if critic is not None else (
-            Critic(model=model, api_base=api_base) if precision == "high" else None
+        self._core = core or ExtractorCore(
+            model=model,
+            api_base=api_base,
+            prompt_path=prompt_path,
+            max_tokens=max_tokens,
+        )
+        self._critic = (
+            critic
+            if critic is not None
+            else (Critic(model=model, api_base=api_base, max_tokens=max_tokens) if precision == "high" else None)
         )
 
     @property
@@ -104,15 +109,12 @@ class Extractor:
         if self._critic and text and text.strip():
             review = self._critic.review(text, result.records)
             if review.found_missed:
-                validated = _validate_critic_records(
-                    review.missed_records, text, result.records
-                )
+                validated = _validate_critic_records(review.missed_records, text, result.records)
                 if validated:
                     result = ExtractionResult(
                         sensitivity=Sensitivity(
                             is_sensitive=True,
-                            rationale=result.sensitivity.rationale
-                            or "Critic에서 민감 정보 발견.",
+                            rationale=result.sensitivity.rationale or "Critic에서 민감 정보 발견.",
                         ),
                         records=result.records + validated,
                     )
@@ -148,13 +150,12 @@ def _validate_critic_records(
         if item.span in seen_spans:
             continue
 
-        # Same validation as ExtractorCore._validate_record
-        cat = item.category.strip().upper()
-        if not _SCREAMING_CASE_RE.match(cat):
-            continue
-
         span = item.span.strip()
         if not span:
+            continue
+
+        cat = normalize_category(item.category, span)
+        if cat is None:
             continue
         if span not in original_text:
             continue
@@ -162,15 +163,18 @@ def _validate_critic_records(
             continue
 
         start = original_text.find(span)
-        validated.append(ExtractionRecord(
-            category=cat,
-            span=span,
-            confidence=item.confidence,
-            reasoning=item.reasoning or "",
-            is_essential=item.is_essential,
-            start=start,
-            end=start + len(span),
-        ))
+        validated.append(
+            ExtractionRecord(
+                category=cat,
+                span=span,
+                confidence=item.confidence,
+                detection_type=item.detection_type,
+                reasoning=item.reasoning or "",
+                is_essential=item.is_essential,
+                start=start,
+                end=start + len(span),
+            )
+        )
         seen_spans.add(span)
 
     return validated
@@ -179,9 +183,7 @@ def _validate_critic_records(
 # ── Module-level convenience ─────────────────────────────────────────────────
 
 
-def extract(
-    text: str, precision: Literal["default", "high"] = "default"
-) -> ExtractionResult:
+def extract(text: str, precision: Literal["default", "high"] = "default") -> ExtractionResult:
     """One-shot extraction using a shared :class:`Extractor` instance.
 
     Parameters

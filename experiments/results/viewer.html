@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Router — Experiment Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:#0a0e1a;color:#e2e8f0;line-height:1.6;padding:32px 24px}
+.c{max-width:1600px;margin:0 auto}
+h1{font-size:28px;font-weight:800;margin-bottom:8px}
+h2{font-size:20px;font-weight:700;margin:32px 0 16px;color:#94a3b8}
+h3{font-size:16px;font-weight:600;margin:20px 0 12px}
+.sub{color:#64748b;font-size:14px;margin-bottom:32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:32px}
+.card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:24px}
+.card h3{margin-top:0;font-size:14px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.card .value{font-size:36px;font-weight:800;margin:8px 0}
+.card .detail{font-size:13px;color:#94a3b8}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+th{text-align:left;padding:12px 16px;background:#111827;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #1e293b;font-weight:600}
+td{padding:10px 16px;border-bottom:1px solid #1e293b}
+tr:hover td{background:#111827}
+.vg{color:#4ade80;font-weight:600}.vb{color:#60a5fa;font-weight:600}.vy{color:#fbbf24;font-weight:600}.vr{color:#f87171;font-weight:600}
+.chart-container{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:24px;margin-bottom:24px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.insight{background:#1a2332;border-left:4px solid #3b82f6;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:16px}
+.insight h4{color:#60a5fa;font-size:14px;margin-bottom:8px}
+.insight p{color:#94a3b8;font-size:13px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.tag-morph{background:#1a3a2a;color:#4ade80}
+.tag-ctx{background:#1a2a3a;color:#60a5fa}
+.tag-mixed{background:#3a2a1a;color:#fbbf24}
+.tag-none{background:#1e293b;color:#64748b}
+.badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.badge-best{background:#1a3a2a;color:#4ade80}
+.badge-good{background:#1a2a3a;color:#60a5fa}
+.badge-ok{background:#3a2a1a;color:#fbbf24}
+.badge-bad{background:#3a1a1a;color:#f87171}
+</style>
+</head>
+<body>
+<div class="c">
+<h1>Privacy Router — Experiment Analysis</h1>
+<p class="sub" id="status">Loading experiments...</p>
+<div id="app"></div>
+</div>
+
+<script>
+const SCHEMA = "privacy-router-experiment-v1";
+
+function scoreClass(v) { return v >= 90 ? 'vg' : v >= 70 ? 'vb' : v >= 50 ? 'vy' : 'vr'; }
+const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+async function loadAll() {
+  const resp = await fetch('/');
+  const html = await resp.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const links = [...doc.querySelectorAll('a')];
+  const jsonFiles = links.map(l => l.getAttribute('href')).filter(h => h && h.endsWith('.json'));
+
+  const experiments = [];    // schema v1: {$schema, experiment, trials[], best}
+  const treeSearches = [];   // tree_search: {model, evaluations[{prompt, overall_pct, ...}]}
+  let multiModelData = null; // multi_model: {results[{model_key, prompt_key, ...}]}
+
+  for (const f of jsonFiles) {
+    try {
+      const r = await fetch(f);
+      const d = await r.json();
+      if (d.$schema === SCHEMA) {
+        d._file = f;
+        experiments.push(d);
+      } else if (d.evaluations && Array.isArray(d.evaluations) && d.evaluations.length > 0) {
+        d._file = f;
+        treeSearches.push(d);
+      } else if (f.includes('multi_model') || (d.results && Array.isArray(d.results))) {
+        multiModelData = d;
+      }
+    } catch (e) {}
+  }
+
+  const parts = [];
+  if (experiments.length) parts.push(`${experiments.length} experiment files`);
+  if (treeSearches.length) parts.push(`${treeSearches.length} tree-search files`);
+  if (multiModelData) parts.push('multi-model comparison');
+  document.getElementById('status').textContent = parts.length ? parts.join(' + ') + ' loaded' : 'No data found';
+  renderAnalysis(experiments, multiModelData, treeSearches);
+}
+
+function renderAnalysis(experiments, multiModelData, treeSearches) {
+  let html = '';
+
+  // ── Data aggregation ──
+  // matrixData: keyed by "model||method" to deduplicate / average
+  const matrixMap = {}; // key -> { model, method, morph[], ctx[], overall[] }
+  function addMatrix(model, method, morph, ctx, overall) {
+    const key = model + '||' + method;
+    if (!matrixMap[key]) matrixMap[key] = { model, method, morph: [], ctx: [], overall: [] };
+    matrixMap[key].morph.push(morph);
+    matrixMap[key].ctx.push(ctx);
+    matrixMap[key].overall.push(overall);
+  }
+
+  // 1) Schema v1 experiments → allTrials + matrixMap
+  const allTrials = experiments.flatMap(e => (e.trials || []).map(t => ({...t, model: e.experiment.model, file: e._file})));
+
+  const promptStats = {};
+  allTrials.forEach(t => {
+    const key = t.prompt || 'unknown';
+    if (!promptStats[key]) promptStats[key] = { scores: [], overall: [], morph: [], ctx: [], consist: [], times: [], techniques: t.techniques || '' };
+    promptStats[key].scores.push(t.score);
+    promptStats[key].overall.push(t.metrics?.overall_accuracy_pct || 0);
+    promptStats[key].morph.push(t.metrics?.morphological_accuracy_pct || 0);
+    promptStats[key].ctx.push(t.metrics?.contextual_accuracy_pct || 0);
+    promptStats[key].consist.push(t.metrics?.consistency_pct || 0);
+    promptStats[key].times.push(t.metrics?.avg_latency_s || 0);
+    addMatrix(t.model, key, t.metrics?.morphological_accuracy_pct || 0, t.metrics?.contextual_accuracy_pct || 0, t.metrics?.overall_accuracy_pct || 0);
+  });
+
+  // 2) Tree search evaluations → matrixMap + allTrials-compatible entries
+  (treeSearches || []).forEach(ts => {
+    const model = ts.model || 'unknown';
+    (ts.evaluations || []).forEach(ev => {
+      const method = ev.prompt || 'unknown';
+      // Skip broken entries: explicit error, null metrics, or all-zero with no results
+      if (ev.error) return;
+      if (ev.overall_pct == null || ev.morph_pct == null) return;
+      if (ev.overall_pct === 0 && ev.morph_pct === 0 && ev.ctx_pct === 0) return;
+      const morph = ev.morph_pct || 0;
+      const ctx = ev.ctx_pct || 0;
+      const overall = ev.overall_pct || 0;
+      addMatrix(model, method, morph, ctx, overall);
+      // Also push a trial-like entry for charts
+      const score = overall / 100;
+      allTrials.push({ prompt: method, score, model, temperature: 0, top_p: 0,
+        metrics: { overall_accuracy_pct: overall, morphological_accuracy_pct: morph, contextual_accuracy_pct: ctx, consistency_pct: 100, avg_latency_s: 0 },
+        results: ev.results || [], file: ts._file });
+      // Update promptStats
+      if (!promptStats[method]) promptStats[method] = { scores: [], overall: [], morph: [], ctx: [], consist: [], times: [], techniques: '' };
+      promptStats[method].scores.push(score);
+      promptStats[method].overall.push(overall);
+      promptStats[method].morph.push(morph);
+      promptStats[method].ctx.push(ctx);
+      promptStats[method].consist.push(100);
+      promptStats[method].times.push(0);
+    });
+  });
+
+  // 3) Multi-model comparison → matrixMap
+  if (multiModelData && multiModelData.results) {
+    multiModelData.results.forEach(r => {
+      const morph = r.detection_types?.morphological?.accuracy_pct || 0;
+      const ctx = r.detection_types?.contextual?.accuracy_pct || 0;
+      addMatrix(r.model_key, r.prompt_key, morph, ctx, r.accuracy_pct || 0);
+    });
+  }
+
+  // Flatten matrixMap → matrixData (averaged)
+  const matrixData = Object.values(matrixMap).map(d => ({
+    model: d.model, method: d.method,
+    morph: avg(d.morph), ctx: avg(d.ctx), overall: avg(d.overall)
+  }));
+
+  // ── 1. Comprehensive Matrix (Model vs Methodology) ──
+  if (matrixData.length > 0) {
+    html += '<h2>1. Comprehensive Analysis (Model × Methodology)</h2>';
+    html += '<p class="sub">Rows = methodologies sorted by best overall accuracy. Cells show Overall / Morphological / Contextual %. Color encodes overall accuracy tier.</p>';
+
+    const models = [...new Set(matrixData.map(d => d.model))].sort();
+    // Sort methods by best overall (descending)
+    const methodBest = {};
+    matrixData.forEach(d => { methodBest[d.method] = Math.max(methodBest[d.method] || 0, d.overall); });
+    const methods = [...new Set(matrixData.map(d => d.method))].sort((a, b) => (methodBest[b] || 0) - (methodBest[a] || 0));
+
+    // Shorten model names for display
+    const shortModel = m => m.includes('/') ? m.split('/').pop() : m;
+
+    html += '<div style="overflow-x: auto; margin-bottom: 32px;">';
+    html += '<table style="min-width: 800px; text-align: center;">';
+    html += '<tr><th style="text-align: left; min-width: 200px;">Method \\ Model</th>';
+    models.forEach(m => { html += `<th style="text-align: center; min-width: 120px; font-size: 11px; white-space: nowrap;">${shortModel(m)}</th>`; });
+    html += '</tr>';
+
+    methods.forEach(method => {
+      html += `<tr><td style="text-align: left; font-weight: 600; white-space: nowrap;">${method}</td>`;
+      models.forEach(model => {
+        const d = matrixData.find(x => x.model === model && x.method === method);
+        if (d) {
+          const v = d.overall;
+          const bg = v >= 85 ? '#1a3a2a' : v >= 70 ? '#1a2a3a' : v >= 50 ? '#2a2a1a' : v > 0 ? '#2a1a1a' : '#111827';
+          const fg = v >= 85 ? '#4ade80' : v >= 70 ? '#60a5fa' : v >= 50 ? '#fbbf24' : v > 0 ? '#f87171' : '#475569';
+          html += `<td style="background: ${bg}; border: 1px solid ${v > 0 ? fg : '#1e293b'}; padding: 10px 8px; font-size: 11px;">`;
+          html += `<div style="font-weight: 800; font-size: 15px; color: ${fg}">${v.toFixed(1)}%</div>`;
+          html += `<div style="color: #94a3b8; font-size: 10px;">M:${d.morph.toFixed(0)}% C:${d.ctx.toFixed(0)}%</div>`;
+          html += `</td>`;
+        } else {
+          html += `<td style="background: #0d1117; color: #1e293b; font-size: 10px;">—</td>`;
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</table></div>';
+  }
+
+  // ── 2. Executive Summary ──
+  html += '<h2>2. Executive Summary</h2>';
+  const bestTrials = experiments.map(e => ({...e.best, model: e.experiment.model, file: e._file}));
+  const bestOverall = bestTrials.length > 0 ? bestTrials.reduce((a, b) => (a.score > b.score ? a : b), bestTrials[0]) : {score: 0, prompt: '', model: ''};
+  const avgScore = avg(allTrials.map(t => t.score));
+  const avgMorph = avg(allTrials.map(t => t.metrics?.morphological_accuracy_pct || 0));
+  const avgCtx = avg(allTrials.map(t => t.metrics?.contextual_accuracy_pct || 0));
+
+  html += '<div class="grid">';
+  html += card('Best Score', (bestOverall.score * 100).toFixed(1) + '%', `Prompt: ${bestOverall.prompt}, Model: ${bestOverall.model}`);
+  html += card('Avg Score (all trials)', (avgScore * 100).toFixed(1) + '%', `${allTrials.length} trials across ${experiments.length} experiments`);
+  html += card('Avg Morphological', avgMorph.toFixed(1) + '%', 'Pattern-based detection (PII, URLs)');
+  html += card('Avg Contextual', avgCtx.toFixed(1) + '%', 'Meaning-based detection (secrets, ideas)');
+  html += '</div>';
+
+  // ── 3. Key Insights ──
+  html += '<h2>3. Key Insights</h2>';
+  html += insight('Contextual Bottleneck', 'Morphological detection (PII, formats) hits 100% easily across modern models. Contextual detection (secrets, ideas) is the primary discriminator between models and methodologies.');
+  html += insight('Topic vs Content Distinction', 'Directly asking about a sensitive topic (is_essential: true) vs. creating content containing the topic (is_essential: false) is the hardest edge case. Few-shot prompting specifically targeting this distinction yields the biggest leap.');
+  html += insight('Model Hierarchy', 'Open weights like Gemma-4-E4B-it can rival or beat proprietary APIs (Gemini, Ministral) when paired with carefully engineered few-shot prompts.');
+
+  // ── 4. Prompt Comparison ──
+  html += '<h2>4. Prompt Comparison</h2>';
+  html += '<div class="chart-row">';
+  html += '<div class="chart-container"><canvas id="chart-prompt-overall" height="300"></canvas></div>';
+  html += '<div class="chart-container"><canvas id="chart-prompt-detail" height="300"></canvas></div>';
+  html += '</div>';
+
+  html += '<table><tr><th>Prompt</th><th>Techniques</th><th>Trials</th><th>Avg Score</th><th>Overall</th><th>Morph</th><th>Contextual</th><th>Consistency</th><th>Latency</th></tr>';
+  Object.entries(promptStats).sort((a, b) => avg(b[1].scores) - avg(a[1].scores)).forEach(([name, s]) => {
+    html += `<tr>
+      <td><strong>${name}</strong></td>
+      <td style="font-size:11px;color:#94a3b8">${s.techniques}</td>
+      <td>${s.scores.length}</td>
+      <td class="${scoreClass(avg(s.scores) * 100)}">${(avg(s.scores) * 100).toFixed(1)}%</td>
+      <td class="${scoreClass(avg(s.overall))}">${avg(s.overall).toFixed(1)}%</td>
+      <td class="${scoreClass(avg(s.morph))}">${avg(s.morph).toFixed(1)}%</td>
+      <td class="${scoreClass(avg(s.ctx))}">${avg(s.ctx).toFixed(1)}%</td>
+      <td class="${scoreClass(avg(s.consist))}">${avg(s.consist).toFixed(1)}%</td>
+      <td>${avg(s.times).toFixed(1)}s</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // ── 5. Parameter Sensitivity ──
+  html += '<h2>5. Parameter Sensitivity</h2>';
+  html += '<div class="chart-row">';
+  html += '<div class="chart-container"><canvas id="chart-temp" height="300"></canvas></div>';
+  html += '<div class="chart-container"><canvas id="chart-topp" height="300"></canvas></div>';
+  html += '</div>';
+
+  const tempBuckets = {};
+  allTrials.forEach(t => {
+    const key = (t.temperature || 0).toFixed(1);
+    if (!tempBuckets[key]) tempBuckets[key] = [];
+    tempBuckets[key].push(t.score);
+  });
+
+  html += '<table><tr><th>Temperature</th><th>Trials</th><th>Avg Score</th><th>Min</th><th>Max</th><th>Std Dev</th></tr>';
+  Object.entries(tempBuckets).sort((a, b) => parseFloat(a[0]) - parseFloat(b[0])).forEach(([temp, scores]) => {
+    const mean = avg(scores);
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+    const std = Math.sqrt(scores.reduce((s, v) => s + (v - mean) ** 2, 0) / scores.length);
+    html += `<tr>
+      <td>${temp}</td>
+      <td>${scores.length}</td>
+      <td class="${scoreClass(mean * 100)}">${(mean * 100).toFixed(1)}%</td>
+      <td>${(min * 100).toFixed(1)}%</td>
+      <td>${(max * 100).toFixed(1)}%</td>
+      <td>${(std * 100).toFixed(2)}%</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // ── 6. Detection Type Analysis ──
+  html += '<h2>6. Detection Type Analysis</h2>';
+  html += '<div class="chart-container"><canvas id="chart-detection" height="250"></canvas></div>';
+
+  const detStats = {};
+  allTrials.forEach(t => {
+    (t.results || []).forEach(r => {
+      const dt = r.detection_type || 'unknown';
+      if (!detStats[dt]) detStats[dt] = { total: 0, ok: 0 };
+      detStats[dt].total++;
+      if (r.ok) detStats[dt].ok++;
+    });
+  });
+
+  html += '<table><tr><th>Detection Type</th><th>Total</th><th>Correct</th><th>Accuracy</th></tr>';
+  Object.entries(detStats).sort((a, b) => b[1].total - a[1].total).forEach(([dt, s]) => {
+    const acc = s.total ? (s.ok / s.total * 100) : 0;
+    const tagClass = dt === 'morphological' ? 'tag-morph' : dt === 'contextual' ? 'tag-ctx' : dt === 'mixed' ? 'tag-mixed' : 'tag-none';
+    html += `<tr>
+      <td><span class="tag ${tagClass}">${dt}</span></td>
+      <td>${s.total}</td>
+      <td>${s.ok}</td>
+      <td class="${scoreClass(acc)}">${acc.toFixed(1)}%</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // ── 7. Failure Analysis ──
+  html += '<h2>7. Failure Analysis</h2>';
+  const failStats = {};
+  allTrials.forEach(t => {
+    (t.results || []).forEach(r => {
+      if (!r.ok) {
+        const key = r.case_name || 'unknown';
+        if (!failStats[key]) failStats[key] = { expected: r.expected_action, got: new Set(), count: 0, type: r.detection_type };
+        failStats[key].got.add(r.actual_action);
+        failStats[key].count++;
+      }
+    });
+  });
+
+  html += '<table><tr><th>Case</th><th>Type</th><th>Failures</th><th>Expected</th><th>Got</th></tr>';
+  Object.entries(failStats).sort((a, b) => b[1].count - a[1].count).forEach(([name, s]) => {
+    const tagClass = s.type === 'morphological' ? 'tag-morph' : s.type === 'contextual' ? 'tag-ctx' : s.type === 'mixed' ? 'tag-mixed' : 'tag-none';
+    html += `<tr>
+      <td><strong>${name}</strong></td>
+      <td><span class="tag ${tagClass}">${s.type}</span></td>
+      <td class="vr">${s.count}</td>
+      <td>${s.expected}</td>
+      <td class="vr">${[...s.got].join(', ')}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // ── 8. Experiment Timeline ──
+  html += '<h2>8. Experiment Timeline</h2>';
+  html += '<table><tr><th>File</th><th>Model</th><th>Trials</th><th>Best Score</th><th>Best Prompt</th><th>Generated</th></tr>';
+  experiments.sort((a, b) => (a.generated_at || '').localeCompare(b.generated_at || '')).forEach(e => {
+    html += `<tr>
+      <td>${e._file}</td>
+      <td>${e.experiment.model}</td>
+      <td>${e.experiment.total_trials}</td>
+      <td class="${scoreClass(e.best.score * 100)}">${(e.best.score * 100).toFixed(1)}%</td>
+      <td>${e.best.prompt}</td>
+      <td style="font-size:11px;color:#64748b">${e.generated_at}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  document.getElementById('app').innerHTML = html;
+  renderCharts(promptStats, tempBuckets, detStats, allTrials);
+}
+
+function card(title, value, detail) {
+  return `<div class="card"><h3>${title}</h3><div class="value">${value}</div><div class="detail">${detail}</div></div>`;
+}
+
+function insight(title, text) {
+  return `<div class="insight"><h4>${title}</h4><p>${text}</p></div>`;
+}
+
+function renderCharts(promptStats, tempBuckets, detStats, allTrials) {
+  const promptNames = Object.keys(promptStats).sort((a, b) => avg(promptStats[b].scores) - avg(promptStats[a].scores));
+
+  new Chart(document.getElementById('chart-prompt-overall'), {
+    type: 'bar',
+    data: {
+      labels: promptNames,
+      datasets: [{
+        label: 'Avg Score',
+        data: promptNames.map(p => avg(promptStats[p].scores) * 100),
+        backgroundColor: promptNames.map(p => {
+          const v = avg(promptStats[p].scores) * 100;
+          return v >= 85 ? '#4ade80' : v >= 70 ? '#60a5fa' : v >= 50 ? '#fbbf24' : '#f87171';
+        }),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: true, text: 'Prompt Comparison — Avg Score', color: '#94a3b8' }, legend: { display: false } },
+      scales: { y: { beginAtZero: true, max: 100, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { display: false } } }
+    }
+  });
+
+  new Chart(document.getElementById('chart-prompt-detail'), {
+    type: 'bar',
+    data: {
+      labels: promptNames,
+      datasets: [
+        { label: 'Morphological', data: promptNames.map(p => avg(promptStats[p].morph)), backgroundColor: '#4ade80', borderRadius: 4 },
+        { label: 'Contextual', data: promptNames.map(p => avg(promptStats[p].ctx)), backgroundColor: '#60a5fa', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: true, text: 'Detection Type Breakdown', color: '#94a3b8' }, legend: { labels: { color: '#94a3b8' } } },
+      scales: { y: { beginAtZero: true, max: 100, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { display: false } } }
+    }
+  });
+
+  const temps = Object.keys(tempBuckets).sort((a, b) => parseFloat(a) - parseFloat(b));
+  new Chart(document.getElementById('chart-temp'), {
+    type: 'line',
+    data: {
+      labels: temps,
+      datasets: [{
+        label: 'Avg Score',
+        data: temps.map(t => avg(tempBuckets[t]) * 100),
+        borderColor: '#60a5fa',
+        backgroundColor: 'rgba(96,165,250,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: true, text: 'Temperature vs Score', color: '#94a3b8' }, legend: { display: false } },
+      scales: { y: { beginAtZero: true, max: 100, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, x: { title: { display: true, text: 'Temperature', color: '#64748b' }, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } }
+    }
+  });
+
+  const toppBuckets = {};
+  allTrials.forEach(t => {
+    const key = (t.top_p || 0).toFixed(2);
+    if (!toppBuckets[key]) toppBuckets[key] = [];
+    toppBuckets[key].push(t.score);
+  });
+  const topps = Object.keys(toppBuckets).sort((a, b) => parseFloat(a) - parseFloat(b));
+  new Chart(document.getElementById('chart-topp'), {
+    type: 'line',
+    data: {
+      labels: topps,
+      datasets: [{
+        label: 'Avg Score',
+        data: topps.map(t => avg(toppBuckets[t]) * 100),
+        borderColor: '#4ade80',
+        backgroundColor: 'rgba(74,222,128,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: true, text: 'Top-P vs Score', color: '#94a3b8' }, legend: { display: false } },
+      scales: { y: { beginAtZero: true, max: 100, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, x: { title: { display: true, text: 'Top-P', color: '#64748b' }, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } }
+    }
+  });
+
+  const detLabels = Object.keys(detStats);
+  new Chart(document.getElementById('chart-detection'), {
+    type: 'bar',
+    data: {
+      labels: detLabels,
+      datasets: [
+        { label: 'Correct', data: detLabels.map(d => detStats[d].ok), backgroundColor: '#4ade80', borderRadius: 4 },
+        { label: 'Failed', data: detLabels.map(d => detStats[d].total - detStats[d].ok), backgroundColor: '#f87171', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { title: { display: true, text: 'Detection Type Accuracy', color: '#94a3b8' }, legend: { labels: { color: '#94a3b8' } } },
+      scales: { y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { display: false } } }
+    }
+  });
+}
+
+loadAll();
+</script>
+</body>
+</html>

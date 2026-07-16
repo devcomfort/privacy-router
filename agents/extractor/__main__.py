@@ -6,7 +6,6 @@ import os
 
 from agents.extractor import Extractor
 
-
 SAMPLE_INPUTS = [
     {"name": "개인정보 - 단순 포함", "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘."},
     {"name": "개인정보 - 직접 질의", "text": "내 주민등록번호가 뭐야?"},
@@ -54,9 +53,8 @@ def main():
             print("  (없음)")
         else:
             for j, record in enumerate(records, 1):
-                print(f"  [{j}] {record.category}: \"{record.span}\"")
+                print(f'  [{j}] {record.category}: "{record.span}"')
                 print(f"      confidence: {record.confidence:.2f}")
-                print(f"      placeholder: {record.make_placeholder(1)}")
         print()
 
     print("=" * 70)

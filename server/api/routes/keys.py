@@ -5,13 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi import Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlmodel import select
 
-from db.models import ApiKey
-from db.session import get_session
-from server.api.auth import create_api_key, require_auth
-from server.api.main import app
+from db import ApiKey, get_session
+from server.api import app, create_api_key, require_admin_auth
 
 
 class KeyCreate(BaseModel):
@@ -35,7 +33,7 @@ class BulkKeyToggle(BaseModel):
 class BulkActionResult(BaseModel):
     updated: int
     ids: list[str]
-    errors: list[str] = []
+    errors: list[str] = Field(default_factory=list)
 
 
 class KeyOut(BaseModel):
@@ -46,8 +44,7 @@ class KeyOut(BaseModel):
     last_used_at: datetime | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KeyCreated(BaseModel):
@@ -58,7 +55,7 @@ class KeyCreated(BaseModel):
 
 
 @app.get("/api/v1/keys", response_model=list[KeyOut])
-def list_keys():
+def list_keys(_admin: str = Depends(require_admin_auth)):
     session = get_session()
     try:
         keys = session.exec(select(ApiKey).order_by(ApiKey.created_at.desc())).all()
@@ -68,7 +65,7 @@ def list_keys():
 
 
 @app.post("/api/v1/keys", response_model=KeyCreated, status_code=201)
-def create_key(body: KeyCreate):
+def create_key(body: KeyCreate, _admin: str = Depends(require_admin_auth)):
     session = get_session()
     try:
         raw, hashed = create_api_key()
@@ -90,7 +87,7 @@ def create_key(body: KeyCreate):
 
 
 @app.post("/api/v1/keys/{key_id}/renew", response_model=KeyCreated)
-def renew_key(key_id: str):
+def renew_key(key_id: str, _admin: str = Depends(require_admin_auth)):
     session = get_session()
     try:
         old = session.get(ApiKey, key_id)
@@ -117,7 +114,11 @@ def renew_key(key_id: str):
 
 
 @app.patch("/api/v1/keys/{key_id}", response_model=KeyOut)
-def update_key(key_id: str, body: KeyUpdate):
+def update_key(
+    key_id: str,
+    body: KeyUpdate,
+    _admin: str = Depends(require_admin_auth),
+):
     session = get_session()
     try:
         key = session.get(ApiKey, key_id)
@@ -136,7 +137,10 @@ def update_key(key_id: str, body: KeyUpdate):
 
 
 @app.post("/api/v1/keys/bulk-toggle", response_model=BulkActionResult)
-def bulk_toggle(body: BulkKeyToggle):
+def bulk_toggle(
+    body: BulkKeyToggle,
+    _admin: str = Depends(require_admin_auth),
+):
     session = get_session()
     try:
         updated_ids = []
@@ -156,7 +160,10 @@ def bulk_toggle(body: BulkKeyToggle):
 
 
 @app.post("/api/v1/keys/bulk-delete", response_model=BulkActionResult)
-def bulk_delete(body: BulkKeyAction):
+def bulk_delete(
+    body: BulkKeyAction,
+    _admin: str = Depends(require_admin_auth),
+):
     session = get_session()
     try:
         deleted_ids = []
@@ -175,7 +182,7 @@ def bulk_delete(body: BulkKeyAction):
 
 
 @app.delete("/api/v1/keys/{key_id}", status_code=204)
-def revoke_key(key_id: str):
+def revoke_key(key_id: str, _admin: str = Depends(require_admin_auth)):
     session = get_session()
     try:
         key = session.get(ApiKey, key_id)

@@ -11,7 +11,7 @@ Examples
 >>> adapter = LiteLLMAdapter()
 >>> adapter.resolve_backend_model("privacy-router/openai/gpt-4o")
 'openai/gpt-4o'
->>> adapter.get_api_key()  # reads OPENAI_API_KEY from env
+>>> adapter.get_api_key("openai/gpt-4o")
 
 >>> openrouter = OpenRouterAdapter()
 >>> openrouter.resolve_backend_model("privacy-router/openrouter/google/gemini-3.1-flash-lite")
@@ -20,10 +20,37 @@ Examples
 
 from __future__ import annotations
 
+import ipaddress
 import os
-from typing import Any
+from contextlib import suppress
+from typing import Any, get_args
+from urllib.parse import urlsplit
 
 import litellm
+from litellm.types.llms.openai import OpenAIChatCompletionFinishReason
+
+from config import resolve_model_api_key
+
+_ALLOWED_FINISH_REASONS = frozenset(get_args(OpenAIChatCompletionFinishReason))
+_MAX_REPORTED_TOKENS = 2_147_483_647
+
+
+def _validated_token_count(value: object) -> int:
+    """Return a bounded provider token count or reject untrusted metadata."""
+    if value is None:
+        return 0
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0 or value > _MAX_REPORTED_TOKENS:
+        raise ValueError("Invalid provider usage metadata")
+    return value
+
+
+def _validated_finish_reason(value: object) -> str:
+    """Return a standard finish reason or reject provider-controlled text."""
+    if value is None:
+        return "stop"
+    if not isinstance(value, str) or value not in _ALLOWED_FINISH_REASONS:
+        raise ValueError("Invalid provider finish reason")
+    return value
 
 
 class LiteLLMAdapter:
@@ -45,9 +72,9 @@ class LiteLLMAdapter:
 
     # ── Public API ───────────────────────────────────────────────────────────
 
-    def get_api_key(self) -> str:
-        """Return the API key for this provider from the environment."""
-        return os.getenv(self.api_key_env, "")
+    def get_api_key(self, model: str) -> str:
+        """Resolve the configured provider key, then fall back to the environment."""
+        return resolve_model_api_key(model) or os.getenv(self.api_key_env, "")
 
     def resolve_backend_model(self, raw_model: str) -> str:
         """Strip ``privacy-router/`` prefix and return the litellm model ID.
@@ -57,7 +84,7 @@ class LiteLLMAdapter:
         """
         prefix = "privacy-router/"
         if raw_model.startswith(prefix):
-            return raw_model[len(prefix):]
+            return raw_model[len(prefix) :]
         return raw_model
 
     def supports_model(self, model_id: str) -> bool:
@@ -97,20 +124,24 @@ class LiteLLMAdapter:
         -------
         litellm response object
         """
-        api_key = self.get_api_key()
+        hostname = urlsplit(api_base).hostname if api_base else None
+        loopback = hostname == "localhost"
+        if hostname and not loopback:
+            with suppress(ValueError):
+                loopback = ipaddress.ip_address(hostname).is_loopback
+        effective_api_key = "not-needed" if loopback else self.get_api_key(model) or None
         call_kwargs: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "api_key": api_key if api_key else None,
+            "api_key": effective_api_key,
         }
         if api_base:
             call_kwargs["api_base"] = api_base
-        import sys as _dbg_sys
-        print(f"DEBUG ADAPTER: kwargs keys={list(kwargs.keys())}", file=_dbg_sys.stderr)
-        print(f"DEBUG ADAPTER: tools={kwargs.get('tools', 'NOT SET')}", file=_dbg_sys.stderr)
         call_kwargs.update(kwargs)
+        if loopback:
+            call_kwargs["api_key"] = "not-needed"
         return litellm.completion(**call_kwargs)
 
     def format_response(
@@ -132,13 +163,11 @@ class LiteLLMAdapter:
         dict
             ``{"usage": {...}, "finish_reason": str}``
         """
-        usage_obj = litellm_response.usage
+        usage_obj = getattr(litellm_response, "usage", None)
         usage = {
-            "prompt_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
-            "completion_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
-            "total_tokens": getattr(usage_obj, "total_tokens", 0) if usage_obj else 0,
+            "prompt_tokens": _validated_token_count(getattr(usage_obj, "prompt_tokens", None)),
+            "completion_tokens": _validated_token_count(getattr(usage_obj, "completion_tokens", None)),
+            "total_tokens": _validated_token_count(getattr(usage_obj, "total_tokens", None)),
         }
-        finish_reason = (
-            litellm_response.choices[0].finish_reason or "stop"
-        )
+        finish_reason = _validated_finish_reason(getattr(litellm_response.choices[0], "finish_reason", None))
         return {"usage": usage, "finish_reason": finish_reason}

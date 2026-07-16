@@ -7,36 +7,43 @@ Provides REST API for:
 
 from __future__ import annotations
 
-from fastapi import HTTPException
+from datetime import UTC, datetime
 
-from server.api.main import app
+from fastapi import Depends, HTTPException
+from sqlmodel import select
+
+from agents import ContractStore, Masker
+from db import MaskingRecord, MaskingSession, get_session
+from server.api import app, require_auth
 
 
 @app.get("/api/v1/masking/{session_id}")
-async def get_masking_session(session_id: str) -> dict:
+async def get_masking_session(
+    session_id: str,
+    _auth: str = Depends(require_auth),
+) -> dict:
     """Retrieve masking session details.
 
     Returns session metadata and per-record masking details
     (category, placeholder, confidence, is_essential).
     Original values are NEVER returned — only metadata.
     """
-    from db.session import get_session
-    from db.models import MaskingSession, MaskingRecord
-
     db = get_session()
     try:
         session = db.get(MaskingSession, session_id)
-        if not session:
+        expired = (
+            session is not None
+            and session.expires_at is not None
+            and session.expires_at <= datetime.now(UTC).replace(tzinfo=None)
+        )
+        if not session or session.owner_id != _auth or not session.is_active or expired:
             raise HTTPException(status_code=404, detail="Masking session not found")
 
-        records = db.query(MaskingRecord).filter(
-            MaskingRecord.session_id == session_id
-        ).all()
+        records = db.exec(select(MaskingRecord).where(MaskingRecord.session_id == session_id)).all()
 
         return {
             "session_id": session.id,
             "chat_id": session.chat_id,
-            "input_hash": session.input_hash,
             "record_count": session.record_count,
             "policy_action": session.policy_action,
             "is_active": session.is_active,
@@ -58,7 +65,11 @@ async def get_masking_session(session_id: str) -> dict:
 
 
 @app.post("/api/v1/masking/{session_id}/hydrate")
-async def hydrate_content(session_id: str, body: dict) -> dict:
+async def hydrate_content(
+    session_id: str,
+    body: dict,
+    _auth: str = Depends(require_auth),
+) -> dict:
     """Hydrate content using a stored masking contract.
 
     Args:
@@ -67,14 +78,12 @@ async def hydrate_content(session_id: str, body: dict) -> dict:
     Returns:
         {"hydrated": "text with original values restored"}
     """
-    from agents.masker import ContractStore, Masker
-
     content = body.get("content", "")
     if not content:
         raise HTTPException(status_code=400, detail="content field required")
 
     store = ContractStore()
-    contract = store.load_contract(session_id)
+    contract = store.load_contract(session_id, owner_id=_auth)
     if not contract:
         raise HTTPException(status_code=404, detail="Masking session not found or expired")
 

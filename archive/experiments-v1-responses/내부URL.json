@@ -1,0 +1,31 @@
+{
+  "case_name": "내부URL",
+  "input_text": "https://internal.company.com/project-x 에서 이번 분기 실적 데이터를 확인해줘.",
+  "expected": {
+    "action": "block",
+    "sensitive": true
+  },
+  "raw_response": "{\"sensitivity\": {\"is_sensitive\": true, \"rationale\": \"내부 시스템 URL 포함\"}, \"records\": [{\"category\": \"INTERNAL_URL\", \"span\": \"https://internal.company.com/project-x\", \"confidence\": 0.99, \"reasoning\": \"내부 URL 패턴 감지\", \"is_essential\": false}]}",
+  "parsed_json": {
+    "sensitivity": {
+      "is_sensitive": true,
+      "rationale": "내부 시스템 URL 포함"
+    },
+    "records": [
+      {
+        "category": "INTERNAL_URL",
+        "span": "https://internal.company.com/project-x",
+        "confidence": 0.99,
+        "reasoning": "내부 URL 패턴 감지",
+        "is_essential": false
+      }
+    ]
+  },
+  "actual": {
+    "action": "selective_mask",
+    "sensitive": true
+  },
+  "passed": false,
+  "failure_reason": "WRONG_ACTION: Expected 'block', got 'selective_mask'",
+  "error": null
+}

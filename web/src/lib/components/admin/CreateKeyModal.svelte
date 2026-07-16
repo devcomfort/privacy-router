@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { keys as keysApi } from '$lib/api';
 	import type { KeyCreated } from '$lib/types';
 	import { Modal, Input, Button } from '$lib/components/ui';
 	import { t } from '$lib/i18n';
@@ -19,16 +20,7 @@
 		loading = true;
 		error = '';
 		try {
-			const res = await fetch('/api/v1/keys', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: name || 'default' })
-			});
-			if (!res.ok) {
-				error = await res.text();
-				return;
-			}
-			const data = (await res.json()) as KeyCreated;
+			const data = await keysApi.create(name || 'default');
 			name = '';
 			oncreated(data);
 			onclose();

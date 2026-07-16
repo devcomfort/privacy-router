@@ -7,3 +7,5 @@ export { default as Modal } from './Modal.svelte';
 export { default as Alert } from './Alert.svelte';
 export { default as Checkbox } from './Checkbox.svelte';
 export { default as LangToggle } from './LangToggle.svelte';
+export { default as MarkdownRenderer } from './MarkdownRenderer.svelte';
+export { default as DocPage } from './DocPage.svelte';

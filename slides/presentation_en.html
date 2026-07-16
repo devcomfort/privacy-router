@@ -168,6 +168,21 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
     box-shadow: 0 8px 40px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
     opacity: 0; animation: scaleIn 0.7s var(--ease-out-expo) 0.5s forwards;
 }
+.accent-card--hero {
+    position: relative; overflow: hidden;
+    background-image: linear-gradient(120deg, rgba(15,23,42,0.88), rgba(15,23,42,0.34)), url("../assets/generated/privacy-router-hero.png");
+    background-position: center; background-size: cover;
+}
+.accent-card--hero > * { position: relative; z-index: 1; }
+.routing-illustration {
+    min-height: 176px; overflow: hidden; border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 14px; background: #071428;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.24);
+}
+.routing-illustration img {
+    width: 100%; height: 100%; min-height: 176px; display: block;
+    object-fit: cover; opacity: 0.9;
+}
 .accent-card__label {
     font-size: 18px; font-weight: 700; letter-spacing: 0.14em;
     text-transform: uppercase; color: rgba(255,255,255,0.6);
@@ -470,7 +485,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 GenAI &amp; Blockchain · Term Project · June 2026
             </p>
         </div>
-        <div class="accent-card">
+        <div class="accent-card accent-card--hero">
             <span class="accent-card__label">How It Works</span>
             <h2 class="accent-card__title">Extractor → Judge → Router</h2>
             <p class="accent-card__desc">
@@ -529,7 +544,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">GenAI &amp; Blockchain · Term Project</span>
-            <span class="footer-right">2 / 15</span>
+            <span class="footer-right">2 / 14</span>
         </div>
     </div>
 </section>
@@ -571,7 +586,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Design · Target Users</span>
-            <span class="footer-right">3 / 15</span>
+            <span class="footer-right">3 / 14</span>
         </div>
     </div>
 </section>
@@ -598,7 +613,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 <div class="flow-box">
                     <div class="flow-box__label" style="color: var(--accent);">Extractor</div>
                     <div class="flow-box__title">SLM Detection</div>
-                    <div class="flow-box__desc">Socratic Sensitivity Detection</div>
+                    <div class="flow-box__desc">Question-based sensitivity classification</div>
                 </div>
                 <div class="flow-arrow">→</div>
                 <div class="flow-box">
@@ -620,18 +635,17 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 </div>
                 <div class="card">
                     <span class="card__label">Extractor (precision facade)</span>
-                    <p class="card__text">ExtractorCore: Socratic detection. <strong>Critic:</strong> post-review when <code>precision="high"</code>. Deduplication + validation.</p>
+                    <p class="card__text">ExtractorCore: question-based sensitivity classification. <strong>Critic:</strong> post-review when <code>precision="high"</code>. Deduplication + validation.</p>
                 </div>
-                <div class="card">
-                    <span class="card__label">Observability (Planned for Future)</span>
-                    <p class="card__text">OpenTelemetry + Prometheus. Grafana dashboard. <strong>Planned for future.</strong></p>
+                <div class="routing-illustration" role="img" aria-label="Illustration of local and cloud routing paths">
+                    <img src="../assets/generated/two-tier-routing.png" alt="Abstract illustration of a gateway separating masked cloud requests from locally retained sensitive processing">
                 </div>
             </div>
         </div>
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Architecture · Pipeline Design</span>
-            <span class="footer-right">4 / 15</span>
+            <span class="footer-right">4 / 14</span>
         </div>
     </div>
 </section>
@@ -646,7 +660,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div class="slide-body">
             <div>
                 <h2 class="section-heading">Extractor</h2>
-                <p class="section-sub">Socratic method-based detection — Socratic sensitivity detection with SCREAMING_CASE categories, language-agnostic rules with examples like Korean RRN</p>
+                <p class="section-sub">Question-based sensitivity classification — context-specific SCREAMING_CASE categories, language-agnostic rules with examples such as Korean RRN</p>
             </div>
             <div class="cards cards-3 reveal-stagger">
                 <div class="card card--bar-danger">
@@ -678,13 +692,13 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 </div>
             </div>
             <div class="card mt-4">
-                <p class="card__text" style="margin: 0;">Tags use <strong>free-form SCREAMING_CASE</strong> — generated contextually by the SLM using Socratic reasoning, not from a hardcoded list. Korean-specific detection rules for RRN, phone numbers, research secrets, and business secrets.</p>
+                <p class="card__text" style="margin: 0;">Tags use <strong>free-form SCREAMING_CASE</strong> — derived contextually by the SLM from its classification questions, not from a hardcoded list. Korean-specific detection rules for RRN, phone numbers, research secrets, and business secrets.</p>
             </div>
         </div>
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Engineering · SLM Detection</span>
-            <span class="footer-right">5 / 15</span>
+            <span class="footer-right">5 / 14</span>
         </div>
     </div>
 </section>
@@ -725,7 +739,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Engineering · Policy Engine</span>
-            <span class="footer-right">6 / 15</span>
+            <span class="footer-right">6 / 14</span>
         </div>
     </div>
 </section>
@@ -776,7 +790,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Engineering · Routing Logic</span>
-            <span class="footer-right">7 / 15</span>
+            <span class="footer-right">7 / 14</span>
         </div>
     </div>
 </section>
@@ -835,13 +849,13 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 </div>
             </div>
             <div class="card mt-4 reveal-stagger">
-                <p class="card__text" style="margin: 0;"><strong>Key:</strong> Contextual detection is the real strength — the SLM understands <em>meaning</em>, not just patterns. Tags are free-form SCREAMING_CASE, generated by Socratic reasoning. <span style="color: var(--text-muted);">Confidence: 0.88–0.98</span></p>
+                <p class="card__text" style="margin: 0;"><strong>Key:</strong> Contextual detection is the real strength — the SLM understands <em>meaning</em>, not just patterns. Tags are free-form SCREAMING_CASE, derived from contextual questions. <span style="color: var(--text-muted);">Confidence: 0.88–0.98</span></p>
             </div>
         </div>
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Evaluation · Detection Examples</span>
-            <span class="footer-right">8 / 15</span>
+            <span class="footer-right">8 / 14</span>
         </div>
     </div>
 </section>
@@ -856,12 +870,12 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div class="slide-body">
             <div>
                 <h2 class="section-heading">Extractor Architecture</h2>
-                <p class="section-sub">ExtractorCore: Socratic extraction — Critic: post-review (precision="high")</p>
+                <p class="section-sub">ExtractorCore: question-based extraction — Critic: post-review (precision="high")</p>
             </div>
             <div class="flex gap-24 reveal-stagger">
                 <div class="card flex-1">
                     <span class="card__label">Extractor (precision facade)</span>
-                    <p class="card__text" style="margin-top: 4px;"><strong>ExtractorCore:</strong> Socratic extraction generates SCREAMING_CASE sensitivity categories.<br><strong>Critic:</strong> Post-review when <code>precision="high"</code>. Finds what ExtractorCore missed. Same validation bar for both passes.</p>
+                    <p class="card__text" style="margin-top: 4px;"><strong>ExtractorCore:</strong> Question-based extraction generates SCREAMING_CASE sensitivity categories.<br><strong>Critic:</strong> Post-review when <code>precision="high"</code>. Finds what ExtractorCore missed. Same validation bar for both passes.</p>
                 </div>
                 <div class="card card--accent flex-1">
                     <span class="card__label">v2 Results</span>
@@ -888,7 +902,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Engineering · Prompt Optimization</span>
-            <span class="footer-right">9 / 15</span>
+            <span class="footer-right">9 / 14</span>
         </div>
     </div>
 </section>
@@ -903,13 +917,14 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div class="slide-body">
             <div>
                 <h2 class="section-heading">Cost Analysis</h2>
-                <p class="section-sub">$0.19/month — cost-efficient Two-Tier routing</p>
+                <p class="section-sub">Planning estimate: $0.075/month — 50 requests/day × 500 tokens at $0.10/1M</p>
             </div>
             <div class="flex gap-24 reveal-stagger">
                 <div class="card card--accent flex-1 text-center">
                     <div class="stat-block">
-                        <div class="stat-number stat-number--emerald">$0.19</div>
-                        <div class="stat-label">Est. monthly cost</div>
+                        <div class="stat-number stat-number--emerald">$0.075</div>
+                        <div class="stat-label">Planning estimate</div>
+                        <p class="card__text" style="margin: 6px 0 0; font-size: 15px; line-height: 1.4;">50 requests/day × 500 tokens<br>Ministral 3B at $0.10/1M tokens</p>
                     </div>
                 </div>
                 <div class="card flex-1 text-center">
@@ -964,7 +979,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Evaluation · Cost Performance</span>
-            <span class="footer-right">10 / 15</span>
+            <span class="footer-right">10 / 14</span>
         </div>
     </div>
 </section>
@@ -1007,11 +1022,11 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 </div>
                 <div class="card card--bar-danger">
                     <span class="card__label" style="color: var(--danger);">Threat Model</span>
-                    <h3 class="card__title">Guaranteed Security Properties</h3>
+                    <h3 class="card__title">Security Controls and Limits</h3>
                     <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
                         <div class="flex items-center gap-8">
                             <span style="color: var(--success); font-size: 16px;">✓</span>
-                            <span class="card__text"><strong>Zero sensitive data leakage</strong> — no external transmission without masking</span>
+                            <span class="card__text"><strong>Conditional external protection</strong> — when sensitivity is detected, external transmission is blocked or masked</span>
                         </div>
                         <div class="flex items-center gap-8">
                             <span style="color: var(--success); font-size: 16px;">✓</span>
@@ -1030,22 +1045,22 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
             </div>
             <div class="card card--accent mt-8 reveal-stagger">
                 <span class="card__label">Core Security Principle</span>
-                <p class="card__text" style="margin-top: 4px;"><strong>"Only masked data reaches the cloud"</strong> — Privacy Router structurally prevents sensitive data from reaching external LLMs. No sensitive information leaves the system without user consent.</p>
+                <p class="card__text" style="margin-top: 4px;"><strong>"Detected sensitive data is masked before cloud routing"</strong> — requests that need the original sensitive context are retained for local processing.</p>
             </div>
         </div>
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Security · Threat Model</span>
-            <span class="footer-right">11 / 15</span>
+            <span class="footer-right">11 / 14</span>
         </div>
     </div>
 </section>
 
-<!-- ====== SLIDE 13 — 7-DAY USAGE LOG ====== -->
+<!-- ====== SLIDE 12 — 7-DAY USAGE LOG ====== -->
 <section class="slide" data-label="Usage Log">
     <div class="bg-grid"></div>
     <div class="bg-glow bg-glow--emerald"></div>
-    <div class="section-num">13</div>
+    <div class="section-num">12</div>
     <div class="slide-wrap">
         <div></div>
         <div class="slide-body">
@@ -1098,23 +1113,23 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
                 </div>
             </div>
             <div class="card mt-8 reveal-stagger">
-                <p class="card__text" style="margin: 0;"><strong>Key finding:</strong> Over 7 days, <strong>zero leakage</strong> — not a single sensitive prompt was sent to an external API without masking. 67% of all prompts contained sensitive data.</p>
+                <p class="card__text" style="margin: 0;"><strong>Observed in 46 logged requests:</strong> 0 detected-sensitive requests were routed externally without masking. <span style="color: var(--text-muted);">31 requests (67%) were classified as sensitive.</span></p>
             </div>
         </div>
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Evidence · 7-Day Log</span>
-            <span class="footer-right">13 / 15</span>
+            <span class="footer-right">12 / 14</span>
         </div>
     </div>
 </section>
 
-<!-- ====== SLIDE 14 — ARCHITECTURE DETAILS ====== -->
+<!-- ====== SLIDE 13 — ARCHITECTURE DETAILS ====== -->
 <section class="slide" data-label="Architecture Details">
     <div class="bg-grid"></div>
     <div class="bg-glow bg-glow--blue"></div>
     <div class="bg-glow bg-glow--emerald"></div>
-    <div class="section-num">14</div>
+    <div class="section-num">13</div>
     <div class="slide-wrap">
         <div></div>
         <div class="slide-body">
@@ -1159,12 +1174,12 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
         <div></div>
         <div class="slide-footer">
             <span class="footer-left">Integration · MCP + OpenAI API</span>
-            <span class="footer-right">14 / 15</span>
+            <span class="footer-right">13 / 14</span>
         </div>
     </div>
 </section>
 
-<!-- ====== SLIDE 15 — CLOSING ====== -->
+<!-- ====== SLIDE 14 — CLOSING ====== -->
 <section class="slide" data-label="Closing">
     <div class="bg-grid"></div>
     <div class="bg-glow bg-glow--blue"></div>
@@ -1188,7 +1203,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 18px; color: #fff;">Detection Framework</span>
-                    <span style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.6);">Socratic Sensitivity Detection</span>
+                    <span style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.6);">Question-based sensitivity classification</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 18px; color: #fff;">Prompt Engineering</span>
@@ -1225,7 +1240,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
 </div><!-- /deck-viewport -->
 
 <div class="nav-hint" id="nav-hint">← → or Space to navigate</div>
-<div class="page-counter" id="page-counter">1 / 15</div>
+<div class="page-counter" id="page-counter">1 / 14</div>
 
 <script>
 /* =============================================================

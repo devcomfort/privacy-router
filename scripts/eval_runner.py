@@ -301,28 +301,11 @@ SINGLE_TURN_CASES = [
     },
 ]
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Policy Normalization
-# ═══════════════════════════════════════════════════════════════════════════
-
-POLICY_NORMALIZE = {
-    "route_to_external": "allow",
-    "mask_and_send": "selective_mask",
-    "route_to_local": "block",
-    "prompt_user": "block",
-    "block": "block",
-    "allow": "allow",
-    "selective_mask": "selective_mask",
-}
-
-
-def normalize_policy(action: str) -> str:
-    return POLICY_NORMALIZE.get(action, action)
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # LLM Calling
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def call_model(
     model_id: str,
@@ -354,8 +337,10 @@ def call_model(
         response = litellm.completion(**kwargs)
         content = response.choices[0].message.content.strip()
         return content, time.time() - t0
-    except Exception as e:
-        import traceback; traceback.print_exc()
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
         return None, time.time() - t0
 
 
@@ -449,7 +434,7 @@ def evaluate_single_turn(
     expected_action = case["expected_action"]
 
     sensitivity_correct = is_sensitive == expected_sensitive
-    action_correct = normalize_policy(detected_action) == normalize_policy(expected_action)
+    action_correct = detected_action == expected_action
     json_valid = parsed is not None
 
     return {
@@ -474,6 +459,7 @@ def evaluate_single_turn(
 # Multi-Turn Evaluation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def evaluate_multi_turn(
     model_id: str,
     api_base: str | None,
@@ -493,7 +479,9 @@ def evaluate_multi_turn(
             "name": f"{conversation['description']} turn {i}",
             "text": turn["content"],
             "expected_sensitive": i in conversation.get("expected_sensitive_turns", []),
-            "expected_action": conversation["expected_actions"][i] if i < len(conversation.get("expected_actions", [])) else "allow",
+            "expected_action": conversation["expected_actions"][i]
+            if i < len(conversation.get("expected_actions", []))
+            else "allow",
             "expected_essential": False,
             "tags": conversation.get("tags", []),
         }
@@ -518,6 +506,7 @@ def evaluate_multi_turn(
 # ═══════════════════════════════════════════════════════════════════════════
 # N-Trial Aggregation
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def run_trials(
     model_key: str,
@@ -551,32 +540,34 @@ def run_trials(
         json_valids = [t["json_valid"] for t in case_trials]
         latencies = [t["latency_s"] for t in case_trials]
 
-        case_stats.append({
-            "case_id": case["id"],
-            "case_name": case["name"],
-            "expected_sensitive": case["expected_sensitive"],
-            "expected_action": case["expected_action"],
-            "tags": case.get("tags", []),
-            "sensitivity_accuracy": statistics.mean(sensitivity_accs),
-            "sensitivity_std": statistics.stdev(sensitivity_accs) if len(sensitivity_accs) > 1 else 0,
-            "action_accuracy": statistics.mean(action_accs),
-            "action_std": statistics.stdev(action_accs) if len(action_accs) > 1 else 0,
-            "json_validity": statistics.mean(json_valids),
-            "avg_latency_s": statistics.mean(latencies),
-            "std_latency_s": statistics.stdev(latencies) if len(latencies) > 1 else 0,
-            "per_trial": [
-                {
-                    "trial": t,
-                    "sensitivity_correct": case_trials[t]["sensitivity_correct"],
-                    "action_correct": case_trials[t]["action_correct"],
-                    "json_valid": case_trials[t]["json_valid"],
-                    "latency_s": case_trials[t]["latency_s"],
-                    "detected_sensitive": case_trials[t]["detected_sensitive"],
-                    "detected_action": case_trials[t]["detected_action"],
-                }
-                for t in range(n_trials)
-            ],
-        })
+        case_stats.append(
+            {
+                "case_id": case["id"],
+                "case_name": case["name"],
+                "expected_sensitive": case["expected_sensitive"],
+                "expected_action": case["expected_action"],
+                "tags": case.get("tags", []),
+                "sensitivity_accuracy": statistics.mean(sensitivity_accs),
+                "sensitivity_std": statistics.stdev(sensitivity_accs) if len(sensitivity_accs) > 1 else 0,
+                "action_accuracy": statistics.mean(action_accs),
+                "action_std": statistics.stdev(action_accs) if len(action_accs) > 1 else 0,
+                "json_validity": statistics.mean(json_valids),
+                "avg_latency_s": statistics.mean(latencies),
+                "std_latency_s": statistics.stdev(latencies) if len(latencies) > 1 else 0,
+                "per_trial": [
+                    {
+                        "trial": t,
+                        "sensitivity_correct": case_trials[t]["sensitivity_correct"],
+                        "action_correct": case_trials[t]["action_correct"],
+                        "json_valid": case_trials[t]["json_valid"],
+                        "latency_s": case_trials[t]["latency_s"],
+                        "detected_sensitive": case_trials[t]["detected_sensitive"],
+                        "detected_action": case_trials[t]["detected_action"],
+                    }
+                    for t in range(n_trials)
+                ],
+            }
+        )
 
     # Overall metrics
     overall_sensitivity = statistics.mean([c["sensitivity_accuracy"] for c in case_stats])
@@ -636,6 +627,7 @@ def run_trials(
 # File I/O
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def safe_name(s: str) -> str:
     return re.sub(r"[^\w가-힣]+", "_", s).strip("_")
 
@@ -665,6 +657,7 @@ def load_latest_result(model_key: str) -> dict | None:
 # Health Check
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def check_engine(engine: str) -> bool:
     """Check if an engine is running and responsive."""
     import urllib.request
@@ -687,6 +680,7 @@ def check_engine(engine: str) -> bool:
 # Report Generation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def generate_report(model_keys: list[str] | None = None) -> str:
     """Generate a summary report from saved results."""
     if model_keys is None:
@@ -699,20 +693,22 @@ def generate_report(model_keys: list[str] | None = None) -> str:
             continue
         o = result["overall"]
         s = result.get("surface", {})
-        rows.append({
-            "model": mk,
-            "engine": result.get("engine", "?"),
-            "params": result.get("params", {}),
-            "n_trials": result.get("n_trials", 0),
-            "sensitivity_acc": o["sensitivity_accuracy"],
-            "action_acc": o["action_accuracy"],
-            "json_validity": o["json_validity"],
-            "avg_latency": o["avg_latency_s"],
-            "formal_act": s.get("formal", {}).get("action_accuracy", 0),
-            "formal_n": s.get("formal", {}).get("n_cases", 0),
-            "contextual_act": s.get("contextual", {}).get("action_accuracy", 0),
-            "contextual_n": s.get("contextual", {}).get("n_cases", 0),
-        })
+        rows.append(
+            {
+                "model": mk,
+                "engine": result.get("engine", "?"),
+                "params": result.get("params", {}),
+                "n_trials": result.get("n_trials", 0),
+                "sensitivity_acc": o["sensitivity_accuracy"],
+                "action_acc": o["action_accuracy"],
+                "json_validity": o["json_validity"],
+                "avg_latency": o["avg_latency_s"],
+                "formal_act": s.get("formal", {}).get("action_accuracy", 0),
+                "formal_n": s.get("formal", {}).get("n_cases", 0),
+                "contextual_act": s.get("contextual", {}).get("action_accuracy", 0),
+                "contextual_n": s.get("contextual", {}).get("n_cases", 0),
+            }
+        )
 
     if not rows:
         return "No results found."
@@ -742,6 +738,7 @@ def generate_report(model_keys: list[str] | None = None) -> str:
 # ═══════════════════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def main():
     parser = argparse.ArgumentParser(description="Privacy Router unified eval runner")
@@ -808,8 +805,10 @@ def main():
         )
         path = save_result(mk, result)
         o = result["overall"]
-        print(f"    Sensitivity: {o['sensitivity_accuracy']:.1%}  Action: {o['action_accuracy']:.1%}  "
-              f"JSON: {o['json_validity']:.1%}  Latency: {o['avg_latency_s']:.2f}s")
+        print(
+            f"    Sensitivity: {o['sensitivity_accuracy']:.1%}  Action: {o['action_accuracy']:.1%}  "
+            f"JSON: {o['json_validity']:.1%}  Latency: {o['avg_latency_s']:.2f}s"
+        )
         print(f"    Saved: {path}")
         print()
 
