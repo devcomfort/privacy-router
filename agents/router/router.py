@@ -16,6 +16,7 @@ Examples
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from agents.extractor import Extractor
@@ -30,6 +31,36 @@ from .schemas import (
     PipelineResult,
     RouteResult,
 )
+
+_EXTRACTION_CHUNK_CHARS = 3_000
+_EXTRACTION_CHUNK_OVERLAP_CHARS = 256
+_MAX_EXTRACTION_WORKERS = 8
+
+
+def _extraction_chunks(text: str) -> list[tuple[int, str]]:
+    """Split large inputs into overlapping, model-safe extraction windows."""
+    if len(text) <= _EXTRACTION_CHUNK_CHARS:
+        return [(0, text)]
+
+    chunks: list[tuple[int, str]] = []
+    start = 0
+    text_length = len(text)
+    while start < text_length:
+        hard_end = min(start + _EXTRACTION_CHUNK_CHARS, text_length)
+        end = hard_end
+        if hard_end < text_length:
+            search_start = start + (_EXTRACTION_CHUNK_CHARS // 2)
+            boundary = max(
+                text.rfind("\n", search_start, hard_end),
+                text.rfind(" ", search_start, hard_end),
+            )
+            if boundary >= search_start:
+                end = boundary + 1
+        chunks.append((start, text[start:end]))
+        if end == text_length:
+            break
+        start = max(end - _EXTRACTION_CHUNK_OVERLAP_CHARS, start + 1)
+    return chunks
 
 
 class Router:
@@ -214,16 +245,54 @@ class PrivacyRouter:
             api_base=self._api_base,
             prompt_path=self._extractor_prompt_path,
         )
-        extraction = extractor.extract(text)
-        records = extraction.records
+        chunks = _extraction_chunks(text)
+        with ThreadPoolExecutor(max_workers=min(_MAX_EXTRACTION_WORKERS, len(chunks))) as executor:
+            results = executor.map(
+                extractor.extract,
+                (chunk for _, chunk in chunks),
+            )
+            extractions = [(offset, result) for (offset, _), result in zip(chunks, results, strict=True)]
+        first_extraction = extractions[0][1]
+        sensitive_rationales = list(
+            dict.fromkeys(result.sensitivity.rationale for _, result in extractions if result.sensitivity.is_sensitive)
+        )
+        sensitivity = first_extraction.sensitivity.model_copy(
+            update={
+                "is_sensitive": bool(sensitive_rationales),
+                "rationale": (
+                    " | ".join(sensitive_rationales) if sensitive_rationales else first_extraction.sensitivity.rationale
+                ),
+            }
+        )
+
+        records = []
+        seen_records: set[tuple[str, str, int, int, bool]] = set()
+        for offset, result in extractions:
+            for record in result.records:
+                adjusted = record.model_copy(
+                    update={
+                        "start": record.start + offset,
+                        "end": record.end + offset,
+                    }
+                )
+                identity = (
+                    adjusted.category,
+                    adjusted.span,
+                    adjusted.start,
+                    adjusted.end,
+                    adjusted.is_essential,
+                )
+                if identity not in seen_records:
+                    seen_records.add(identity)
+                    records.append(adjusted)
 
         # Phase 2: Rule-based Judge
         judge = Judge()
         records_dict = [{"category": r.category, "span": r.span, "is_essential": r.is_essential} for r in records]
         judgment = judge.classify(
             sensitivity={
-                "is_sensitive": extraction.sensitivity.is_sensitive,
-                "rationale": extraction.sensitivity.rationale,
+                "is_sensitive": sensitivity.is_sensitive,
+                "rationale": sensitivity.rationale,
             },
             records=records_dict,
             text=text,
@@ -236,10 +305,10 @@ class PrivacyRouter:
         route = self._router.resolve(policy_action)
 
         return PipelineResult(
-            sensitivity=extraction.sensitivity,
+            sensitivity=sensitivity,
             judgment=judgment,
             route=route,
-            records=extraction.records,
+            records=records,
             mask_indices=mask_indices,
         )
 

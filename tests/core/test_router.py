@@ -247,6 +247,50 @@ class TestPrivacyRouterProcess:
         assert result.route.endpoint == "external_api"
         assert result.route.requires_masking is True
 
+    def test_long_input_is_chunked_without_losing_sensitive_records(self, monkeypatch):
+        text = ("public context " * 8) + "SECRET"
+        inspected: list[str] = []
+        concurrent_calls = Barrier(2)
+
+        def extract(chunk: str) -> ExtractionResult:
+            inspected.append(chunk)
+            if len(inspected) <= 2:
+                concurrent_calls.wait(timeout=1)
+            if "SECRET" not in chunk:
+                return ExtractionResult(
+                    sensitivity=Sensitivity(is_sensitive=False, rationale="clean"),
+                    records=[],
+                )
+            start = chunk.index("SECRET")
+            return ExtractionResult(
+                sensitivity=Sensitivity(is_sensitive=True, rationale="secret"),
+                records=[
+                    ExtractionRecord(
+                        category="BUSINESS_SECRET",
+                        span="SECRET",
+                        confidence=0.99,
+                        start=start,
+                        end=start + len("SECRET"),
+                        is_essential=False,
+                    )
+                ],
+            )
+
+        extractor = MagicMock()
+        extractor.extract.side_effect = extract
+        mock_cls = MagicMock(return_value=extractor)
+        monkeypatch.setattr("agents.router.router.Extractor", mock_cls)
+        monkeypatch.setattr("agents.router.router._EXTRACTION_CHUNK_CHARS", 32, raising=False)
+        monkeypatch.setattr("agents.router.router._EXTRACTION_CHUNK_OVERLAP_CHARS", 4, raising=False)
+
+        result = PrivacyRouter().process(text)
+
+        assert len(inspected) > 1
+        assert all(len(chunk) <= 32 for chunk in inspected)
+        assert result.judgment.policy_action == "selective_mask"
+        assert len(result.records) == 1
+        assert result.records[0].start == text.index("SECRET")
+
     def test_business_secret(self, monkeypatch):
         """A non-essential business secret is maskable."""
         extraction = ExtractionResult(
