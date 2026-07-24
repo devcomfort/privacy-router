@@ -190,7 +190,7 @@ Caller-facing API/MCP metadata may include sensitive span details because the ca
 | Placeholder map | Masking contract storage | Session TTL; encrypted if persisted. |
 | Masking records | DB when enabled | Encrypted at rest. |
 | Policy decision | Usage log | Persistent, without raw spans. |
-| Provider API keys | DB | Encrypted until deletion. |
+| Provider API keys | Server environment variables | Process lifetime; never persisted or returned. |
 
 ## Acceptance Requirements
 

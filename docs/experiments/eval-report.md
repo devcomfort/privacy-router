@@ -364,9 +364,9 @@ f3d1311 docs: 함수/클래스 docstring에 Examples 섹션 추가
 
 The final evaluation measures the deployed system rather than an isolated model: **detection → policy decision → route selection → masking → generation → hydration** through the public OpenAI-compatible endpoint.
 
-평가기는 활성 프로필의 모델을 `/api/settings`에서 읽는다. 따라서 하드코딩된 모델 이름이 아니라 실제 실행 중인 `decision`, `local`, `external` 역할을 검증한다. 최종 제출 구성에서는 로컬 EXAONE 4.0 1.2B가 민감도 결정을 수행하고, 차단된 민감 요청은 로컬 Gemma 4 26B가 생성하며, 비민감 또는 안전하게 마스킹된 요청만 외부 모델로 전달된다.
+평가기는 활성 프로필의 모델을 `/api/settings`에서 읽는다. 따라서 하드코딩된 모델 이름이 아니라 실제 실행 중인 `decision`, `local`, `external` 역할을 검증한다. 최종 제출 구성에서는 로컬 Gemma 4 26B 한 endpoint가 민감도 결정과 차단된 민감 요청 생성을 모두 수행하며, 비민감 또는 안전하게 마스킹된 요청만 외부 모델로 전달된다.
 
-The evaluator resolves the active `decision`, `local`, and `external` roles from `/api/settings`. For the final deployment, local EXAONE 4.0 1.2B performs the privacy decision, local Gemma 4 26B generates blocked sensitive requests, and only non-sensitive or safely masked requests may reach the external model.
+The evaluator resolves the active `decision`, `local`, and `external` roles from `/api/settings`. For the final deployment, one local Gemma 4 26B endpoint performs privacy decisions and generates blocked sensitive requests; only non-sensitive or safely masked requests may reach the external model.
 
 ### 11.2 평가 코퍼스 / Evaluation Corpus
 

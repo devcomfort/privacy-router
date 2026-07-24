@@ -34,9 +34,7 @@ Privacy Router는 SQLModel로 같은 스키마를 SQLite와 PostgreSQL에 사용
 | `id` | str, PK | provider 식별자 |
 | `name` | str | 표시 이름 |
 | `api_base` | str? | API 기본 URL |
-| `api_key_env` | str? | 환경변수 폴백 이름 |
-| `encrypted_api_key` | str? | Fernet 암호문 |
-| `key_fingerprint` | str? | API 키 조각을 포함하지 않는 16자리 도메인 분리 HMAC 지문 |
+| `api_key_env` | str? | provider credential을 읽을 환경 변수 이름 |
 | `created_at`, `updated_at` | datetime | 생성·수정 시각 |
 
 ### `models`

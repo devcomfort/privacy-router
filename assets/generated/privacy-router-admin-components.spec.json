@@ -1,0 +1,108 @@
+{
+  "title": "Privacy Router 구성과 보호 흐름",
+  "canvas": {"width": 1700, "height": 1510},
+  "style": {
+    "font_family": "Noto Sans CJK KR, Noto Sans KR, Arial, sans-serif",
+    "font_size": 14,
+    "bg_color": "#F8FAFC",
+    "palette": ["#2563EB", "#059669", "#7C3AED", "#EA580C", "#DC2626", "#DB2777", "#475569"]
+  },
+  "labels": [
+    {
+      "text": "Privacy Router 구성과 보호 흐름 / Components and protected request flow",
+      "x": 850,
+      "y": 38,
+      "font_size": 22,
+      "color": "#1E293B"
+    },
+    {
+      "text": "가로 단계는 각 패널 안에서만 읽고, 아래 기록 카드는 보존 범위를 분리해 표시합니다.",
+      "x": 850,
+      "y": 62,
+      "font_size": 13,
+      "color": "#64748B"
+    }
+  ],
+  "nodes": [
+    {"id": "client", "label": "요청을 보내는 클라이언트\nOpenAI SDK · Hermes", "x": 150, "y": 220, "width": 180, "height": 78, "fill": "#F3E8FF", "stroke": "#7E22CE", "font_size": 13},
+    {"id": "request_auth", "label": "요청 수신·인증\nFastAPI\n/v1/chat/completions\n/v1/responses\nBearer client key", "x": 365, "y": 220, "width": 220, "height": 126, "fill": "#EDE9FE", "stroke": "#7C3AED", "font_size": 13},
+    {"id": "context", "label": "컨텍스트 조립\nchat_id 기반\n세션 캐시", "x": 615, "y": 220, "width": 190, "height": 92, "fill": "#ECFDF5", "stroke": "#059669", "font_size": 13},
+    {"id": "extractor", "label": "민감정보 추출\nExtractor\n정확한 span →\nExtractionRecord[]", "x": 845, "y": 220, "width": 205, "height": 112, "fill": "#DCFCE7", "stroke": "#16A34A", "font_size": 13},
+    {"id": "aggregate", "label": "결정용 집계\nExtractionRecord[] →\nQueryDecisionSummary\n파생 artifact · 원문 span 아님", "x": 1090, "y": 220, "width": 235, "height": 126, "fill": "#D1FAE5", "stroke": "#059669", "font_size": 13},
+    {"id": "judge", "label": "정책 결정\nJudge\nallow · selective_mask · block", "x": 1360, "y": 220, "width": 220, "height": 96, "fill": "#FEF3C7", "stroke": "#D97706", "font_size": 13},
+
+    {"id": "block", "label": "차단·반환\nExtractor 실패\n외부 모델 호출 없음", "x": 950, "y": 475, "width": 240, "height": 96, "fill": "#FEE2E2", "stroke": "#DC2626", "font_size": 13},
+    {"id": "local_llm", "label": "로컬 처리\npolicy_action=block\n민감·필수 요청\n외부 전송 없음", "x": 1190, "y": 475, "width": 210, "height": 88, "fill": "#FCE7F3", "stroke": "#DB2777", "font_size": 13},
+    {"id": "masker", "label": "선택적 마스킹\nMasker + ContractStore\nplaceholder 치환", "x": 1550, "y": 500, "width": 210, "height": 98, "fill": "#FFEDD5", "stroke": "#EA580C", "font_size": 13},
+    {"id": "external_llm", "label": "외부 LLM\n비민감 요청 또는\n마스킹된 요청", "x": 1470, "y": 635, "width": 230, "height": 88, "fill": "#FCE7F3", "stroke": "#DB2777", "font_size": 13},
+    {"id": "hydrator", "label": "응답 검사·복원\nHydration\nplaceholder 복원", "x": 1190, "y": 700, "width": 220, "height": 96, "fill": "#FFEDD5", "stroke": "#EA580C", "font_size": 13},
+    {"id": "response", "label": "클라이언트 반환\n정상 응답 또는 차단 응답", "x": 950, "y": 700, "width": 220, "height": 82, "fill": "#E0F2FE", "stroke": "#0284C7", "font_size": 13},
+
+    {"id": "admin", "label": "관리자\nAdmin UI · curl", "x": 150, "y": 1005, "width": 180, "height": 78, "fill": "#DBEAFE", "stroke": "#2563EB", "font_size": 13},
+    {"id": "admin_auth", "label": "관리자 인증\nX-Privacy-Router-Admin-Key\n추론용 Bearer key와 분리", "x": 385, "y": 1005, "width": 240, "height": 100, "fill": "#FEF3C7", "stroke": "#D97706", "font_size": 13},
+    {"id": "management_api", "label": "관리 API\n키: /api/v1/keys\n설정: /api/settings · /api/profiles\nProvider: /api/providers/{id}/key\n모델: /v1/models", "x": 720, "y": 1005, "width": 400, "height": 140, "fill": "#E0F2FE", "stroke": "#0284C7", "font_size": 13},
+    {"id": "active_config", "label": "활성 설정 반영\nExtractor · Judge · Router\nProvider · Model 선택", "x": 1350, "y": 1005, "width": 300, "height": 100, "fill": "#DBEAFE", "stroke": "#2563EB", "font_size": 13},
+
+    {"id": "decision_summary", "label": "결정 요약 (파생)\nQueryDecisionSummary\n메모리 · 안전한 메타데이터", "x": 160, "y": 1285, "width": 250, "height": 96, "fill": "#ECFDF5", "stroke": "#059669", "font_size": 13},
+    {"id": "extraction_cache", "label": "암호화 추출 캐시\nExtractionRecord[]\n컨텍스트 · 정확한 span", "x": 480, "y": 1285, "width": 280, "height": 96, "fill": "#FEF3C7", "stroke": "#D97706", "font_size": 13},
+    {"id": "mask_contract", "label": "마스킹 계약\nplaceholder_map\n원문 span · 복원 권한", "x": 800, "y": 1285, "width": 260, "height": 96, "fill": "#FFEDD5", "stroke": "#EA580C", "font_size": 13},
+    {"id": "usage_log", "label": "사용 로그\npolicy_action · 모델\nlatency · 안전한 메타데이터", "x": 1120, "y": 1285, "width": 270, "height": 96, "fill": "#F1F5F9", "stroke": "#64748B", "font_size": 13},
+    {"id": "config_store", "label": "설정 저장소\nProvider · Model · Profile\nApiKey 메타데이터", "x": 1440, "y": 1285, "width": 260, "height": 96, "fill": "#E2E8F0", "stroke": "#475569", "font_size": 13},
+    {"id": "runtime_backend", "label": "SQLModel 영속 백엔드\nSQLite (개발) · PostgreSQL (Docker)", "x": 800, "y": 1430, "width": 350, "height": 82, "fill": "#E2E8F0", "stroke": "#475569", "font_size": 13},
+    {"id": "fallback", "label": "부트스트랩·비밀\nYAML fallback · 환경변수\nProvider key 해석", "x": 1450, "y": 1430, "width": 300, "height": 82, "fill": "#FEF9C3", "stroke": "#CA8A04", "font_size": 13}
+  ],
+  "edges": [
+    {"from": "client", "to": "request_auth"},
+    {"from": "request_auth", "to": "context"},
+    {"from": "context", "to": "extractor"},
+    {"from": "extractor", "to": "aggregate"},
+    {"from": "aggregate", "to": "judge"},
+    {"from": "judge", "to": "local_llm", "label": "block · 민감·필수"},
+    {"from": "judge", "to": "masker", "label": "선택적 마스킹"},
+    {"from": "judge", "to": "external_llm", "label": "비민감", "style": "dashed", "curve": true},
+    {"from": "extractor", "to": "block", "label": "추출 실패 → 차단", "style": "dotted", "curve": true},
+    {"from": "block", "to": "response", "label": "차단 응답", "style": "dotted"},
+    {"from": "local_llm", "to": "response", "label": "로컬 응답"},
+    {"from": "masker", "to": "external_llm", "label": "placeholder 치환"},
+    {"from": "external_llm", "to": "hydrator", "label": "외부 응답", "curve": true},
+    {"from": "hydrator", "to": "response"},
+
+    {"from": "admin", "to": "admin_auth"},
+    {"from": "admin_auth", "to": "management_api"},
+    {"from": "management_api", "to": "active_config", "label": "활성 설정"},
+
+    {"from": "aggregate", "to": "decision_summary", "label": "파생 요약", "style": "dashed", "curve": true},
+    {"from": "extractor", "to": "extraction_cache", "label": "암호화 cache", "style": "dashed", "curve": true},
+    {"from": "masker", "to": "mask_contract", "label": "placeholder map", "style": "dashed", "curve": true},
+    {"from": "judge", "to": "usage_log", "style": "dashed", "curve": true},
+    {"from": "active_config", "to": "config_store", "label": "설정 저장", "style": "dashed"},
+    {"from": "config_store", "to": "runtime_backend", "label": "SQLModel", "style": "dashed", "curve": true},
+    {"from": "extraction_cache", "to": "runtime_backend", "label": "SQLModel", "style": "dashed"},
+    {"from": "mask_contract", "to": "runtime_backend", "style": "dashed"},
+    {"from": "usage_log", "to": "runtime_backend", "style": "dashed", "curve": true},
+    {"from": "fallback", "to": "config_store", "label": "초기화·키 해석", "style": "dashed"}
+  ],
+  "groups": [
+    {
+      "label": "A. 보호 요청 처리 / Protected request path",
+      "node_ids": ["client", "request_auth", "context", "extractor", "aggregate", "judge", "block", "local_llm", "masker", "external_llm", "hydrator", "response"],
+      "fill": "#FAFAF9",
+      "stroke": "#A8A29E",
+      "padding": 28
+    },
+    {
+      "label": "B. 관리·설정 / Management and configuration",
+      "node_ids": ["admin", "admin_auth", "management_api", "active_config"],
+      "fill": "#F0F9FF",
+      "stroke": "#7DD3FC",
+      "padding": 28
+    },
+    {
+      "label": "C. 보조 상태·기록 / Distinct retention boundaries",
+      "node_ids": ["decision_summary", "extraction_cache", "mask_contract", "usage_log", "config_store", "runtime_backend", "fallback"],
+      "fill": "#F8FAFC",
+      "stroke": "#94A3B8",
+      "padding": 28
+    }
+  ]
+}

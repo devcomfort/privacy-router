@@ -15,7 +15,7 @@
 | 🟡 MEDIUM | 9 | 0 | 9 | 권장 |
 | 🔵 LOW | 8 | 0 | 8 | 선택 |
 
-> **분류 안내**: 본 보고서는 발견 사항을 `즉시 수정`, `의도적 수용 위험(Accepted Risk)`, `남은 선택 사항`으로 재구성했습니다. 인증 관련 항목은 로컬 시스템 운영을 전제로 의도적으로 수용되었으며, `docs/adr/`에 ADR로 기록되어 있습니다.
+> **분류 안내**: 이 보고서는 최초 발견 사항과 후속 교정을 함께 보존합니다. 과거에 “의도적 수용 위험”으로 분류한 공개 관리 주장은 구현 근거와 일치하지 않아 historical note로 이동했고, 실제 구현 결정은 `docs/dev/adr/`에서 변경 패키지 순서로 기록합니다.
 
 ---
 
@@ -59,46 +59,37 @@
 - **수정**: `MaskingContract | None`으로 변경
 - **상태**: ✅ 수정 완료
 
-### H7. `admin.html` — 모달 CSS 누락
-- **파일**: `web/admin.html:132`
-- **원인**: `.modal-overlay`, `.modal` CSS 미정의
-- **수정**: 모달 CSS 추가
-- **상태**: ✅ 수정 완료
-
-### H8. `admin.html` — 네비게이션 링크 404
-- **파일**: `web/admin.html:77-79`
-- **원인**: `/admin/keys`, `/admin/providers`, `/admin/models` 라우트 없음
-- **수정**: 죽은 링크 제거
-- **상태**: ✅ 수정 완료
+### H7·H8. `web/admin.html` 관련 항목(근거 교정)
+- **기존 주장**: `web/admin.html`의 모달 CSS 누락과 죽은 네비게이션 링크를 수정함
+- **확인 결과**: Git 전체 이력에 `web/admin.html`은 존재하지 않음
+- **관련 이력**: `e1262cce`의 별도 `admin/` 프로젝트는 기본 Svelte starter였고 `a2d69994`에서 제거됨
+- **현행 UI**: `web/src/routes/admin/+page.svelte`
+- **상태**: 과거 감사 주장을 보존하되 구현 근거로 사용하지 않음
 
 ---
 
-## 🛡️ 의도적으로 수용된 위험 (Accepted Risks)
+## 🛡️ 아키텍처 결정 타임라인 교정
 
-다음 항목들은 로컬 시스템 운영을 전제로, 계정 관리 등 운영 비용을 감수하기보다 인증을 제거하는 선택을 했습니다. 각 결정은 `docs/adr/`에 Architecture Decision Record(ADR)로 기록되어 있습니다.
+기존 ADR은 주제·날짜·상태를 섞었고, 일부 주장은 Git 이력과 일치하지 않았습니다. 현재 기록은 실제 구현 패키지 순서와 근거를 분리합니다. 전체 순서는 [`adr/README.md`](adr/README.md)를 참조합니다.
 
-### ADR-001: 키/관리 엔드포인트 인증 없음
-- **파일**: `server/api/routes/keys.py`
-- **항목**: C2 (키 관리 5개 엔드포인트 인증 누락)
-- **이유**: 로컬 단일 사용자 환경에서 계정 관리 비용이 보안 이점보다 큼
-- **ADR**: `docs/adr/ADR-001-no-auth-on-key-admin-endpoints.md`
+### ADR-001: SQLite를 기본 데이터베이스로 사용
+- **상태**: Accepted; ADR-003에서 재확인
+- **최초 확인 구현**: `e1262cce` (2026-06-07)
+- **ADR**: [`adr/ADR-001-sqlite-default-database.md`](adr/ADR-001-sqlite-default-database.md)
 
-### ADR-002: 관리 UI용 공개 엔드포인트
-- **파일**: `server/api/routes/proxy.py`, `server/api/routes/providers.py`
-- **항목**: H2 (`POST /api/settings`), 관리자 UI용 `GET/POST/PATCH/DELETE` keys, `GET providers`
-- **이유**: 브라우저 기반 독립 관리 UI가 별도 인증 없이 동작해야 함
-- **ADR**: `docs/adr/ADR-002-public-admin-endpoints-for-standalone-ui.md`
+### ADR-002: 관리 엔드포인트에 전용 관리자 키 사용
+- **상태**: Superseded by ADR-003
+- **확인 구현**: `ccb32569`의 `X-Privacy-Router-Admin-Key` 경계와 Svelte `/admin`
+- **ADR**: [`adr/ADR-002-dedicated-admin-key.md`](adr/ADR-002-dedicated-admin-key.md)
 
-### ADR-003: SQLite를 기본 데이터베이스로 사용
-- **파일**: `db/session.py`
-- **이유**: PostgreSQL이 실행 중이지 않은 개발 환경에서 즉시 동작해야 함
-- **ADR**: `docs/adr/ADR-003-sqlite-as-default-database.md`
+### ADR-003: 브라우저 관리자 세션과 개발·배포 시작 분리
+- **상태**: Accepted; ADR-002 대체, ADR-001 재확인
+- **현행**: 단기 `HttpOnly` 세션+CSRF, client bearer key, loopback 전용 `dev`, fail-closed `serve`
+- **ADR**: [`adr/ADR-003-browser-sessions-and-runtime-startup.md`](adr/ADR-003-browser-sessions-and-runtime-startup.md)
 
-### ADR-004: 구 MCP 테스트 파일 보존
-- **파일**: `server/tests/test_mcp_tools.py`
-- **항목**: C6 (구 함수 import로 인한 테스트 깨짐)
-- **이유**: 새 MCP `process` 도구로 마이그레이션되었으나, 참고용으로 보존. 별도 `tests/scenarios/test_mcp_process.py`에서 현행 테스트 수행
-- **ADR**: `docs/adr/ADR-004-keep-deprecated-test-mcp-tools.md`
+### ADR 순서에서 제외한 기록
+- 공개 관리 UI 주장은 완전한 구현 패키지로 확인되지 않아 [`adr/history/2026-06-public-management-proposal.md`](adr/history/2026-06-public-management-proposal.md)에 보존
+- 깨진 MCP 테스트 보존은 아키텍처가 아닌 유지보수 정책이므로 [`adr/history/2026-06-deprecated-mcp-test-retention.md`](adr/history/2026-06-deprecated-mcp-test-retention.md)에 보존
 
 ---
 
@@ -181,12 +172,12 @@
 - `agents/router/schemas.py`
 - `agents/extractor/extractor.py`
 - `server/mcp/tools.py`
-- `docs/AUDIT_REPORT.md`
-- `docs/adr/ADR-001-no-auth-on-key-admin-endpoints.md`
-- `docs/adr/ADR-002-public-admin-endpoints-for-standalone-ui.md`
-- `docs/adr/ADR-003-sqlite-as-default-database.md`
-- `docs/adr/ADR-004-keep-deprecated-test-mcp-tools.md`
+- `docs/dev/adr/README.md`
+- `docs/dev/adr/ADR-001-sqlite-default-database.md`
+- `docs/dev/adr/ADR-002-dedicated-admin-key.md`
+- `docs/dev/adr/ADR-003-browser-sessions-and-runtime-startup.md`
+- `docs/dev/adr/history/`
 
 ---
 
-*Last updated: 2026-06-16*
+*Last updated: 2026-07-22*

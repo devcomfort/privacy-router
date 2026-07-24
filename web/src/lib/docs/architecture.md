@@ -23,7 +23,7 @@ Agent Prompt
 │  Canonical policy decision:                                 │
 │    → not sensitive:              allow                      │
 │    → all spans non-essential:    selective_mask             │
-│    → any essential span:         block                      │
+│    → essential span / no safe span: block                   │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
                    ┌───────┴───────┐
@@ -34,14 +34,16 @@ Agent Prompt
               Hydration for masked responses
 ```
 
+![Privacy Router consumer protection flow: safe prompts go to an external model as raw text; maskable prompts leave as placeholders and are hydrated locally; essential or no-safe-span prompts stay local.](/diagrams/privacy-router-consumer-flow.svg)
+
 ## Runtime Model Bindings
 
 The pipeline has three model-bound roles, not one model per named component:
 
 | Runtime role | Current model | Trust boundary | Used by |
 |---|---|---|---|
-| Decision Model | EXAONE 4.0 1.2B (`openai/LGAI-EXAONE/EXAONE-4.0-1.2B`) | Local only | ExtractorCore and optional high-precision Critic; returns sensitivity, spans, categories, and `is_essential` |
-| Local Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | Local only | Generation for essential-sensitive raw prompts |
+| Decision Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | Local only | ExtractorCore and optional high-precision Critic; returns sensitivity, spans, categories, and `is_essential` |
+| Local Model | Gemma 4 26B (same endpoint) | Local only | Generation for essential-sensitive raw prompts |
 | External Model | OpenRouter Gemma 4 26B (`openrouter/google/gemma-4-26b-a4b-it`) | External | Generation for non-sensitive prompts or validated masked prompts |
 
 `Judge` is rule-based policy code and `Router` is deterministic execution code. Neither has an LLM binding. Extractor, Critic, and Judge remain useful component names, but they are not independent selectable model roles.

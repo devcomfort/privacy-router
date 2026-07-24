@@ -9,7 +9,7 @@ Privacy Router가 파일, 데이터베이스, 프로세스 메모리에 저장�
 | 프로세스 메모리 | 현재 요청, 복호화된 계약, 런타임 설정 | 요청 처리 중 가능 |
 | SQLite/PostgreSQL | 설정, 인증, 메타데이터, 암호화된 임시 데이터 | Fernet 암호문으로만 허용 |
 | `.privacy-router.config.yaml` | DB 초기 시드와 YAML 폴백 | 비밀 저장 금지 |
-| 환경변수/외부 비밀 저장소 | 마스터 키와 provider 키 폴백 | 가능; DB 밖에서 관리 |
+| 환경변수/외부 비밀 저장소 | 마스터 키와 provider credential의 유일한 원본 | 가능; DB 밖에서 관리 |
 | `web/build/` | SvelteKit 정적 출력 | 민감 런타임 데이터 없음 |
 
 개발 기본 DB는 `privacy_router.db`입니다. `DATABASE_URL`을 설정하면 같은 SQLModel 스키마를 PostgreSQL에서 사용합니다.
@@ -41,7 +41,7 @@ SQLite/PostgreSQL이 런타임 설정의 우선 소스입니다. 활성 workspac
 2. 레거시 호환용 `MASKING_ENCRYPTION_KEY`
 3. 개발용 프로세스 임시 키
 
-프로덕션에서는 안정적인 외부 비밀 저장소가 제공하는 키를 사용해야 합니다. 자동 생성 키는 프로세스 재시작 뒤 이전 암호문을 복호화할 수 없습니다.
+`dev`에서만 프로세스 임시 키를 허용합니다. 배포 모드는 영속적인 master key가 없으면 시작하지 않습니다.
 
 ### 암호화 대상
 
@@ -51,7 +51,6 @@ SQLite/PostgreSQL이 런타임 설정의 우선 소스입니다. 활성 workspac
 | 대화 문맥 | `extraction_cache.context` | Fernet authenticated encryption |
 | 마스킹 원문 | `masking_records.span` | Fernet authenticated encryption |
 | 저장 응답 | `responses.output_json` | Fernet authenticated encryption |
-| Provider API 키 | `provider.encrypted_api_key` | Fernet authenticated encryption |
 | 마스킹 값 비교 지문 | `masking_records.value_hash` | 마스터 키를 사용하는 도메인 분리 HMAC-SHA256 |
 | 클라이언트 API 키 | `api_keys.key_hash` | 단방향 SHA-256 해시 |
 
@@ -59,9 +58,7 @@ SQLite/PostgreSQL이 런타임 설정의 우선 소스입니다. 활성 workspac
 
 ### Provider API 키 조회
 
-1. `provider.encrypted_api_key`
-2. provider의 `api_key_env`가 가리키는 환경변수
-3. `OPENROUTER_API_KEY`
+provider의 `api_key_env`가 가리키는 서버 환경 변수만 읽습니다. 기본 OpenRouter provider는 `OPENROUTER_API_KEY`를 사용합니다. 키의 원문, 암호문, 일부 문자열, 지문은 데이터베이스와 API 응답에 저장하지 않습니다.
 
 ## 보존 정책
 
@@ -71,7 +68,6 @@ SQLite/PostgreSQL이 런타임 설정의 우선 소스입니다. 활성 workspac
 | `masking_sessions`와 관련 레코드 | 생성 후 24시간 | 계약·REST 조회 시 만료 거부 | 시작 시 및 매시간 |
 | `responses` (`store=true`) | 생성 후 24시간 | GET·삭제·연속 응답 조회 시 만료 거부 | 시작 시 및 매시간 |
 | `usage_logs` | 자동 TTL 없음 | 원문 없는 메타데이터만 저장 | 관리자 정책 |
-| Provider API 키 | 자동 TTL 없음 | 암호화 저장 | 키 삭제 API |
 
 FastAPI lifespan은 `init_db()`와 최초 `purge_expired_data()`가 성공한 뒤에만 요청을 받습니다. 이후 한 시간 간격의 작업이 만료 행을 삭제합니다. 반복 작업의 일시적 실패는 기록하고 다음 주기에 재시도하며, 이미 만료된 데이터는 조회 경로에서 계속 거부됩니다.
 
@@ -96,7 +92,7 @@ FastAPI lifespan은 `init_db()`와 최초 `purge_expired_data()`가 성공한 �
 
 ## Docker
 
-`docker compose up -d`는 API와 PostgreSQL을 포함한 프로젝트 서비스를 시작합니다. 컨테이너 내부 API는 `db:5432`에 연결하고, 호스트에 노출된 PostgreSQL 포트는 compose 설정을 따릅니다.
+`docker compose up -d`는 API와 PostgreSQL을 포함한 프로젝트 서비스를 시작합니다. 컨테이너 내부 API는 `db:5432`에 연결하며, host에 publish하는 PostgreSQL port는 기본적으로 `127.0.0.1`에만 bind됩니다.
 
 ## 관련 문서
 

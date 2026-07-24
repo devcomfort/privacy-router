@@ -139,7 +139,7 @@ REST 경로는 인증된 provider ID를 계약의 `owner_id`와 비교합니다.
 
 - 알고리즘: Fernet authenticated encryption (AES-128-CBC + HMAC-SHA256)
 - 키 조회 순서: `PRIVACY_ROUTER_MASTER_KEY` → 기존 `MASKING_ENCRYPTION_KEY` → 개발용 임시 키
-- 프로덕션: DB 밖의 안정적인 비밀 저장소에서 키를 주입해야 합니다.
+- 배포 모드: 유효한 영속 Fernet 키가 `PRIVACY_ROUTER_MASTER_KEY` 또는 legacy `MASKING_ENCRYPTION_KEY`에 없으면 서버가 시작되지 않습니다.
 - 개발용 임시 키: 프로세스 재시작 후 기존 암호문을 복호화할 수 없습니다.
 
 ## 보존과 한계

@@ -61,10 +61,10 @@ Extractor·Judge·Router는 파이프라인 컴포넌트이며 독립적인 선�
 
 ```yaml
 decision:
-  model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B  # 민감도·span 판정
+  model: openai/google/gemma-4-26b-local       # sensitivity and exact-span decision
   config:
     temperature: 0.0
-    max_tokens: 4096
+    max_tokens: 2048
 
 local:
   model: openai/google/gemma-4-26b-local      # 차단된 raw 요청의 온디바이스 생성
@@ -81,19 +81,20 @@ external:
 
 ## DB를 통한 동적 관리
 
-API를 통해 모델을 동적으로 등록/삭제할 수 있습니다:
+`/admin`의 **Models** 화면을 권장합니다. API에서는 [API Key Management](/docs/api-keys)에서 만든 관리자 세션 쿠키와 CSRF 토큰을 재사용합니다.
 
 ```bash
 # 공개 추론 모델 ID 목록
 curl http://localhost:8787/v1/models
 
 # 전체 관리 레지스트리 조회
-curl http://localhost:8787/api/v1/models \
-  -H "X-Privacy-Router-Admin-Key: <admin-key>"
+curl -b /tmp/privacy-router-admin.cookies \
+  http://localhost:8787/api/v1/models
 
 # 모델 등록
-curl -X POST http://localhost:8787/api/v1/models \
-  -H "X-Privacy-Router-Admin-Key: <admin-key>" \
+curl -b /tmp/privacy-router-admin.cookies \
+  -X POST http://localhost:8787/api/v1/models \
+  -H "X-Privacy-Router-CSRF-Token: ${CSRF_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"model_id": "openrouter/new-model", "provider_id": "openrouter", "location": "external", "tier": "middle", "cost_per_1m_tokens": 0.50}'
 ```

@@ -2,49 +2,54 @@
 
 ## Prerequisites
 
-- Docker & Docker Compose
-- OpenRouter API key (get from https://openrouter.ai)
+- Python 3.13+
+- Docker, Docker Compose, and the NVIDIA Container Toolkit for the default local model
+- At least 64 GB of available accelerator or unified memory for Gemma 4 26B
+- An OpenRouter key only when deployment may route to OpenRouter
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/privacy-router/privacy-router.git
+git clone https://github.com/devcomfort/privacy-router.git
 cd privacy-router
 cp .env.example .env
-# Edit .env - set OPENROUTER_API_KEY and PRIVACY_ROUTER_ADMIN_KEY
-
-docker compose up -d
+python -m pip install -e .
 ```
 
-This starts two services:
-- `db` — PostgreSQL (port 5433)
-- `api` — Privacy Router API (port 8787)
+Start the loopback-only, keyless browser demo. The first command downloads and serves Gemma 4 26B; run the second command in another terminal:
+
+```bash
+./scripts/start_vllm.sh gemma4
+privacy-router dev
+```
+
+For deployment, set `PRIVACY_ROUTER_MASTER_KEY`, `PRIVACY_ROUTER_ADMIN_PASSWORD`, and provider environment variables in `.env`, then run `docker compose up -d`.
 
 ## Docker Compose Profiles
 
-Docker Compose의 `profiles`는 서비스를 선택적으로 활성화하는 메커니즘입니다.
+Compose `profiles` enable optional services:
 
-| 프로파일 | 포함 서비스 | 용도 |
+| Profile | Services | Purpose |
 |---|---|---|
-| _(없음)_ | db, api | 핵심 기능 — 항상 실행 |
-| `hermes` | hermes | Hermes Agent 데모 |
+| _(none)_ | db, api | Core deployment |
+| `hermes` | hermes | Hermes Agent demo |
 
-### 동작 원리
+### Behavior
 
-- `profiles`가 없는 서비스 → **항상** `docker compose up`에 포함
-- `profiles`가 있는 서비스 → 해당 프로파일이 활성화될 때만 포함
-- 여러 프로파일 조합 가능: `COMPOSE_PROFILES=hermes,gpu`
+- Services without a profile always start with `docker compose up`.
+- Services with a profile start only when that profile is enabled.
+- Profiles can be combined when the selected Compose files define them.
 
-### 사용법
+### Usage
 
 ```bash
-# 최소 모드 (db + api만)
+# Core deployment
 docker compose up
 
-# Hermes Agent 포함
+# Include Hermes Agent
 COMPOSE_PROFILES=hermes docker compose up -d
 
-# .env에 설정
+# Persist the profile choice
 echo "COMPOSE_PROFILES=hermes" >> .env
 docker compose up
 ```
@@ -70,7 +75,9 @@ HERMES_CONFIG=mcp docker compose up -d hermes
 docker compose up -d hermes
 ```
 
-Management APIs and the `/admin` UI require the `PRIVACY_ROUTER_ADMIN_KEY` value through the `X-Privacy-Router-Admin-Key` header. The admin key is separate from the generated `pr-...` client key used for inference.
+Management APIs and `/admin` exchange `PRIVACY_ROUTER_ADMIN_PASSWORD` for a short-lived secure session. State-changing requests additionally require the session's CSRF token. Provider credentials remain server environment variables and are read-only in the UI.
+
+Docker Compose publishes the API, database, and Hermes ports on `127.0.0.1` by default. It sets `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN=1` only for this loopback-published HTTP setup so `/admin` works through Docker's bridge. If `PRIVACY_ROUTER_BIND_HOST` is changed from loopback, set the override to `0` and terminate HTTPS before the API.
 
 **API Proxy mode** is best when you want zero-friction privacy protection — every request is automatically classified, masked if needed, and routed. **MCP Tool mode** is best when the agent needs fine-grained control over when and how to apply privacy protection (e.g., classify first, then decide whether to mask).
 
@@ -80,22 +87,14 @@ Management APIs and the `/admin` UI require the `PRIVACY_ROUTER_ADMIN_KEY` value
 |---------|-----|-------------|
 | Landing | http://localhost:8787/ | Portal (EN/KO) |
 | Demo Chat | http://localhost:8787/demo | Interactive chat with privacy pipeline |
-| Admin | http://localhost:8787/admin | API key and settings management |
-| Dashboard | http://localhost:8787/usage-dashboard.html | Usage log visualization |
+| Admin | http://localhost:8787/admin | Model, API key, and redacted telemetry management |
+| Product Docs | http://localhost:8787/docs | User and developer documentation |
 | Hermes Dashboard | http://localhost:9119 | Hermes Agent web UI |
-| API Docs | http://localhost:8787/docs | OpenAPI Swagger UI |
+| API Docs | http://localhost:8787/api/docs | OpenAPI Swagger UI |
 
-## Create an API Key
+## Create a Client API Key
 
-```bash
-# Via Admin UI: http://localhost:8787/admin
-# Or via API:
-curl -X POST http://localhost:8787/api/v1/keys \
-  -H "Content-Type: application/json" \
-  -H "X-Privacy-Router-Admin-Key: <admin-key>" \
-  -d '{"name": "my-key"}'
-# → Save the returned api_key (starts with "pr-", shown only once)
-```
+Open http://localhost:8787/admin, enter the administrator password, and use **Create Key**. The returned `pr-...` key is shown once. For the cookie-and-CSRF API flow, see [API Key Management](/docs/api-keys).
 
 ## Conversation Context
 
@@ -127,10 +126,11 @@ This extension applies to both `/v1/chat/completions` and `/v1/responses`. Only 
 ## Local Development
 
 ```bash
-# Python 3.13+, uv or pip
-pip install -e .
+python -m pip install -e .
 cp .env.example .env
-python -m server
+./scripts/start_vllm.sh gemma4
+# In another terminal:
+privacy-router dev
 # → http://localhost:8787
 ```
 

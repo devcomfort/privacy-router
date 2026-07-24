@@ -6,8 +6,8 @@ Provider cost is configuration-dependent. This page describes the currently acti
 
 | Runtime role | Current model | Location | Marginal provider cost |
 |---|---|---|---:|
-| Decision Model | EXAONE 4.0 1.2B | Local | $0 |
-| Local Model | Gemma 4 26B | Local | $0 |
+| Decision Model | Gemma 4 26B | Local | $0 |
+| Local Model | Gemma 4 26B (same endpoint) | Local | $0 |
 | External Model | OpenRouter Gemma 4 26B | Cloud | $0.06 / 1M tokens |
 | Judge / Router | Deterministic Python | Local | $0 |
 

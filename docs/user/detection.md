@@ -10,6 +10,8 @@ Extractor가 민감 정보를 탐지하는 프레임워크입니다. Socratic �
 
 의심스러우면 마스킹하세요. 일반적 개념이나 기관명이라도 민감한 맥락에 있으면 태깅합니다.
 
+![Privacy Router routing outcomes / Privacy Router 라우팅 결과: safe prompts go to an external model as raw text; maskable prompts leave as placeholders and are hydrated locally; essential or no-safe-span prompts stay local. / 안전한 프롬프트는 원문으로 외부 모델에 전달되고, 마스킹 가능한 프롬프트는 placeholder로 전달된 뒤 로컬에서 복원되며, 필수 또는 안전하게 분리할 수 없는 정보는 로컬에 유지됩니다.](../../assets/generated/privacy-router-consumer-flow.svg)
+
 ---
 
 ## Socratic Chain (3단계 질문)

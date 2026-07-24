@@ -58,39 +58,43 @@ Agent → [Privacy Router] → External LLM (safe queries only)
 
 ### 1. Start the Server
 
+Requires Python 3.13+. The default local Gemma 4 26B service also requires Docker, the NVIDIA Container Toolkit, and at least 64 GB of available accelerator or unified memory.
+
 ```bash
 git clone https://github.com/devcomfort/privacy-router.git
 cd privacy-router
 cp .env.example .env
-# Edit .env - set OPENROUTER_API_KEY and PRIVACY_ROUTER_ADMIN_KEY
-
-docker compose up -d
+python -m pip install -e .
 ```
 
-This starts:
-- **API** on `http://localhost:8787`
-- **PostgreSQL** on port 5433
-- **Hermes Agent** on port 7860
-- **Hermes Dashboard** on `http://localhost:9119`
-
-### 2. Create an API Key
-
-Open the **Admin Dashboard**: http://localhost:8787/admin
-
-1. Click **"Create Key"**
-2. Enter a name (e.g., `my-app`)
-3. Copy the generated key (starts with `pr-`, shown only once)
-
-Or via API:
+For a loopback-only demo, start the single local inference service, then launch the app in another terminal:
 
 ```bash
-curl -X POST http://localhost:8787/api/v1/keys \
-  -H "Content-Type: application/json" \
-  -H "X-Privacy-Router-Admin-Key: <admin-key>" \
-  -d '{"name": "my-app"}'
+./scripts/start_vllm.sh gemma4
+# second terminal
+privacy-router dev
 ```
 
-The `/admin` UI prompts for `PRIVACY_ROUTER_ADMIN_KEY` before it can read or change keys, models, providers, profiles, settings, or dashboard data. This key is separate from the `pr-...` client key used by inference APIs.
+
+The first model start downloads Gemma 4 26B into `${HF_CACHE:-$HOME/.cache/huggingface}`. The base package intentionally excludes GPU, experiment, and report-generation libraries; install `.[local-inference]`, `.[experiments]`, or `.[reports]` only for the corresponding developer workflows.
+`dev` creates a short-lived browser session automatically, requires no client API key, and never selects an external model. For deployment, set `PRIVACY_ROUTER_MASTER_KEY`, `PRIVACY_ROUTER_ADMIN_PASSWORD`, and each provider environment variable such as `OPENROUTER_API_KEY`, then run:
+
+```bash
+docker compose up -d
+# equivalent process entry point: privacy-router serve
+```
+
+Docker Compose starts the API on `http://localhost:8787`, PostgreSQL on port 5433, and Hermes Agent on port 7860. Published ports bind to `127.0.0.1` by default. Compose permits the administrator password exchange over HTTP only for this loopback-published setup; if `PRIVACY_ROUTER_BIND_HOST` is changed, set `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN=0` and terminate HTTPS before the API.
+
+### 2. Create a Client API Key
+
+Open http://localhost:8787/admin and enter `PRIVACY_ROUTER_ADMIN_PASSWORD`.
+
+1. Click **"Create Key"**
+2. Enter a name (for example, `my-app`)
+3. Copy the generated `pr-...` key; it is shown only once
+
+The password is exchanged for a short-lived `HttpOnly`, `SameSite=Strict` session cookie. State-changing management requests also require the session's CSRF token. Provider credentials are not editable in the UI or stored in SQLite; rotate them through server environment variables and restart the service.
 
 ### 3. Configure Your Agent
 
@@ -147,28 +151,7 @@ docker exec privacy-router-hermes-1 hermes -z "내 주민등록번호가 뭐야?
 
 ## How It Works: Extractor → Judge → Router
 
-```
-User Prompt
-    ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Extractor (facade, precision="default"|"high")             │
-│  ├── ExtractorCore: Socratic sensitivity detection          │
-│  └── Critic: post-review (precision="high" only)            │
-│  → Free-form SCREAMING_CASE tags                            │
-└──────────────────────────┬──────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Judge (rule-based, no LLM call)                            │
-│  is_essential flag → policy decision                        │
-└──────────────────────────┬──────────────────────────────────┘
-                           ↓
-              ┌────────────┼────────────┐
-              ↓            ↓            ↓
-         External API  Local API      Block
-         (masked)      (full prompt)  (risk)
-              ↓
-         Hydration: restore original values in response
-```
+![Privacy Router protection flow: every prompt is checked locally. Safe prompts go as raw text to an external LLM; maskable prompts go as placeholders and are restored locally; essential or uncertain prompts remain local.](assets/generated/privacy-router-consumer-flow.svg)
 
 ### Detection Examples
 
@@ -238,8 +221,8 @@ Full logs: [`usage-log/USAGE_LOG.md`](usage-log/USAGE_LOG.md) · [`usage-log/db-
 
 | Runtime role | Where | Current model | Responsibility | Marginal API cost |
 |---|---|---|---|---:|
-| Decision Model | On-device | EXAONE 4.0 1.2B | Sensitivity, exact-span, category, and `is_essential` structured output | $0 |
-| Local Model | On-device | Gemma 4 26B | Generate from essential-sensitive raw prompts | $0 |
+| Decision Model | On-device | Gemma 4 26B | Sensitivity, exact-span, category, and `is_essential` structured output | $0 |
+| Local Model | On-device | Gemma 4 26B | Generate from essential-sensitive raw prompts through the same local endpoint | $0 |
 | External Model | Cloud | OpenRouter Gemma 4 26B | Generate from non-sensitive or validated masked prompts | provider rate |
 | Judge / Router | On-device code | No LLM | Deterministic policy and execution-path selection | $0 |
 
@@ -267,7 +250,8 @@ Only External Model tokens incur provider charges. The total depends on the exte
 | Business secret exposure | Contextual Socratic detection — no keyword dependency |
 | Masking reversal by cloud LLM | `CATEGORY#random8` placeholders carry no value-derived hash and resolve only through the encrypted local contract |
 | Man-in-the-middle on API calls | HTTPS for all external connections; local traffic on localhost |
-| Database raw-data exposure | Fernet encryption for provider keys, extraction context, masking spans, and stored responses; 24-hour TTL with physical cleanup |
+| Database raw-data exposure | Fernet encryption for extraction context, masking spans, and stored responses; 24-hour TTL with physical cleanup; provider credentials never enter the database |
+| Unauthorized management changes | Administrator password exchange, short-lived `HttpOnly` session cookie, and CSRF token on state-changing requests |
 | Multi-turn context leakage | Sliding-window session memory keeps masking decisions consistent |
 
 ### Data Flow
@@ -276,7 +260,7 @@ Only External Model tokens incur provider charges. The total depends on the exte
 Agent Prompt
     ↓
 ExtractorCore / optional Critic
-    ↓  Decision Model: local EXAONE 4.0 1.2B
+    ↓  Decision Model: local Gemma 4 26B
 Rule-based Judge → deterministic Router
     ├── non-sensitive or masked ──→ External Model: OpenRouter Gemma 4 26B
     ├── essential-sensitive ──────→ Local Model: local Gemma 4 26B
@@ -284,8 +268,8 @@ Rule-based Judge → deterministic Router
 ```
 
 - **Data flow**: Sensitive information is never sent to external APIs (masking or local processing)
-- **Encryption**: Fernet (AES-128-CBC + HMAC-SHA256) for stored API keys
-- **Masking**: `TAG#hash` placeholders replace sensitive spans; originals never leave the device
+- **Encryption**: Fernet (AES-128-CBC + HMAC-SHA256) for stored sensitive records; provider credentials remain environment-only
+- **Masking**: `CATEGORY#random8` placeholders replace sensitive spans; originals never leave the device
 - **Hydration**: Placeholders are restored to original values in responses
 
 Threat model: [`docs/user/security.md`](docs/user/security.md)
@@ -296,25 +280,21 @@ Threat model: [`docs/user/security.md`](docs/user/security.md)
 
 We implemented **Socratic extraction with Critic review** (Week 11 smartening: self-reflection / critic pattern):
 
-| Metric | Single-pass | Two-phase (with Critic) |
-|--------|------------|------------------------|
-| Multi-span miss rate | ~15% | ~3% |
-| Business secrets detection | 0% | 100% |
-| Research secrets detection | 0% | 100% |
-| Inference cost overhead | 1x | ~1.3x (same SLM, second pass) |
+High-precision mode adds a second review pass with the same local Decision Model:
 
-**Phase 1 (Extract):** The SLM applies contextual reasoning to detect sensitive spans with free-form `SCREAMING_CASE` category tags via Socratic questioning (3 questions per sentence).
+- **Phase 1 (Extract):** contextual reasoning detects sensitive spans and derives descriptive `SCREAMING_SNAKE_CASE` categories.
+- **Phase 2 (Critic):** an optional second pass reviews missed spans and `is_essential` classification.
+- **Merge:** hallucination filtering keeps only spans that occur verbatim in the original text.
 
-**Phase 2 (Critic):** A second SLM pass reviews Phase 1 output, catches missed spans, and verifies `is_essential` classification. This eliminates single-pass blind spots on multi-span inputs.
+Measured model and prompt comparisons remain in [`docs/experiments/eval-report.md`](docs/experiments/eval-report.md); this product overview does not generalize those experiment-specific results.
 
-Additionally, **hallucination filtering** in the merge step verifies that each detected span actually exists in the original text — spans that don't match verbatim are discarded.
 
 
 ## Architecture
 
 | Component | Technology / binding |
 |---|---|
-| ExtractorCore + optional Critic | Decision Model: local EXAONE 4.0 1.2B |
+| ExtractorCore + optional Critic | Decision Model: local Gemma 4 26B |
 | Judge | Rule-based Python; no LLM |
 | Router | Deterministic Python; no LLM |
 | Local generation | Local Gemma 4 26B |
@@ -335,8 +315,8 @@ Privacy Router keeps analysis and generation as separate trust-boundary workload
 
 | Workload | Deployment | Why |
 |---|---|---|
-| Decision Model: EXAONE 4.0 1.2B | Local OpenAI-compatible endpoint | Every raw prompt is classified before any external request; the smaller model minimizes always-on analysis latency |
-| Local Model: Gemma 4 26B | Local OpenAI-compatible endpoint | Full-quality generation when masking would destroy the request's meaning |
+| Decision Model: Gemma 4 26B | Local OpenAI-compatible endpoint | Every raw prompt is classified locally before any external request |
+| Local Model: Gemma 4 26B | Same local endpoint | Essential-sensitive generation reuses the resident model without crossing the trust boundary |
 | External Model: OpenRouter Gemma 4 26B | Cloud | High-quality generation only after the request is safe or placeholder-masked |
 
 The runtime schema validates the model registry against these boundaries: Decision and Local must resolve to `location: local`; External must resolve to `location: external`. The SQLite profile stores only these three role bindings. Judge and Router add no inference workload.
@@ -431,17 +411,18 @@ privacy-router/
 ├── usage-log/               # Real usage logs (46 entries)
 ├── docs/                    # Documentation
 ├── test_data/               # Multi-turn test conversations
+```
+
 ## Access Points
 
 | URL | Description |
 |-----|-------------|
 | http://localhost:8787/ | Landing page (EN/KO) |
-| http://localhost:8787/admin | API key management |
+| http://localhost:8787/admin | Model, API key, and redacted telemetry management |
 | http://localhost:8787/demo | Interactive chat demo |
-| http://localhost:8787/documentation | SvelteKit documentation |
-| http://localhost:8787/usage-dashboard.html | Usage log visualization |
+| http://localhost:8787/docs | Product documentation |
 | http://localhost:9119 | Hermes Agent dashboard |
-| http://localhost:8787/docs | OpenAPI Swagger UI |
+| http://localhost:8787/api/docs | OpenAPI Swagger UI |
 
 ---
 
@@ -461,6 +442,12 @@ Demonstrates: real-time PII detection, business secret classification, masking/r
 | Paper | Korean | [`paper/report_ko.pdf`](paper/report_ko.pdf) |
 | Slides | English | [`slides/presentation_en.html`](slides/presentation_en.html) |
 | Slides | Korean | [`slides/presentation_kr.html`](slides/presentation_kr.html) |
+
+---
+
+## License
+
+This repository currently has **no open-source license**. Source availability does not grant permission to use, copy, modify, or redistribute it; contact the team for permission.
 
 ---
 

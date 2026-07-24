@@ -18,8 +18,8 @@ YAML은 bootstrap과 누락값 fallback이며, 정상 실행 중 모델 선택�
 
 | 설정 키 | 선택 모델 | 위치 | 책임 |
 |---|---|---|---|
-| `decision` | `openai/LGAI-EXAONE/EXAONE-4.0-1.2B` | local, `:8010/v1` | 민감도, exact span, category, `is_essential`을 한 번의 structured output으로 생성 |
-| `local` | `openai/google/gemma-4-26b-local` | local, `:8011/v1` | essential-sensitive 원문 요청 생성. 원문은 기기 밖으로 나가지 않음 |
+| `decision` | `openai/google/gemma-4-26b-local` | local, `:8011/v1` | 민감도, exact span, category, `is_essential`을 structured output으로 생성 |
+| `local` | 같은 `openai/google/gemma-4-26b-local` endpoint | local, `:8011/v1` | essential-sensitive 원문 요청 생성. 원문은 기기 밖으로 나가지 않음 |
 | `external` | `openrouter/google/gemma-4-26b-a4b-it` | external | 비민감 원문 또는 안전하게 마스킹된 요청 생성 |
 
 신뢰 경계는 schema validation으로 강제된다.
@@ -34,12 +34,6 @@ YAML은 bootstrap과 누락값 fallback이며, 정상 실행 중 모델 선택�
 
 ```yaml
 models:
-  - id: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
-    api_base: http://127.0.0.1:8010/v1
-    location: local
-    tier: small
-    cost_per_1m_tokens: 0.0
-
   - id: openai/google/gemma-4-26b-local
     api_base: http://127.0.0.1:8011/v1
     location: local
@@ -52,7 +46,7 @@ models:
     cost_per_1m_tokens: 0.06
 
 decision:
-  model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B
+  model: openai/google/gemma-4-26b-local
   config: {temperature: 0.0, max_tokens: 2048}
 
 local:
@@ -65,8 +59,8 @@ external:
 
 profiles:
   default:
-    description: EXAONE local privacy decision; Gemma 4 26B local/external generation
-    decision: {model: openai/LGAI-EXAONE/EXAONE-4.0-1.2B}
+    description: Local Gemma privacy analysis and generation; OpenRouter Gemma external generation
+    decision: {model: openai/google/gemma-4-26b-local}
     local: {model: openai/google/gemma-4-26b-local}
     external: {model: openrouter/google/gemma-4-26b-a4b-it}
 ```
@@ -83,7 +77,7 @@ Profile ──< ProfileAgent(agent_name, model_id, temperature, max_tokens)
 Model(model_id, provider_id, location, api_base_override)
                          |
                          v
-Provider(api_base, encrypted_api_key, api_key_env)
+Provider(api_base, api_key_env)
 ```
 
 `profile_agents.agent_name`의 유효 런타임 값은 `decision`, `local`, `external`이다. 서버가 기존 DB를 읽을 때 `extractor`, `judge`, `generator` 같은 legacy 역할 행을 제거하고, 누락된 세 역할을 YAML 기본값으로 채운다.
@@ -93,25 +87,27 @@ Provider(api_base, encrypted_api_key, api_key_env)
 | 변수 | 용도 |
 |---|---|
 | `PRIVACY_ROUTER_PROFILE` | 활성 profile override |
-| `PRIVACY_ROUTER_MASTER_KEY` | Provider API key와 masking span 암호화의 기본 master key |
+| `PRIVACY_ROUTER_MASTER_KEY` | masking span 암호화와 관리자/데모 세션 토큰 서명의 영속 master key |
 | `MASKING_ENCRYPTION_KEY` | legacy master-key fallback |
-| `OPENROUTER_API_KEY` | OpenRouter provider key fallback |
-| `PRIVACY_ROUTER_ADMIN_KEY` | 관리 API의 `X-Privacy-Router-Admin-Key` 헤더와 비교할 별도 shared secret |
+| `OPENROUTER_API_KEY` | 기본 OpenRouter provider 환경 변수 |
+| `PRIVACY_ROUTER_ADMIN_PASSWORD` | `/admin`이 보안 세션으로 교환하는 관리자 비밀번호 |
+| `PRIVACY_ROUTER_API_KEY` | Compose에서 SHA-256 hash로 bootstrap할 고정 client key (`pr-`, 24자 이상) |
+| `PRIVACY_ROUTER_BIND_HOST` | Compose가 host port를 publish할 주소; 기본값 `127.0.0.1` |
+| `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN` | loopback에만 publish한 Compose에서 HTTP 관리자 로그인을 명시적으로 허용 |
+| `PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS` | local model endpoint로 허용하고 cloud credential을 보내지 않을 추가 hostname 목록 |
 | `DATABASE_URL` | PostgreSQL 사용 시 DB URL |
 
-master key가 없으면 개발 모드에서 임시 키를 생성한다. 운영 환경에서는 영속적인 `PRIVACY_ROUTER_MASTER_KEY`를 반드시 주입해야 한다.
+master key가 없으면 `dev`가 프로세스 수명의 임시 키를 생성한다. 배포 모드는 유효한 영속 Fernet key 또는 `PRIVACY_ROUTER_ADMIN_PASSWORD`가 없으면 요청을 받기 전에 시작을 중단한다.
 
 ## 6. 설정 API
 
-아래 설정 API는 모두 `X-Privacy-Router-Admin-Key: <admin-key>` 헤더가 필요하다. 관리 키가 서버에 설정되지 않으면 `503`, 헤더가 누락되면 `401`, 값이 일치하지 않으면 `403`으로 실패한다.
+설정 API는 관리자 세션 쿠키를 요구한다. `POST`, `PATCH`, `PUT`, `DELETE` 요청은 같은 세션에서 발급된 `X-Privacy-Router-CSRF-Token`도 검증한다. `serve`는 관리자 비밀번호 또는 master key가 없으면 시작하지 않으며, 잘못된 로그인은 `401`, 잘못된 CSRF token은 `403`으로 실패한다.
 
 | Endpoint | 의미 |
 |---|---|
 | `GET /api/settings` | 현재 `decision`, `local`, `external` 역할과 profile metadata 조회 |
 | `POST /api/settings` | 세 역할의 model/temperature/max_tokens 변경 |
-| `GET /api/providers` | provider 및 key 상태 조회 |
-| `POST /api/providers/{id}/key` | provider key 암호화 저장 |
-| `DELETE /api/providers/{id}/key` | provider key 삭제 |
+| `GET /api/providers` | provider와 환경 변수 기반 key 상태 조회 |
 | `GET /api/profiles` | profile 목록 조회 |
 | `POST /api/profiles/activate` | workspace의 활성 profile 변경 |
 
@@ -124,8 +120,9 @@ master key가 없으면 개발 모드에서 임시 키를 생성한다. 운영 �
 | `db` | PostgreSQL 16 | 5433 |
 | `api` | FastAPI Privacy Router | 8787 |
 | `hermes` | Hermes Agent | 7860 |
+| `vllm-gemma4` | Optional local decision and generation model | 8011 |
 
-로컬 Decision Model과 Local Model은 OpenAI-compatible endpoint로 연결한다. 현재 개발 배치는 EXAONE `:8000/v1`, Gemma 4 26B `:8001/v1`을 사용한다.
+Decision Model과 Local Model은 같은 Gemma 4 26B OpenAI-compatible endpoint `:8011/v1`을 사용한다. Docker API는 `host.docker.internal:8011`을 명시적으로 신뢰한 로컬 모델 호스트로 연결한다.
 
 ## Related Documents
 
