@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pytest
 from cryptography.fernet import Fernet
 
+import server
 from agents.masker import (
     ContractStore,
     HydrationError,
@@ -18,7 +19,6 @@ from agents.masker import (
     encrypt_field,
     fingerprint_field,
     generate_key,
-    key_fingerprint,
 )
 
 # ── crypto.py ────────────────────────────────────────────────────────────────
@@ -79,13 +79,29 @@ class TestCryptoKeyHandling:
         encrypted = encrypt_field("test_payload")
         assert decrypt_field(encrypted) == "test_payload"
 
-    def test_master_key_is_generated_once_when_env_empty(self, monkeypatch):
+    def test_dev_mode_generates_master_key_once_when_env_empty(self, monkeypatch):
+        previous_mode = server.get_runtime_mode()
+        server.set_runtime_mode("dev")
         monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
         monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
-        first = encrypt_field("first")
-        second = encrypt_field("second")
-        assert decrypt_field(first) == "first"
-        assert decrypt_field(second) == "second"
+        try:
+            first = encrypt_field("first")
+            second = encrypt_field("second")
+            assert decrypt_field(first) == "first"
+            assert decrypt_field(second) == "second"
+        finally:
+            server.set_runtime_mode(previous_mode)
+
+    def test_serve_mode_refuses_to_encrypt_without_master_key(self, monkeypatch):
+        previous_mode = server.get_runtime_mode()
+        server.set_runtime_mode("serve")
+        monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+        monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+        try:
+            with pytest.raises(RuntimeError, match="PRIVACY_ROUTER_MASTER_KEY"):
+                encrypt_field("must-not-use-an-ephemeral-key")
+        finally:
+            server.set_runtime_mode(previous_mode)
 
     def test_encrypt_decrypt_consistent_with_master_key(self, monkeypatch):
         monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
@@ -117,22 +133,6 @@ class TestCryptoFingerprint:
         first = fingerprint_field(value)
         monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
         assert fingerprint_field(value) != first
-
-    def test_provider_key_fingerprint_never_contains_plaintext_fragments(self, monkeypatch):
-        monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", generate_key())
-        provider_key = "sk-live-super-secret-1234567890"
-
-        fingerprint = key_fingerprint(provider_key)
-
-        assert fingerprint == key_fingerprint(provider_key)
-        assert provider_key[:8] not in fingerprint
-        assert provider_key[-4:] not in fingerprint
-        assert len(fingerprint) == 16
-
-        short_key = "12345678"
-        short_fingerprint = key_fingerprint(short_key)
-        assert short_key not in short_fingerprint
-        assert len(short_fingerprint) == 16
 
 
 class TestContractStore:

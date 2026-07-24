@@ -11,6 +11,7 @@ COPY agents/ agents/
 COPY config/ config/
 COPY server/ server/
 COPY db/ db/
+COPY telemetry/ telemetry/
 COPY web/ web/
 COPY .privacy-router.config.yaml ./
 

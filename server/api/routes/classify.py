@@ -17,7 +17,7 @@ from agents import (
 )
 from config import resolve_generation_binding
 from db import UsageLog, get_session
-from server.api import app, require_auth
+from server.api import annotate_pipeline_traces, app, require_auth
 from server.config import get_config
 
 
@@ -65,6 +65,11 @@ def classify_endpoint(body: ClassifyRequest, _auth: str = Depends(require_auth))
     """Analyse text through the privacy pipeline (no LLM call)."""
     config = get_config()
     result = _analyze(body.text)
+    annotate_pipeline_traces(
+        [result],
+        policy_action=result.judgment.policy_action,
+        route=result.route.endpoint,
+    )
 
     recommended_model = config.local.model if result.route.endpoint == "local_api" else config.external.model
 
@@ -105,6 +110,12 @@ def generate_endpoint(body: GenerateRequest, _auth: str = Depends(require_auth))
             status_code=400,
             detail="Invalid generator model",
         ) from exc
+    annotate_pipeline_traces(
+        [result],
+        policy_action=policy_action,
+        route=result.route.endpoint,
+        model_used=model_used,
+    )
 
     forward_text = body.text
     masking_result = None

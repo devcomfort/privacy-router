@@ -221,6 +221,7 @@ class ExtractorCore:
                 model=self._model,
                 api_base=self._api_base,
                 max_tokens=self._max_tokens,
+                component="extractor",
             )
         except Exception as exc:
             raise PrivacyAnalysisUnavailable("Sensitive-information analysis unavailable.") from exc

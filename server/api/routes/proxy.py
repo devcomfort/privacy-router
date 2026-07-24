@@ -8,31 +8,28 @@ Endpoints:
 
 from __future__ import annotations
 
-import datetime
 import json
 import os
 import time
 import uuid
 from typing import Any
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
-from pydantic import BaseModel, Field
-from sqlmodel import Session, select, text
+from sqlmodel import select
 from starlette.concurrency import iterate_in_threadpool, run_in_threadpool
 
 import server.config as server_cfg
+import telemetry as telemetry_store
 from agents import (
     ContractStore,
     PipelineResult,
     PlaceholderRepairer,
     PrivacyRouteFailure,
     PrivacyRouter,
-    encrypt_field,
     execute_fixed_route,
     execute_fixed_stream,
     get_cache,
-    key_fingerprint,
     log_privacy_failure,
     placeholder_repair_enabled,
     privacy_failure,
@@ -47,17 +44,18 @@ from db import (
     Provider,
     UsageLog,
     Workspace,
-    engine,
     get_session,
 )
 from server.api import (
     STATIC_DIR,
     StreamingHydrator,
     adapter_for,
+    annotate_pipeline_traces,
     app,
     build_tool_call_inspection,
     chat_context_segments,
     chat_context_text,
+    constrain_runtime_route,
     contains_uninspected_media,
     flush_stream_hydrator,
     hydrate_masked_response,
@@ -70,7 +68,7 @@ from server.api import (
     reject_sensitive_tool_call_protocol_fields,
     render_context_segments,
     require_admin_auth,
-    require_auth,
+    require_chat_auth,
     sensitive_tool_arguments_allowed,
     session_cache_key,
     validate_stream_tool_call_index,
@@ -196,12 +194,12 @@ async def list_models():
     }
 
 
-# ── GET /api/settings (public, for demo UI) ──────────────────────────────
+# ── GET /api/settings (administrator session) ────────────────────────────
 
 
 @app.get("/api/settings")
 async def get_settings(_admin: str = Depends(require_admin_auth)):
-    """Return agent config for the demo web UI (no auth required).
+    """Return resolved agent configuration to the authenticated admin UI.
 
     Returns resolved config (post-profile-override) with profile metadata.
     """
@@ -240,86 +238,20 @@ async def list_providers(_admin: str = Depends(require_admin_auth)):
         providers = session.exec(select(Provider)).all()
         result = []
         for p in providers:
-            has_key = bool(p.encrypted_api_key)
-            has_env = bool(p.api_key_env) and os.environ.get(p.api_key_env)
+            has_env = bool(p.api_key_env and os.environ.get(p.api_key_env))
             result.append(
                 {
                     "id": p.id,
                     "name": p.name,
                     "api_base": p.api_base,
-                    "has_key": has_key or has_env,
-                    "key_fingerprint": p.key_fingerprint,
-                    "source": "db" if has_key else ("env" if has_env else "none"),
+                    "has_key": has_env,
+                    "source": "env" if has_env else "none",
                     "api_key_env": p.api_key_env,
                 }
             )
         return {"providers": result}
     finally:
         session.close()
-
-
-# ── POST /api/providers/{provider_id}/key ──────────────────────────────────
-
-
-class ProviderKeySet(BaseModel):
-    api_key: str = Field(..., min_length=8)
-
-
-@app.post("/api/providers/{provider_id}/key")
-def set_provider_key(
-    provider_id: str,
-    body: ProviderKeySet,
-    _admin: str = Depends(require_admin_auth),
-):
-    """Encrypt and store an API key for a provider."""
-    with server_cfg.config_write_lock():
-        session = get_session()
-        try:
-            provider = session.get(Provider, provider_id)
-            if not provider:
-                raise HTTPException(status_code=404, detail=f"Provider '{provider_id}' not found")
-
-            provider.encrypted_api_key = encrypt_field(body.api_key)
-            provider.key_fingerprint = key_fingerprint(body.api_key)
-            provider.updated_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-            session.add(provider)
-            session.commit()
-            session.refresh(provider)
-
-            return {
-                "status": "ok",
-                "provider_id": provider_id,
-                "key_fingerprint": provider.key_fingerprint,
-            }
-        finally:
-            session.close()
-
-
-# ── DELETE /api/providers/{provider_id}/key ─────────────────────────────────
-
-
-@app.delete("/api/providers/{provider_id}/key")
-def delete_provider_key(
-    provider_id: str,
-    _admin: str = Depends(require_admin_auth),
-):
-    """Remove the stored API key for a provider."""
-    with server_cfg.config_write_lock():
-        session = get_session()
-        try:
-            provider = session.get(Provider, provider_id)
-            if not provider:
-                raise HTTPException(status_code=404, detail=f"Provider '{provider_id}' not found")
-
-            provider.encrypted_api_key = None
-            provider.key_fingerprint = None
-            provider.updated_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-            session.add(provider)
-            session.commit()
-
-            return {"status": "ok", "provider_id": provider_id}
-        finally:
-            session.close()
 
 
 @app.post("/api/settings")
@@ -341,7 +273,9 @@ def update_settings(
                 entry = body[agent_name]
                 model_id = entry.get("model")
                 if model_id:
-                    model_row = session.get(Model, model_id)
+                    model_row = session.exec(
+                        select(Model).where(Model.model_id == model_id).where(Model.is_active)
+                    ).first()
                     if model_row is None:
                         raise HTTPException(
                             status_code=400,
@@ -461,7 +395,7 @@ def activate_profile(
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request, _auth: str = Depends(require_auth)):
+async def chat_completions(request: Request, _auth: str = Depends(require_chat_auth)):
     """OpenAI-compatible chat completions with a fail-closed privacy route."""
     body = await request.json()
     allow_sensitive_tool_arguments = sensitive_tool_arguments_allowed(body)
@@ -546,15 +480,10 @@ async def chat_completions(request: Request, _auth: str = Depends(require_auth))
         return _privacy_error_response(failure, request_id)
 
     has_uninspected_media = contains_uninspected_media(messages)
-    media_forced_local = has_uninspected_media and policy.endpoint != "local_api"
-    if media_forced_local:
-        policy = policy.model_copy(
-            update={
-                "endpoint": "local_api",
-                "requires_masking": False,
-                "description": "검사할 수 없는 미디어가 포함되어 로컬 처리",
-            }
-        )
+    policy, media_forced_local = constrain_runtime_route(
+        policy,
+        has_uninspected_media=has_uninspected_media,
+    )
 
     current_records = [
         record
@@ -566,7 +495,12 @@ async def chat_completions(request: Request, _auth: str = Depends(require_auth))
     if media_forced_local:
         effective_policy_action = "block"
         meta["policy_action"] = "block"
-        meta["route"] = "local_api"
+    meta["route"] = policy.endpoint
+    annotate_pipeline_traces(
+        [pipeline],
+        policy_action=effective_policy_action,
+        route=policy.endpoint,
+    )
     n_records = len(pipeline.records)
     _log_usage(
         "chat_completions",
@@ -661,6 +595,14 @@ async def chat_completions(request: Request, _auth: str = Depends(require_auth))
             forward_tool_choice = masked_payload.tool_choice
 
     call_kwargs: dict[str, Any] = {}
+    if policy.endpoint == "local_api":
+        call_kwargs["api_key"] = "not-needed"
+    annotate_pipeline_traces(
+        [pipeline],
+        policy_action=effective_policy_action,
+        route=policy.endpoint,
+        model_used=selected_model,
+    )
     if forward_tools:
         call_kwargs["tools"] = forward_tools
     if forward_tool_choice:
@@ -708,6 +650,7 @@ async def chat_completions(request: Request, _auth: str = Depends(require_auth))
             return _privacy_error_response(failure, request_id)
 
     output_placeholder_registry: dict[str, str] = {}
+    meta["model_used"] = selected_model
 
     async def finalize_tool_call(
         *,
@@ -761,6 +704,9 @@ async def chat_completions(request: Request, _auth: str = Depends(require_auth))
         async def response_stream():
             chunk_id = request_id
             created = int(time.time())
+            yield (
+                f"data: {json.dumps({'id': chunk_id, 'object': 'chat.completion.chunk', 'created': created, 'model': 'privacy-router', 'choices': [{'index': 0, 'delta': {}, 'finish_reason': None}], 'privacy_router': meta})}\n\n"
+            )
             masked_output_parts: list[str] = []
             stream_tool_calls: dict[int, dict[str, Any]] = {}
             buffer_content = policy.endpoint == "local_api" or bool(forward_tools) or contract is not None
@@ -986,109 +932,11 @@ async def admin_ui():
 
 
 @app.get("/api/v1/dashboard-data")
-async def dashboard_data(_admin: str = Depends(require_admin_auth)):
-    """Return all data needed for the usage log dashboard.
-
-    Reads from the database and returns:
-    - usage_logs: all log entries
-    - masking_records: all masking records linked to sessions
-    - masking_sessions: all masking sessions
-    - summary: aggregated stats
-    """
-    with Session(engine) as s:
-        # Usage logs
-        logs = (
-            s.exec(
-                text(
-                    "SELECT id, event, is_sensitive, records_count, policy_action, "
-                    "model_used, latency_ms, status_code, "
-                    "to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at "
-                    "FROM usage_logs ORDER BY created_at"
-                )
-            )
-            .mappings()
-            .all()
-        )
-
-        # Masking sessions with records
-        sessions = (
-            s.exec(
-                text(
-                    "SELECT ms.id, ms.record_count, ms.policy_action, "
-                    "to_char(ms.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at "
-                    "FROM masking_sessions ms ORDER BY ms.created_at"
-                )
-            )
-            .mappings()
-            .all()
-        )
-
-        # Masking records
-        records = (
-            s.exec(
-                text(
-                    "SELECT mr.id, mr.session_id, mr.category, mr.span, mr.placeholder, "
-                    "mr.confidence, mr.is_essential "
-                    "FROM masking_records mr ORDER BY mr.confidence DESC"
-                )
-            )
-            .mappings()
-            .all()
-        )
-
-        # Summary stats
-        summary = (
-            s.exec(
-                text(
-                    "SELECT "
-                    "COUNT(*) as total, "
-                    "SUM(CASE WHEN is_sensitive THEN 1 ELSE 0 END) as sensitive, "
-                    "SUM(CASE WHEN NOT is_sensitive THEN 1 ELSE 0 END) as safe, "
-                    "SUM(CASE WHEN policy_action = 'block' THEN 1 ELSE 0 END) as routed_local, "
-                    "SUM(CASE WHEN policy_action = 'selective_mask' THEN 1 ELSE 0 END) as masked_sent, "
-                    "SUM(CASE WHEN policy_action = 'allow' THEN 1 ELSE 0 END) as allowed "
-                    "FROM usage_logs"
-                )
-            )
-            .mappings()
-            .one()
-        )
-
-        # Daily breakdown
-        daily = (
-            s.exec(
-                text(
-                    "SELECT "
-                    "to_char(created_at, 'MM-DD') as date, "
-                    "COUNT(*) as total, "
-                    "SUM(CASE WHEN is_sensitive THEN 1 ELSE 0 END) as sensitive, "
-                    "SUM(CASE WHEN NOT is_sensitive THEN 1 ELSE 0 END) as safe, "
-                    "SUM(CASE WHEN policy_action = 'block' THEN 1 ELSE 0 END) as routed_local, "
-                    "SUM(CASE WHEN policy_action = 'selective_mask' THEN 1 ELSE 0 END) as masked_sent, "
-                    "SUM(CASE WHEN policy_action = 'allow' THEN 1 ELSE 0 END) as allowed "
-                    "FROM usage_logs "
-                    "GROUP BY to_char(created_at, 'MM-DD') "
-                    "ORDER BY to_char(created_at, 'MM-DD')"
-                )
-            )
-            .mappings()
-            .all()
-        )
-
-    # Group records by session_id
-    records_by_session = {}
-    for r in records:
-        sid = r["session_id"]
-        if sid not in records_by_session:
-            records_by_session[sid] = []
-        records_by_session[sid].append(dict(r))
-
-    return JSONResponse(
-        {
-            "summary": dict(summary),
-            "daily": [dict(d) for d in daily],
-            "logs": [dict(log) for log in logs],
-            "sessions": [dict(s) for s in sessions],
-            "records_by_session": records_by_session,
-        }
-    )
+async def dashboard_data(
+    response: Response,
+    limit: int = Query(default=500, ge=1, le=2000),
+    _admin: str = Depends(require_admin_auth),
+):
+    """Return privacy-safe request and model-call data for the admin dashboard."""
+    response.headers["Cache-Control"] = "no-store"
+    return telemetry_store.export_request_telemetry(limit=limit)

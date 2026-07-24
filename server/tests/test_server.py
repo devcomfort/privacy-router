@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
+import importlib
+import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event, Lock
+from types import SimpleNamespace
 
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 import server
 import server.config as server_config
-from agents import ContractStore, key_fingerprint
+from agents import ContractStore
 from db import Model, ProfileAgent, Provider, get_session
 from server.adapters import LiteLLMAdapter
-from server.api import app, require_admin_auth, require_auth
+from server.api import app, require_admin_auth, require_auth, require_chat_auth
 
 
 async def _mock_auth() -> str:
@@ -28,6 +32,7 @@ def _override_auth(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep this module's integration requests independent of auth boundary tests."""
     monkeypatch.setitem(app.dependency_overrides, require_auth, _mock_auth)
     monkeypatch.setitem(app.dependency_overrides, require_admin_auth, _mock_auth)
+    monkeypatch.setitem(app.dependency_overrides, require_chat_auth, _mock_auth)
 
 
 client = TestClient(app)
@@ -37,31 +42,175 @@ def test_cli_help_exits_without_starting_server(
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    started = False
+    started: list[tuple[str, str, int, bool]] = []
 
-    def start_server() -> None:
-        nonlocal started
-        started = True
-
-    monkeypatch.setattr(server, "_start_server", start_server)
+    monkeypatch.setattr(
+        server,
+        "_start_server",
+        lambda mode, host, port, reload: started.append((mode, host, port, reload)),
+    )
     with pytest.raises(SystemExit) as exc_info:
         server.main(["--help"])
 
     assert exc_info.value.code == 0
     assert "usage: privacy-router" in capsys.readouterr().out
-    assert started is False
+    assert started == []
 
 
-def test_cli_without_arguments_starts_server(monkeypatch: pytest.MonkeyPatch) -> None:
-    starts = 0
+def test_cli_without_mode_refuses_to_start(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    started: list[tuple[str, str, int, bool]] = []
+    monkeypatch.setattr(
+        server,
+        "_start_server",
+        lambda mode, host, port, reload: started.append((mode, host, port, reload)),
+    )
 
-    def start_server() -> None:
-        nonlocal starts
-        starts += 1
+    with pytest.raises(SystemExit) as exc_info:
+        server.main([])
 
-    monkeypatch.setattr(server, "_start_server", start_server)
-    assert server.main([]) is None
-    assert starts == 1
+    assert exc_info.value.code == 2
+    assert "dev" in capsys.readouterr().err
+    assert started == []
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected"),
+    [
+        (["dev"], ("dev", "127.0.0.1", 8787, False)),
+        (["dev", "--port", "8790", "--reload"], ("dev", "127.0.0.1", 8790, True)),
+        (["serve"], ("serve", "0.0.0.0", 8787, False)),
+        (["serve", "--host", "127.0.0.1", "--port", "8791"], ("serve", "127.0.0.1", 8791, False)),
+    ],
+)
+def test_cli_starts_explicit_runtime_mode(
+    argv: list[str],
+    expected: tuple[str, str, int, bool],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    started: list[tuple[str, str, int, bool]] = []
+    monkeypatch.setattr(
+        server,
+        "_start_server",
+        lambda mode, host, port, reload: started.append((mode, host, port, reload)),
+    )
+
+    assert server.main(argv) is None
+
+    assert started == [expected]
+
+
+def test_serve_cli_loads_dotenv_before_master_key_validation(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    master_key = Fernet.generate_key().decode()
+    (tmp_path / ".env").write_text(
+        f"PRIVACY_ROUTER_MASTER_KEY={master_key}\nPRIVACY_ROUTER_ADMIN_PASSWORD=configured-admin-password\n",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+    monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+    config = SimpleNamespace(
+        decision=SimpleNamespace(model="decision"),
+        local=SimpleNamespace(model="local"),
+        external=SimpleNamespace(model="external"),
+        models=[],
+    )
+    run_calls: list[tuple[object, str, int, bool]] = []
+    modules = {
+        "server.config": SimpleNamespace(get_config=lambda: config),
+        "server.api": SimpleNamespace(app=object()),
+        "uvicorn": SimpleNamespace(
+            run=lambda target, host, port, reload: run_calls.append((target, host, port, reload))
+        ),
+    }
+    monkeypatch.setattr(server, "import_module", modules.__getitem__)
+
+    server._start_server("serve", "127.0.0.1", 8787, False)
+
+    assert os.environ["PRIVACY_ROUTER_MASTER_KEY"] == master_key
+    assert len(run_calls) == 1
+
+
+def test_dev_mode_creates_process_local_master_key_when_unconfigured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+    monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+
+    server.ensure_runtime_master_key("dev")
+
+    generated = os.environ["PRIVACY_ROUTER_MASTER_KEY"]
+    assert Fernet(generated.encode())
+
+
+def test_serve_mode_refuses_missing_master_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+    monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+
+    with pytest.raises(RuntimeError, match="PRIVACY_ROUTER_MASTER_KEY"):
+        server.ensure_runtime_master_key("serve")
+
+    assert "PRIVACY_ROUTER_MASTER_KEY" not in os.environ
+
+
+def test_serve_mode_refuses_missing_admin_password(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PRIVACY_ROUTER_ADMIN_PASSWORD", raising=False)
+
+    with pytest.raises(RuntimeError, match="PRIVACY_ROUTER_ADMIN_PASSWORD"):
+        server.ensure_runtime_admin_password("serve")
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("PRIVACY_ROUTER_MASTER_KEY", "not-a-fernet-key"),
+        ("MASKING_ENCRYPTION_KEY", "not-a-fernet-key"),
+    ],
+)
+def test_serve_mode_refuses_invalid_master_key(
+    name: str,
+    value: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+    monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+    monkeypatch.setenv(name, value)
+
+    with pytest.raises(RuntimeError, match="valid Fernet key"):
+        server.ensure_runtime_master_key("serve")
+
+
+def test_direct_asgi_start_refuses_missing_master_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = importlib.import_module("server.runtime")
+    runtime.set_runtime_mode("serve")
+    monkeypatch.delenv("PRIVACY_ROUTER_MASTER_KEY", raising=False)
+    monkeypatch.delenv("MASKING_ENCRYPTION_KEY", raising=False)
+
+    with pytest.raises(RuntimeError, match="PRIVACY_ROUTER_MASTER_KEY"), TestClient(app):
+        pass
+
+
+def test_invalid_internal_runtime_mode_fails_closed_to_serve(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = importlib.import_module("server.runtime")
+    monkeypatch.setenv("_PRIVACY_ROUTER_RUNTIME_MODE", "unexpected")
+
+    runtime = importlib.reload(runtime)
+
+    assert runtime.get_runtime_mode() == "serve"
+    monkeypatch.delenv("_PRIVACY_ROUTER_RUNTIME_MODE")
+    importlib.reload(runtime)
 
 
 def test_config_cache_discards_a_load_started_before_invalidation(
@@ -335,18 +484,24 @@ class TestModelsEndpoint:
                 session.close()
 
 
-class TestProviderKeyEndpoints:
-    """Provider keys can be managed without returning plaintext."""
+class TestProviderSecretBoundary:
+    """Outbound provider secrets come only from named environment variables."""
 
-    def test_provider_key_can_be_stored_and_removed(self):
+    def test_provider_secret_management_is_read_only_and_environment_backed(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
         provider_id = f"test-provider-{uuid.uuid4().hex}"
+        env_name = f"TEST_PROVIDER_KEY_{uuid.uuid4().hex.upper()}"
         api_key = "test-provider-api-key"
+        monkeypatch.setenv(env_name, api_key)
         session = get_session()
         try:
             session.add(
                 Provider(
                     id=provider_id,
                     name="Test Provider",
+                    api_key_env=env_name,
                 )
             )
             session.commit()
@@ -354,47 +509,52 @@ class TestProviderKeyEndpoints:
             session.close()
 
         try:
-            stored = client.post(
-                f"/api/providers/{provider_id}/key",
-                json={"api_key": api_key},
-            )
-            assert stored.status_code == 200
-            assert api_key not in stored.text
-            expected_fingerprint = key_fingerprint(api_key)
-            assert stored.json()["key_fingerprint"] == expected_fingerprint
-            assert len(expected_fingerprint) == 16
-            assert api_key[:8] not in expected_fingerprint
-            assert api_key[-4:] not in expected_fingerprint
-
             providers = client.get("/api/providers")
             assert providers.status_code == 200
             provider = next(item for item in providers.json()["providers"] if item["id"] == provider_id)
-            assert provider["has_key"] is True
+            assert provider == {
+                "id": provider_id,
+                "name": "Test Provider",
+                "api_base": None,
+                "has_key": True,
+                "source": "env",
+                "api_key_env": env_name,
+            }
             assert api_key not in providers.text
-            assert provider["key_fingerprint"] == expected_fingerprint
-
-            removed = client.delete(f"/api/providers/{provider_id}/key")
-            assert removed.status_code == 200
+            assert (
+                client.post(
+                    f"/api/providers/{provider_id}/key",
+                    json={"api_key": api_key},
+                ).status_code
+                == 405
+            )
+            assert client.delete(f"/api/providers/{provider_id}/key").status_code == 405
         finally:
             session = get_session()
             try:
-                provider = session.get(Provider, provider_id)
-                if provider is not None:
-                    session.delete(provider)
+                provider_row = session.get(Provider, provider_id)
+                if provider_row is not None:
+                    session.delete(provider_row)
                     session.commit()
             finally:
                 session.close()
 
-    def test_stored_provider_key_is_used_by_remote_adapter(self, monkeypatch: pytest.MonkeyPatch):
+    def test_environment_provider_key_is_used_by_remote_adapter(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
         provider_id = f"test-provider-{uuid.uuid4().hex}"
         model_id = f"openrouter/test-model-{uuid.uuid4().hex}"
-        api_key = "test-provider-api-key-db-path"
+        env_name = f"TEST_PROVIDER_KEY_{uuid.uuid4().hex.upper()}"
+        api_key = "test-provider-api-key-env-path"
+        monkeypatch.setenv(env_name, api_key)
         session = get_session()
         try:
             session.add(
                 Provider(
                     id=provider_id,
                     name="Test Provider",
+                    api_key_env=env_name,
                 )
             )
             session.add(
@@ -418,12 +578,6 @@ class TestProviderKeyEndpoints:
         monkeypatch.setattr("server.adapters.base.litellm.completion", capture_completion)
 
         try:
-            stored = client.post(
-                f"/api/providers/{provider_id}/key",
-                json={"api_key": api_key},
-            )
-            assert stored.status_code == 200
-
             LiteLLMAdapter().call(
                 model_id,
                 [{"role": "user", "content": "test"}],
@@ -453,6 +607,35 @@ class TestChatUI:
         assert resp.status_code == 200
         assert "<!doctype html>" in resp.text.lower()
         assert "Privacy Router" in resp.text
+
+    def test_docs_path_serves_product_documentation(self):
+        resp = client.get("/docs")
+
+        assert resp.status_code == 200
+        assert "Documentation — Privacy Router" in resp.text
+        assert "Swagger UI" not in resp.text
+    @pytest.mark.parametrize(
+        ("path", "title"),
+        [
+            ("/admin/", "Admin Dashboard — Privacy Router"),
+            ("/demo/", "Protected AI demo — Privacy Router"),
+            ("/docs/getting-started/", "Getting Started — Privacy Router Docs"),
+        ],
+    )
+    def test_static_pages_accept_trailing_slashes(self, path: str, title: str):
+        resp = client.get(path)
+        assert resp.history
+        assert resp.url.path == path.rstrip("/")
+
+        assert resp.status_code == 200
+        assert f"<title>{title}</title>" in resp.text
+
+
+    def test_api_docs_remain_available_under_api_namespace(self):
+        resp = client.get("/api/docs")
+
+        assert resp.status_code == 200
+        assert "Privacy Router - Swagger UI" in resp.text
 
 
 class TestRoutePrecedence:

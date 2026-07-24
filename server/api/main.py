@@ -1,8 +1,9 @@
 """Privacy Router API — FastAPI application.
 
-Start with::
+Start through the runtime CLI::
 
-    uvicorn server.api.main:app
+    privacy-router dev    # loopback-only development
+    privacy-router serve  # authenticated deployment
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from agents import (
@@ -27,6 +28,9 @@ from agents import (
     public_error_fields,
 )
 from db import init_db, purge_expired_data
+from server import ensure_runtime_admin_password, ensure_runtime_master_key, get_runtime_mode
+from server.api import RequestTraceMiddleware, bootstrap_api_key_from_env
+from telemetry import install_litellm_usage_callback
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +51,12 @@ async def _retention_sweep_loop() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize privacy migrations and the bounded-retention worker."""
+    ensure_runtime_master_key(get_runtime_mode())
+    ensure_runtime_admin_password(get_runtime_mode())
     init_db()
+    bootstrap_api_key_from_env()
     purge_expired_data()
+    install_litellm_usage_callback()
     retention_task = asyncio.create_task(_retention_sweep_loop())
     try:
         yield
@@ -58,7 +66,14 @@ async def lifespan(app: FastAPI):
             await retention_task
 
 
-app = FastAPI(title="Privacy Router", version="0.2.0", lifespan=lifespan)
+app = FastAPI(
+    title="Privacy Router",
+    version="0.2.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    swagger_ui_oauth2_redirect_url="/api/docs/oauth2-redirect",
+    lifespan=lifespan,
+)
 
 
 @app.exception_handler(PrivacyAnalysisUnavailable)
@@ -79,12 +94,14 @@ async def privacy_analysis_unavailable(
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # Mount SvelteKit static assets
+app.add_middleware(RequestTraceMiddleware)
 
 _build_dir = Path(__file__).resolve().parent.parent.parent / "web" / "build"
 if _build_dir.exists():
     app.mount("/_app", StaticFiles(directory=str(_build_dir / "_app")), name="sveltekit-assets")
 
 # Lazy-import routes after app creation
+import server.api.routes.admin_session  # noqa: E402, F401
 import server.api.routes.classify  # noqa: E402, F401
 import server.api.routes.guardrail  # noqa: E402, F401
 import server.api.routes.keys  # noqa: E402, F401
@@ -92,21 +109,27 @@ import server.api.routes.masking  # noqa: E402, F401
 import server.api.routes.models  # noqa: E402, F401
 import server.api.routes.proxy  # noqa: E402, F401
 import server.api.routes.responses  # noqa: E402, F401
+import server.api.routes.runtime  # noqa: E402, F401
+import server.api.routes.telemetry  # noqa: E402, F401
 from server.api import STATIC_DIR  # noqa: E402
 
 
 @app.get("/{path:path}")
-async def serve_static(path: str):
+async def serve_static(path: str, request: Request):
     """Serve static files after every API route has been registered."""
     static_root = STATIC_DIR.resolve()
-    file_path = (static_root / path).resolve()
+    normalized_path = path.rstrip("/")
+    file_path = (static_root / normalized_path).resolve()
     if not file_path.is_relative_to(static_root):
         return HTMLResponse("<h1>404</h1>", status_code=404)
     if file_path.is_file():
         mime, _ = mimetypes.guess_type(str(file_path))
         return FileResponse(str(file_path), media_type=mime)
 
-    html_path = STATIC_DIR / f"{path}.html"
+    html_path = STATIC_DIR / f"{normalized_path}.html"
+    if path.endswith("/") and normalized_path and html_path.is_file():
+        query = f"?{request.url.query}" if request.url.query else ""
+        return RedirectResponse(url=f"/{normalized_path}{query}", status_code=308)
     if html_path.is_file():
         return HTMLResponse(html_path.read_text())
 

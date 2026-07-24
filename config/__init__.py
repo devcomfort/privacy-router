@@ -46,6 +46,7 @@ from .schemas import (
     PrivacyRouterConfig,
     Profile,
     ProfileOverride,
+    is_trusted_local_api_base,
     validate_local_api_base,
 )
 
@@ -63,6 +64,7 @@ __all__ = [
     "Profile",
     "ProfileOverride",
     "load_config",
+    "is_trusted_local_api_base",
     "load_config_from_db",
     "load_config_from_yaml",
     "resolve_model",

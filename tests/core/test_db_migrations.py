@@ -3,16 +3,16 @@
 from datetime import UTC, datetime, timedelta
 
 import sqlalchemy
-from cryptography.fernet import Fernet
 from sqlmodel import Session, create_engine, select
 
-from agents import encrypt_field, key_fingerprint
 from db import (
     ExtractionCache,
     MaskingRecord,
     MaskingSession,
     Model,
+    ModelInvocation,
     Provider,
+    RequestTrace,
     Response,
     init_db,
     purge_expired_data,
@@ -98,53 +98,55 @@ def test_init_db_removes_legacy_input_fingerprints(tmp_path, monkeypatch):
     assert "input_hash" not in {column["name"] for column in inspector.get_columns("masking_sessions")}
 
 
-def test_init_db_replaces_plaintext_provider_key_fingerprints(tmp_path, monkeypatch):
-    """Legacy key previews are recomputed or scrubbed before the API can expose them."""
-    legacy_engine = create_engine(f"sqlite:///{tmp_path / 'provider-fingerprints.db'}")
-    monkeypatch.setenv("PRIVACY_ROUTER_MASTER_KEY", Fernet.generate_key().decode())
+def test_init_db_scrubs_and_drops_legacy_provider_secret_columns(tmp_path, monkeypatch):
+    """Provider secrets and fingerprints must not remain in the configuration database."""
+    legacy_engine = create_engine(f"sqlite:///{tmp_path / 'provider-secrets.db'}")
+    with legacy_engine.begin() as connection:
+        connection.execute(
+            sqlalchemy.text(
+                """
+                CREATE TABLE provider (
+                    id VARCHAR PRIMARY KEY,
+                    name VARCHAR NOT NULL,
+                    api_base VARCHAR,
+                    api_key_env VARCHAR,
+                    encrypted_api_key VARCHAR,
+                    key_fingerprint VARCHAR,
+                    created_at DATETIME,
+                    updated_at DATETIME
+                )
+                """
+            )
+        )
+        connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO provider (
+                    id, name, api_key_env, encrypted_api_key, key_fingerprint
+                ) VALUES (
+                    'legacy', 'Legacy provider', 'OPENROUTER_API_KEY',
+                    'LEGACY_ENCRYPTED_SECRET', 'LEGACY_KEY_FINGERPRINT'
+                )
+                """
+            )
+        )
+
     monkeypatch.setattr("db.session.engine", legacy_engine)
     init_db()
 
-    provider_key = "12345678"
-    with Session(legacy_engine) as session:
-        session.add(
-            Provider(
-                id="valid-key",
-                name="Valid key",
-                encrypted_api_key=encrypt_field(provider_key),
-                key_fingerprint=provider_key,
-            )
+    columns = {column["name"] for column in sqlalchemy.inspect(legacy_engine).get_columns("provider")}
+    assert "encrypted_api_key" not in columns
+    assert "key_fingerprint" not in columns
+    with legacy_engine.connect() as connection:
+        stored = (
+            connection.execute(sqlalchemy.text("SELECT id, api_key_env FROM provider WHERE id = 'legacy'"))
+            .mappings()
+            .one()
         )
-        session.add(
-            Provider(
-                id="corrupt-key",
-                name="Corrupt key",
-                encrypted_api_key="not-a-fernet-token",
-                key_fingerprint="sk-live-****7890",
-            )
-        )
-        session.add(
-            Provider(
-                id="missing-key",
-                name="Missing key",
-                key_fingerprint="plaintext-preview",
-            )
-        )
-        session.commit()
-
-    init_db()
-
-    with Session(legacy_engine) as session:
-        valid = session.get(Provider, "valid-key")
-        corrupt = session.get(Provider, "corrupt-key")
-        missing = session.get(Provider, "missing-key")
-        assert valid is not None
-        assert valid.key_fingerprint == key_fingerprint(provider_key)
-        assert provider_key not in valid.key_fingerprint
-        assert corrupt is not None
-        assert corrupt.key_fingerprint is None
-        assert missing is not None
-        assert missing.key_fingerprint is None
+    assert dict(stored) == {
+        "id": "legacy",
+        "api_key_env": "OPENROUTER_API_KEY",
+    }
 
 
 def test_init_db_purges_legacy_plaintext_responses(tmp_path, monkeypatch):
@@ -266,6 +268,38 @@ def test_purge_expired_data_removes_raw_rows_and_keeps_live_rows(tmp_path, monke
                 expires_at=live_at,
             )
         )
+        session.add(
+            RequestTrace(
+                id="expired-trace",
+                endpoint="responses",
+                input_encrypted="ciphertext",
+                expires_at=expired_at,
+            )
+        )
+        session.add(
+            ModelInvocation(
+                id="expired-invocation",
+                request_id="expired-trace",
+                component="extractor",
+                model="openrouter/model",
+            )
+        )
+        session.add(
+            RequestTrace(
+                id="live-trace",
+                endpoint="chat_completions",
+                input_encrypted="ciphertext",
+                expires_at=live_at,
+            )
+        )
+        session.add(
+            ModelInvocation(
+                id="live-invocation",
+                request_id="live-trace",
+                component="generator",
+                model="openrouter/model",
+            )
+        )
         session.commit()
 
     removed = purge_expired_data(now=now)
@@ -275,10 +309,16 @@ def test_purge_expired_data_removes_raw_rows_and_keeps_live_rows(tmp_path, monke
         "masking_records": 1,
         "masking_sessions": 1,
         "responses": 1,
+        "model_invocations": 1,
+        "request_traces": 1,
     }
     with Session(retention_engine) as session:
         assert session.get(MaskingSession, "expired-session") is None
         assert session.exec(select(MaskingRecord).where(MaskingRecord.session_id == "expired-session")).all() == []
         assert session.get(ExtractionCache, "expired-cache") is None
         assert session.get(Response, "expired-response") is None
+        assert session.get(RequestTrace, "expired-trace") is None
+        assert session.get(ModelInvocation, "expired-invocation") is None
+        assert session.get(RequestTrace, "live-trace") is not None
+        assert session.get(ModelInvocation, "live-invocation") is not None
         assert session.get(Response, "live-response") is not None

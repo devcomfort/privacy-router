@@ -14,6 +14,7 @@ import os
 import uuid
 
 import httpx
+import pytest
 from dotenv import load_dotenv
 
 from db import ApiKey, Provider, get_session, init_db
@@ -21,6 +22,13 @@ from server.api import create_api_key
 
 BASE = "http://localhost:8787"
 load_dotenv()
+
+pytestmark = pytest.mark.scenario
+if not os.getenv("PRIVACY_ROUTER_ADMIN_PASSWORD"):
+    pytest.skip(
+        "Set PRIVACY_ROUTER_ADMIN_PASSWORD to run live OpenAPI scenarios",
+        allow_module_level=True,
+    )
 
 init_db()
 
@@ -47,11 +55,19 @@ AUTH_HEADERS = _get_auth_headers()
 
 
 def _get_admin_headers() -> dict[str, str]:
-    """Return the independent management credential used by the live server."""
-    admin_key = os.getenv("PRIVACY_ROUTER_ADMIN_KEY")
-    if not admin_key:
-        raise RuntimeError("Set PRIVACY_ROUTER_ADMIN_KEY before running live OpenAPI tests")
-    return {"X-Privacy-Router-Admin-Key": admin_key}
+    """Create a browser-style administrator session for live API tests."""
+    password = os.getenv("PRIVACY_ROUTER_ADMIN_PASSWORD")
+    if not password:
+        raise RuntimeError("Set PRIVACY_ROUTER_ADMIN_PASSWORD before running live OpenAPI tests")
+    response = httpx.post(
+        f"{BASE}/api/admin/session",
+        json={"password": password},
+    )
+    response.raise_for_status()
+    return {
+        "Cookie": f"pr_admin_session={response.cookies['pr_admin_session']}",
+        "X-Privacy-Router-CSRF-Token": response.json()["csrf_token"],
+    }
 
 
 ADMIN_HEADERS = _get_admin_headers()

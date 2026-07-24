@@ -11,10 +11,6 @@ dependencies = [
     "litellm>=1.85.0",
     "openai>=2.37.0",
     "httpx>=0.28.1",
-    "streamlit>=1.57.0",
-    "transformers>=5.10.0",
-    "torch>=2.11.0",
-    "torchvision>=0.26.0",
     "instructor>=1.15.3",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0",
@@ -25,14 +21,27 @@ dependencies = [
     "asyncpg>=0.31.0",
     "psycopg2-binary>=2.9.9",
     "cryptography>=44.0.0",
-    "python-pptx>=1.0.2",
-    "opencv-python-headless>=4.13.0.92",
-    "pymupdf>=1.27.2.3",
-    "optuna>=4.9.0",
+]
+requires-python = ">= 3.13"
+
+[project.optional-dependencies]
+local-inference = [
+    "transformers>=5.10.0",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
     "vllm>=0.23.0",
     "ninja>=1.13.0",
 ]
-requires-python = ">= 3.13"
+experiments = [
+    "optuna>=4.9.0",
+    "streamlit>=1.57.0",
+]
+reports = [
+    "python-pptx>=1.0.2",
+    "opencv-python-headless>=4.13.0.92",
+    "pymupdf>=1.27.2.3",
+]
+
 
 [project.scripts]
 privacy-router = "server:main"
@@ -55,7 +64,7 @@ dev-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["agents", "server", "db", "config", "web"]
+packages = ["agents", "server", "db", "config", "telemetry", "web"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "agents/tests", "agents/extractor/tests", "agents/masker/tests", "agents/judge/tests", "agents/router/tests", "server/tests"]
@@ -82,7 +91,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["agents", "server", "db", "config"]
+known-first-party = ["agents", "server", "db", "config", "telemetry"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

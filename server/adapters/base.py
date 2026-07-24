@@ -20,16 +20,14 @@ Examples
 
 from __future__ import annotations
 
-import ipaddress
 import os
-from contextlib import suppress
 from typing import Any, get_args
-from urllib.parse import urlsplit
 
 import litellm
 from litellm.types.llms.openai import OpenAIChatCompletionFinishReason
 
-from config import resolve_model_api_key
+from config import is_trusted_local_api_base, resolve_model_api_key
+from telemetry import build_litellm_metadata
 
 _ALLOWED_FINISH_REASONS = frozenset(get_args(OpenAIChatCompletionFinishReason))
 _MAX_REPORTED_TOKENS = 2_147_483_647
@@ -124,12 +122,8 @@ class LiteLLMAdapter:
         -------
         litellm response object
         """
-        hostname = urlsplit(api_base).hostname if api_base else None
-        loopback = hostname == "localhost"
-        if hostname and not loopback:
-            with suppress(ValueError):
-                loopback = ipaddress.ip_address(hostname).is_loopback
-        effective_api_key = "not-needed" if loopback else self.get_api_key(model) or None
+        local_endpoint = is_trusted_local_api_base(api_base)
+        effective_api_key = "not-needed" if local_endpoint else self.get_api_key(model) or None
         call_kwargs: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -140,7 +134,11 @@ class LiteLLMAdapter:
         if api_base:
             call_kwargs["api_base"] = api_base
         call_kwargs.update(kwargs)
-        if loopback:
+        call_kwargs["metadata"] = build_litellm_metadata(
+            "generator",
+            existing=call_kwargs.get("metadata"),
+        )
+        if local_endpoint:
             call_kwargs["api_key"] = "not-needed"
         return litellm.completion(**call_kwargs)
 

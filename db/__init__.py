@@ -3,7 +3,8 @@
 Public API
 ----------
 Models: Provider, Model, Workspace, Profile, ProfileAgent, ApiKey,
-        UsageLog, MaskingSession, MaskingRecord, Response, ExtractionCache
+        UsageLog, RequestTrace, ModelInvocation, MaskingSession, MaskingRecord,
+        Response, ExtractionCache
 Session: get_session, init_db, purge_expired_data, engine
 """
 
@@ -13,9 +14,11 @@ from db.models import (
     MaskingRecord,
     MaskingSession,
     Model,
+    ModelInvocation,
     Profile,
     ProfileAgent,
     Provider,
+    RequestTrace,
     Response,
     UsageLog,
     Workspace,
@@ -28,9 +31,11 @@ __all__ = [
     "MaskingRecord",
     "MaskingSession",
     "Model",
+    "ModelInvocation",
     "Profile",
     "ProfileAgent",
     "Provider",
+    "RequestTrace",
     "Response",
     "UsageLog",
     "Workspace",

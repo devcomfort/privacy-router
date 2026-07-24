@@ -91,6 +91,7 @@ class PlaceholderRepairer:
                     model=self._model,
                     api_base=self._api_base,
                     max_tokens=int(self._prompt["config"].get("max_tokens", 256)),
+                    component="placeholder_repair",
                 )
             except Exception:
                 feedback = (

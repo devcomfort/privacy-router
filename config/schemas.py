@@ -5,6 +5,7 @@ All public types are re-exported via ``config/__init__.py``.
 
 from __future__ import annotations
 
+import os
 from ipaddress import ip_address
 from typing import Literal
 from urllib.parse import urlsplit
@@ -14,8 +15,37 @@ from pydantic import BaseModel, Field, model_validator
 _NATIVE_LOOPBACK_MODEL_PREFIXES = ("ollama/", "ollama_chat/")
 
 
+def is_trusted_local_api_base(api_base: str | None) -> bool:
+    """Return whether an endpoint is loopback or explicitly trusted as local."""
+    if api_base is None:
+        return False
+    try:
+        parsed = urlsplit(api_base)
+        host = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        return False
+    if parsed.scheme not in {"http", "https"} or not host or port is None:
+        return False
+
+    normalized_host = host.rstrip(".").lower()
+    if normalized_host == "localhost":
+        return True
+    try:
+        if ip_address(normalized_host).is_loopback:
+            return True
+    except ValueError:
+        pass
+    trusted_hosts = {
+        candidate.strip().rstrip(".").lower()
+        for candidate in os.environ.get("PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS", "").split(",")
+        if candidate.strip()
+    }
+    return normalized_host in trusted_hosts
+
+
 def validate_local_api_base(model_id: str, api_base: str | None) -> str | None:
-    """Require local custom endpoints to use an unambiguous loopback host."""
+    """Require local custom endpoints to use loopback or an explicitly trusted host."""
     if api_base is None:
         if model_id.startswith(_NATIVE_LOOPBACK_MODEL_PREFIXES):
             return None
@@ -29,17 +59,12 @@ def validate_local_api_base(model_id: str, api_base: str | None) -> str | None:
         raise ValueError(f"Local model {model_id!r} has an invalid api_base") from exc
 
     if parsed.scheme not in {"http", "https"} or not host or port is None:
-        raise ValueError(f"Local model {model_id!r} api_base must be an HTTP(S) loopback URL with an explicit port")
+        raise ValueError(
+            f"Local model {model_id!r} api_base must be an HTTP(S) loopback or trusted local URL with an explicit port"
+        )
 
-    normalized_host = host.rstrip(".").lower()
-    if normalized_host == "localhost":
-        return api_base
-    try:
-        is_loopback = ip_address(normalized_host).is_loopback
-    except ValueError:
-        is_loopback = False
-    if not is_loopback:
-        raise ValueError(f"Local model {model_id!r} api_base host must be loopback: {host!r}")
+    if not is_trusted_local_api_base(api_base):
+        raise ValueError(f"Local model {model_id!r} api_base host must be loopback or explicitly trusted: {host!r}")
     return api_base
 
 

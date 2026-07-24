@@ -47,8 +47,10 @@ from db import get_session
 from server.api import (
     StreamingHydrator,
     adapter_for,
+    annotate_pipeline_traces,
     app,
     build_tool_call_inspection,
+    constrain_runtime_route,
     contains_uninspected_media,
     flush_stream_hydrator,
     hydrate_masked_response,
@@ -832,15 +834,10 @@ async def _create_response(
 
     policy = pipeline.route
     has_uninspected_media = contains_uninspected_media(responses_input_to_messages(input_data))
-    media_forced_local = has_uninspected_media and policy.endpoint != "local_api"
-    if media_forced_local:
-        policy = policy.model_copy(
-            update={
-                "endpoint": "local_api",
-                "requires_masking": False,
-                "description": "Uninspected media requires on-device processing",
-            }
-        )
+    policy, media_forced_local = constrain_runtime_route(
+        policy,
+        has_uninspected_media=has_uninspected_media,
+    )
     current_records = [
         record
         for record in pipeline.records
@@ -849,7 +846,12 @@ async def _create_response(
     privacy_meta = _privacy_metadata(pipeline, current_records)
     if media_forced_local:
         privacy_meta["policy_action"] = "block"
-        privacy_meta["route"] = "local_api"
+    privacy_meta["route"] = policy.endpoint
+    annotate_pipeline_traces(
+        [pipeline],
+        policy_action=str(privacy_meta["policy_action"]),
+        route=str(privacy_meta["route"]),
+    )
 
     contract = None
     selected_model = backend_model
@@ -971,7 +973,16 @@ async def _create_response(
             placeholder_registry=output_placeholder_registry,
         )
 
+    annotate_pipeline_traces(
+        [pipeline],
+        policy_action=str(privacy_meta["policy_action"]),
+        route=str(privacy_meta["route"]),
+        model_used=selected_model,
+    )
+
     call_kwargs: dict[str, Any] = {}
+    if policy.endpoint == "local_api":
+        call_kwargs["api_key"] = "not-needed"
     for option in ("top_p", "presence_penalty", "frequency_penalty"):
         if body.get(option) is not None:
             call_kwargs[option] = generation_options[option]

@@ -68,6 +68,49 @@ class TestCallLlm:
         assert kwargs["api_base"] == "http://localhost:8000/v1"
 
     @patch("agents.llm.litellm.completion")
+    @patch("agents.llm._resolve_api_key", return_value="provider-secret")
+    def test_custom_endpoint_does_not_receive_provider_fallback_key(
+        self,
+        _mock_resolve,
+        mock_completion,
+        monkeypatch,
+    ):
+        """A custom endpoint never receives a credential resolved for a cloud provider."""
+        from agents.llm import call_llm
+
+        monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-secret")
+        monkeypatch.setenv("PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS", "trusted-local-model")
+        mock_completion.return_value = self._make_mock_response("ok")
+        call_llm(
+            [{"role": "user", "content": "hi"}],
+            api_base="http://trusted-local-model:8000/v1",
+        )
+
+        _, kwargs = mock_completion.call_args
+        assert kwargs["api_key"] == "dummy"
+
+    @patch("agents.llm.litellm.completion")
+    @patch("agents.llm._resolve_api_key", return_value="provider-secret")
+    def test_external_custom_endpoint_keeps_resolved_provider_key(
+        self,
+        _mock_resolve,
+        mock_completion,
+        monkeypatch,
+    ):
+        """A non-local custom endpoint still receives its configured credential."""
+        from agents.llm import call_llm
+
+        monkeypatch.delenv("PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS", raising=False)
+        mock_completion.return_value = self._make_mock_response("ok")
+        call_llm(
+            [{"role": "user", "content": "hi"}],
+            api_base="https://alternate.example/v1",
+        )
+
+        _, kwargs = mock_completion.call_args
+        assert kwargs["api_key"] == "provider-secret"
+
+    @patch("agents.llm.litellm.completion")
     def test_api_base_excluded_when_none(self, mock_completion):
         """api_base is not in kwargs when not provided."""
         from agents.llm import call_llm
@@ -208,6 +251,32 @@ class TestCallLlmStructured:
         mock_from_litellm.assert_called_once()
         _, kwargs = mock_from_litellm.call_args
         assert kwargs.get("mode") == instructor.Mode.JSON
+
+    @patch("agents.llm.instructor.from_litellm")
+    @patch("agents.llm._resolve_api_key", return_value="provider-secret")
+    def test_structured_custom_endpoint_does_not_receive_provider_fallback_key(
+        self,
+        _mock_resolve,
+        mock_from_litellm,
+        monkeypatch,
+    ):
+        """Structured local calls use a non-secret compatibility key."""
+        from agents.llm import call_llm_structured
+
+        monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-secret")
+        monkeypatch.setenv("PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS", "trusted-local-model")
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = _TestResponse(answer="local")
+        mock_from_litellm.return_value = mock_client
+
+        call_llm_structured(
+            [{"role": "user", "content": "test"}],
+            _TestResponse,
+            api_base="http://trusted-local-model:8000/v1",
+        )
+
+        _, kwargs = mock_client.chat.completions.create.call_args
+        assert kwargs["api_key"] == "dummy"
 
     @patch("agents.llm.instructor.from_litellm")
     def test_no_api_base_uses_default_mode(self, mock_from_litellm):
@@ -394,6 +463,36 @@ class TestCallLlmStructured:
         assert result.answer == "with_base"
         _, kwargs = mock_completion.call_args
         assert kwargs["api_base"] == "http://localhost:8000/v1"
+
+    @patch("agents.llm.litellm.completion")
+    def test_raw_json_propagates_request_trace_metadata(self, mock_completion):
+        """Structured calls carry explicit callback correlation metadata."""
+        from agents.llm import call_llm_structured
+        from telemetry import RequestTraceHandle, activate_request_trace
+
+        mock_resp = MagicMock()
+        mock_resp.choices = [MagicMock()]
+        mock_resp.choices[0].message.content = '{"answer": "traced"}'
+        mock_completion.return_value = mock_resp
+        trace = RequestTraceHandle(
+            request_id="req-llm",
+            endpoint="responses",
+            started_at=0.0,
+        )
+
+        with activate_request_trace(trace):
+            call_llm_structured(
+                [{"role": "user", "content": "test"}],
+                _TestResponse,
+                model="google/gemini-3.1-flash-lite",
+                component="critic",
+            )
+
+        _, kwargs = mock_completion.call_args
+        assert kwargs["metadata"]["privacy_router"] == {
+            "request_id": "req-llm",
+            "component": "critic",
+        }
 
     @patch("agents.llm.litellm.completion")
     def test_raw_json_handles_array_response(self, mock_completion):

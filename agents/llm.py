@@ -20,7 +20,8 @@ from dotenv import load_dotenv
 from dotpromptz import Dotprompt
 from pydantic import BaseModel
 
-from config import resolve_model_api_key
+from config import is_trusted_local_api_base, resolve_model_api_key
+from telemetry import build_litellm_metadata
 
 # Suppress noisy warnings before they happen
 warnings.filterwarnings("ignore", message="Field name.*shadows an attribute")
@@ -60,6 +61,19 @@ def _resolve_api_key(model: str) -> str | None:
     return resolve_model_api_key(model)
 
 
+def _resolve_call_api_key(
+    model: str,
+    api_key: str | None,
+    api_base: str | None,
+) -> str | None:
+    """Keep resolved cloud credentials away from trusted local endpoints."""
+    if api_key:
+        return api_key
+    if is_trusted_local_api_base(api_base):
+        return "dummy"
+    return _resolve_api_key(model) or os.getenv("OPENROUTER_API_KEY") or None
+
+
 def call_llm(
     messages: list[dict[str, str]],
     model: str | None = None,
@@ -67,10 +81,11 @@ def call_llm(
     max_tokens: int = 4096,
     api_key: str | None = None,
     api_base: str | None = None,
+    component: str = "generator",
 ) -> str:
     """Call LLM via litellm (unstructured text output)."""
     model = model or os.getenv("LLM_MODEL", DEFAULT_EXTERNAL_MODEL)
-    api_key = api_key or _resolve_api_key(model) or os.getenv("OPENROUTER_API_KEY", "")
+    api_key = _resolve_call_api_key(model, api_key, api_base)
 
     kwargs: dict = dict(
         model=model,
@@ -78,6 +93,7 @@ def call_llm(
         temperature=temperature,
         max_tokens=max_tokens,
         api_key=api_key if api_key else None,
+        metadata=build_litellm_metadata(component),
     )
     if api_base:
         kwargs["api_base"] = api_base
@@ -94,6 +110,7 @@ def call_llm_structured[T: BaseModel](
     max_tokens: int = 4096,
     api_key: str | None = None,
     api_base: str | None = None,
+    component: str = "generator",
 ) -> T:
     """Call LLM via litellm + instructor (structured Pydantic output).
 
@@ -109,17 +126,22 @@ def call_llm_structured[T: BaseModel](
     True
     """
     model = model or os.getenv("LLM_MODEL", DEFAULT_EXTERNAL_MODEL)
-    api_key = api_key or _resolve_api_key(model) or os.getenv("OPENROUTER_API_KEY", "")
-    # For local/openai-compatible endpoints, use a dummy key if none provided
-    if not api_key and api_base:
-        api_key = "dummy"
+    api_key = _resolve_call_api_key(model, api_key, api_base)
 
     is_gemini = "gemini" in model.lower()
     is_exaone = "exaone" in model.lower()
 
     # Gemini and EXAONE use raw JSON parsing (no instructor/JSON mode)
     if is_gemini or is_exaone:
-        return _call_raw_json(messages, response_model, model, max_tokens, api_key, api_base)
+        return _call_raw_json(
+            messages,
+            response_model,
+            model,
+            max_tokens,
+            api_key,
+            api_base,
+            component,
+        )
     # Local models (vLLM, Ollama) need JSON mode — they don't support tool_choice
     if api_base:
         client = instructor.from_litellm(litellm.completion, mode=instructor.Mode.JSON)
@@ -132,6 +154,7 @@ def call_llm_structured[T: BaseModel](
         messages=messages,
         max_tokens=max_tokens,
         api_key=api_key if api_key else None,
+        metadata=build_litellm_metadata(component),
     )
     if api_base:
         kwargs["api_base"] = api_base
@@ -146,6 +169,7 @@ def _call_raw_json[T: BaseModel](
     max_tokens: int,
     api_key: str,
     api_base: str | None = None,
+    component: str = "generator",
 ) -> T:
     """Call LLM and manually parse JSON response into Pydantic model."""
     kwargs: dict = dict(
@@ -154,6 +178,7 @@ def _call_raw_json[T: BaseModel](
         temperature=0.0,
         max_tokens=max_tokens,
         api_key=api_key if api_key else None,
+        metadata=build_litellm_metadata(component),
     )
     if api_base:
         kwargs["api_base"] = api_base

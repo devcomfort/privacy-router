@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-privacy_router}
       POSTGRES_DB: ${POSTGRES_DB:-privacy_router}
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - "${PRIVACY_ROUTER_BIND_HOST:-127.0.0.1}:${DB_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -42,11 +42,17 @@ services:
       context: .
       dockerfile: ${DOCKERFILE:-Dockerfile}
     ports:
-      - "${API_PORT:-8787}:8787"
+      - "${PRIVACY_ROUTER_BIND_HOST:-127.0.0.1}:${API_PORT:-8787}:8787"
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-privacy_router}:${POSTGRES_PASSWORD:-privacy_router}@db:5432/${POSTGRES_DB:-privacy_router}
+      PRIVACY_ROUTER_DECISION_API_BASE: ${PRIVACY_ROUTER_DECISION_API_BASE:-http://host.docker.internal:8011/v1}
+      PRIVACY_ROUTER_LOCAL_API_BASE: ${PRIVACY_ROUTER_LOCAL_API_BASE:-http://host.docker.internal:8011/v1}
+      PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS: ${PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS:-host.docker.internal}
+      PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN: ${PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN:-1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./.privacy-router.config.yaml:/app/.privacy-router.config.yaml
     networks:
@@ -61,8 +67,8 @@ services:
       context: .
       dockerfile: hermes-agent/Dockerfile
     ports:
-      - "${HERMES_PORT:-7860}:7860"
-      - "9119:9119"
+      - "${PRIVACY_ROUTER_BIND_HOST:-127.0.0.1}:${HERMES_PORT:-7860}:7860"
+      - "${PRIVACY_ROUTER_BIND_HOST:-127.0.0.1}:9119:9119"
     volumes:
       - ./hermes-agent/config-${HERMES_CONFIG:-privacy-router}.yaml:/root/.hermes/config.yaml:ro
       - ./hermes-agent/SOUL.md:/root/.hermes/SOUL.md:ro

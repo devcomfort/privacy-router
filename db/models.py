@@ -3,9 +3,9 @@
 Tables:
     - provider, models, workspaces, profiles, profile_agents: runtime configuration
     - api_keys: authentication keys
-    - usage_logs, responses: request metadata and stored responses
-    - masking_sessions, masking_records: encrypted masking contracts
-    - extraction_cache: encrypted extraction and conversation context
+    - usage_logs, request_traces, model_invocations: request and model-call telemetry
+    - responses: encrypted stored responses
+    - masking_sessions, masking_records, extraction_cache: encrypted privacy artifacts
 
 """
 
@@ -25,9 +25,7 @@ class Provider(SQLModel, table=True):
     id: str = Field(primary_key=True)  # e.g. "openrouter", "local-vllm"
     name: str = Field(max_length=100)
     api_base: str | None = Field(default=None)
-    api_key_env: str | None = Field(default=None)  # env var name (fallback)
-    encrypted_api_key: str | None = Field(default=None)  # Fernet-encrypted key
-    key_fingerprint: str | None = Field(default=None)  # domain-separated HMAC digest
+    api_key_env: str | None = Field(default=None)  # environment variable name
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
 
@@ -118,6 +116,49 @@ class UsageLog(SQLModel, table=True):
     model_used: str | None = Field(default=None)
     latency_ms: float = Field(default=0.0)
     status_code: int = Field(default=200)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
+
+
+class RequestTrace(SQLModel, table=True):
+    """Encrypted request-level privacy and routing telemetry."""
+
+    __tablename__ = "request_traces"
+
+    id: str = Field(primary_key=True)
+    endpoint: str = Field(index=True)
+    input_encrypted: str = Field(default="")
+    input_redacted: str = Field(default="{}")
+    extraction_encrypted: str | None = Field(default=None)
+    judgment_encrypted: str | None = Field(default=None)
+    is_sensitive: bool = Field(default=False)
+    records_count: int = Field(default=0)
+    policy_action: str | None = Field(default=None)
+    route: str | None = Field(default=None)
+    model_used: str | None = Field(default=None)
+    latency_ms: float = Field(default=0.0)
+    status: str = Field(default="in_progress")
+    status_code: int = Field(default=0)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
+    expires_at: datetime = Field(index=True)
+
+
+class ModelInvocation(SQLModel, table=True):
+    """One correlated LiteLLM provider invocation."""
+
+    __tablename__ = "model_invocations"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    request_id: str = Field(index=True)
+    component: str = Field(index=True)
+    model: str = Field(index=True)
+    provider: str | None = Field(default=None, index=True)
+    prompt_tokens: int = Field(default=0)
+    completion_tokens: int = Field(default=0)
+    total_tokens: int = Field(default=0)
+    cost_usd: float = Field(default=0.0)
+    latency_ms: float = Field(default=0.0)
+    success: bool = Field(default=True)
+    error_type: str | None = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
 
 

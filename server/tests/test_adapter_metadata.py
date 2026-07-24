@@ -123,3 +123,58 @@ def test_call_never_sends_remote_provider_key_to_loopback(monkeypatch: pytest.Mo
     )
 
     assert captured["api_key"] == "not-needed"
+
+
+def test_call_never_sends_provider_key_to_trusted_local_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    monkeypatch.setenv("PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS", "host.docker.internal")
+    monkeypatch.setattr(
+        "server.adapters.base.resolve_model_api_key",
+        lambda model_id: "REMOTE_PROVIDER_SECRET",
+    )
+    monkeypatch.setattr(
+        "server.adapters.base.litellm.completion",
+        lambda **kwargs: captured.update(kwargs) or object(),
+    )
+
+    LiteLLMAdapter().call(
+        "openai/local-model",
+        [{"role": "user", "content": "test"}],
+        api_base="http://host.docker.internal:8000/v1",
+        api_key="EXPLICIT_REMOTE_SECRET",
+    )
+
+    assert captured["api_key"] == "not-needed"
+
+
+def test_call_propagates_request_trace_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Generator calls expose stable request correlation to LiteLLM callbacks."""
+    from telemetry import RequestTraceHandle, activate_request_trace
+
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        "server.adapters.base.litellm.completion",
+        lambda **kwargs: captured.update(kwargs) or object(),
+    )
+    trace = RequestTraceHandle(
+        request_id="req-adapter",
+        endpoint="chat_completions",
+        started_at=0.0,
+    )
+
+    with activate_request_trace(trace):
+        LiteLLMAdapter().call(
+            "openai/model",
+            [{"role": "user", "content": "test"}],
+            metadata={"caller": "proxy"},
+        )
+
+    assert captured["metadata"] == {
+        "caller": "proxy",
+        "privacy_router": {
+            "request_id": "req-adapter",
+            "component": "generator",
+        },
+    }

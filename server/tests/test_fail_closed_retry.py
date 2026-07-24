@@ -30,7 +30,7 @@ from agents.router import SQLiteKVCache
 from db import ExtractionCache, get_session, init_db
 from db import Response as StoredResponse
 from server.adapters import LiteLLMAdapter
-from server.api import app, require_auth
+from server.api import app, require_auth, require_chat_auth
 from server.mcp.tools import (
     apply_decision as mcp_apply_decision,
 )
@@ -47,6 +47,7 @@ async def _mock_auth() -> str:
 
 
 app.dependency_overrides[require_auth] = _mock_auth
+app.dependency_overrides[require_chat_auth] = _mock_auth
 client = TestClient(app)
 
 
@@ -1049,6 +1050,23 @@ def test_chat_external_timeout_retries_only_external_with_same_payload():
     assert external.calls[0] is external.calls[1] is external.calls[2]
 
 
+def test_chat_dev_mode_forces_external_policy_to_local_adapter():
+    local = CountingAdapter()
+    external = CountingAdapter()
+
+    with (
+        _chat_dependencies(route="external_api", local=local, external=external),
+        patch("server.api.runtime_policy.get_runtime_mode", return_value="dev"),
+    ):
+        response = client.post("/v1/chat/completions", json=_chat_request())
+
+    assert response.status_code == 200
+    assert len(local.calls) == 1
+    assert external.calls == []
+    assert response.json()["privacy_router"]["route"] == "local_api"
+    assert response.json()["privacy_router"]["model_used"] == "local-model"
+
+
 def test_chat_hydration_failure_returns_safe_error_without_success_body():
     local = CountingAdapter()
     external = CountingAdapter()
@@ -1462,6 +1480,38 @@ def test_chat_local_tool_arguments_reject_unsafe_input(stream, raw_arguments):
     else:
         assert response.json()["error"]["reason"] == "hydration_failed"
     assert router.process.call_count == 1
+
+
+def test_chat_stream_emits_privacy_metadata_before_content():
+    def stream_provider():
+        yield _stream_part("Hello")
+        yield _stream_part(" world")
+
+    local = CountingAdapter()
+    external = CountingAdapter(stream_factory=stream_provider)
+    payload = {**_chat_request(), "stream": True}
+
+    with _chat_dependencies(
+        route="external_api",
+        local=local,
+        external=external,
+    ):
+        response = client.post("/v1/chat/completions", json=payload)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    event_data = [line.removeprefix("data: ") for line in response.text.splitlines() if line.startswith("data: ")]
+    assert event_data[-1] == "[DONE]"
+    chunks = [json.loads(data) for data in event_data[:-1]]
+    assert chunks[0]["privacy_router"] == {
+        "is_sensitive": False,
+        "extraction_records": [],
+        "policy_action": "allow",
+        "route": "external_api",
+        "model_used": "external-model",
+    }
+    assert chunks[0]["choices"][0]["delta"] == {}
+    assert "".join(chunk["choices"][0]["delta"].get("content", "") for chunk in chunks[1:]) == "Hello world"
 
 
 @pytest.mark.asyncio
@@ -2159,6 +2209,22 @@ def test_responses_external_non_retryable_error_stops_after_one_attempt(caplog):
     assert "provider detail" not in caplog.text
 
 
+def test_responses_dev_mode_forces_external_policy_to_local_adapter():
+    local = CountingAdapter()
+    external = CountingAdapter()
+
+    with (
+        _responses_dependencies(route="external_api", local=local, external=external),
+        patch("server.api.runtime_policy.get_runtime_mode", return_value="dev"),
+    ):
+        response = client.post("/v1/responses", json=_responses_request())
+
+    assert response.status_code == 200
+    assert len(local.calls) == 1
+    assert external.calls == []
+    assert response.json()["metadata"]["privacy_router"]["route"] == "local_api"
+
+
 def test_responses_hydration_failure_returns_safe_error_without_output():
     local = CountingAdapter()
     external = CountingAdapter()
@@ -2460,6 +2526,17 @@ def test_chat_local_success_never_calls_external():
     assert external.calls == []
 
 
+def test_chat_local_route_supplies_dummy_api_key():
+    local = KeywordCapturingAdapter()
+    external = CountingAdapter()
+
+    with _chat_dependencies(route="local_api", local=local, external=external):
+        response = client.post("/v1/chat/completions", json=_chat_request())
+
+    assert response.status_code == 200
+    assert local.keyword_calls[0]["api_key"] == "not-needed"
+
+
 def test_responses_local_retry_keeps_selected_payload_and_succeeds():
     local = CountingAdapter(error=ConnectionError("temporary"), failures=2)
     external = CountingAdapter()
@@ -2471,6 +2548,17 @@ def test_responses_local_retry_keeps_selected_payload_and_succeeds():
     assert len(local.calls) == 3
     assert local.calls[0] is local.calls[1] is local.calls[2]
     assert external.calls == []
+
+
+def test_responses_local_route_supplies_dummy_api_key():
+    local = KeywordCapturingAdapter()
+    external = CountingAdapter()
+
+    with _responses_dependencies(route="local_api", local=local, external=external):
+        response = client.post("/v1/responses", json=_responses_request())
+
+    assert response.status_code == 200
+    assert local.keyword_calls[0]["api_key"] == "not-needed"
 
 
 def test_responses_masks_pipeline_records_without_reextracting():
@@ -2494,6 +2582,52 @@ def test_responses_masks_pipeline_records_without_reextracting():
     public_record = response.json()["metadata"]["privacy_router"]["extraction_records"][0]
     assert public_record["span"] == "<redacted>"
     assert "reasoning" not in public_record
+
+
+def test_chat_response_matches_web_demo_metadata_contract():
+    local = CountingAdapter()
+    external = CountingAdapter()
+    record = _extraction_record("SOURCE_SENTINEL", "INTERNAL_PROJECT_NAME")
+
+    with _chat_dependencies(
+        route="external_api",
+        local=local,
+        external=external,
+        requires_masking=True,
+        records=[record],
+    ):
+        response = client.post("/v1/chat/completions", json=_chat_request())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["model"] == "privacy-router"
+    assert body["choices"][0]["message"] == {"role": "assistant", "content": "ok"}
+    assert body["usage"]["total_tokens"] == 2
+    assert body["privacy_router"] == {
+        "is_sensitive": True,
+        "extraction_records": [
+            {
+                "index": 0,
+                "category": "INTERNAL_PROJECT_NAME",
+                "span": "<redacted>",
+                "confidence": 0.9,
+                "is_essential": False,
+            }
+        ],
+        "masked_text": "[message[0].user.content]\nMASKED_REQUEST",
+        "masking_session_id": "session-1",
+        "placeholder_map": [
+            {
+                "uid": "deadbeef",
+                "category": "INTERNAL_PROJECT_NAME",
+                "confidence": 0.9,
+                "is_essential": False,
+            }
+        ],
+        "policy_action": "allow",
+        "route": "external_api",
+        "model_used": "external-model",
+    }
 
 
 def test_chat_metadata_never_echoes_extractor_reasoning_from_session_context():
@@ -2725,7 +2859,7 @@ def test_chat_session_context_is_isolated_by_api_key():
         patch("server.api.routes.proxy.get_cache", return_value=cache),
     ):
         try:
-            app.dependency_overrides[require_auth] = auth_for_first_key
+            app.dependency_overrides[require_chat_auth] = auth_for_first_key
             first = client.post(
                 "/v1/chat/completions",
                 json={
@@ -2734,7 +2868,7 @@ def test_chat_session_context_is_isolated_by_api_key():
                 },
                 headers=headers,
             )
-            app.dependency_overrides[require_auth] = auth_for_second_key
+            app.dependency_overrides[require_chat_auth] = auth_for_second_key
             second = client.post(
                 "/v1/chat/completions",
                 json={
@@ -2744,7 +2878,7 @@ def test_chat_session_context_is_isolated_by_api_key():
                 headers=headers,
             )
         finally:
-            app.dependency_overrides[require_auth] = _mock_auth
+            app.dependency_overrides[require_chat_auth] = _mock_auth
 
     assert first.status_code == 200
     assert second.status_code == 200
@@ -4111,7 +4245,12 @@ def test_chat_stream_assembles_split_function_type_before_release():
     chunks = [
         json.loads(line.removeprefix("data: ")) for line in response.text.splitlines() if line.startswith("data: {")
     ]
-    tool_chunk = next(chunk for chunk in chunks if chunk["choices"][0]["delta"].get("tool_calls"))
+    assert chunks[0]["privacy_router"]["route"] == "local_api"
+    assert chunks[0]["choices"][0]["delta"] == {}
+    assert all("error" not in chunk for chunk in chunks)
+    tool_chunks = [chunk for chunk in chunks if chunk.get("choices") and chunk["choices"][0]["delta"].get("tool_calls")]
+    assert len(tool_chunks) == 1
+    tool_chunk = tool_chunks[0]
     tool_call = tool_chunk["choices"][0]["delta"]["tool_calls"][0]
     assert tool_call["id"] == "call_1"
     assert tool_call["type"] == "function"

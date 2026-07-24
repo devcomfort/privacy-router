@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, datetime, timedelta
-from importlib import import_module
 from pathlib import Path
 
 import sqlalchemy
@@ -122,6 +121,8 @@ def purge_expired_data(*, now: datetime | None = None) -> dict[str, int]:
         "masking_records": 0,
         "masking_sessions": 0,
         "responses": 0,
+        "model_invocations": 0,
+        "request_traces": 0,
     }
 
     with engine.begin() as conn:
@@ -152,6 +153,23 @@ def purge_expired_data(*, now: datetime | None = None) -> dict[str, int]:
             sqlalchemy.delete(db.models.ExtractionCache).where(db.models.ExtractionCache.updated_at <= cache_cutoff)
         )
         counts["extraction_cache"] = result.rowcount or 0
+        expired_trace_ids = [
+            row[0]
+            for row in conn.execute(
+                sqlalchemy.select(db.models.RequestTrace.id).where(db.models.RequestTrace.expires_at <= current)
+            )
+        ]
+        if expired_trace_ids:
+            result = conn.execute(
+                sqlalchemy.delete(db.models.ModelInvocation).where(
+                    db.models.ModelInvocation.request_id.in_(expired_trace_ids)
+                )
+            )
+            counts["model_invocations"] = result.rowcount or 0
+            result = conn.execute(
+                sqlalchemy.delete(db.models.RequestTrace).where(db.models.RequestTrace.id.in_(expired_trace_ids))
+            )
+            counts["request_traces"] = result.rowcount or 0
         result = conn.execute(
             sqlalchemy.delete(db.models.Response).where(
                 sqlalchemy.or_(
@@ -207,34 +225,24 @@ def _migrate_legacy_input_hashes() -> None:
             conn.execute(sqlalchemy.text(f"ALTER TABLE {table_name} DROP COLUMN input_hash"))
 
 
-def _migrate_provider_key_fingerprints() -> None:
-    """Replace legacy plaintext previews with keyed, non-reversible fingerprints."""
-    if "provider" not in sqlalchemy.inspect(engine).get_table_names():
+def _migrate_legacy_provider_secrets() -> None:
+    """Scrub and remove retired database-backed provider secret columns."""
+    inspector = sqlalchemy.inspect(engine)
+    if "provider" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("provider")}
+    legacy_columns = columns & {"encrypted_api_key", "key_fingerprint"}
+    if not legacy_columns:
         return
 
-    # Loaded lazily to avoid the db -> agents -> config -> db import cycle.
-    crypto = import_module("agents.masker.crypto")
+    # Commit the scrub before DDL. Even if an older database cannot drop a
+    # column, no provider secret or derived fingerprint remains queryable.
+    assignments = ", ".join(f"{column} = NULL" for column in sorted(legacy_columns))
     with engine.begin() as conn:
-        providers = conn.execute(
-            sqlalchemy.select(
-                db.models.Provider.id,
-                db.models.Provider.encrypted_api_key,
-                db.models.Provider.key_fingerprint,
-            )
-        ).all()
-        for provider_id, encrypted_api_key, stored_fingerprint in providers:
-            replacement = None
-            if encrypted_api_key:
-                try:
-                    replacement = crypto.key_fingerprint(crypto.decrypt_field(encrypted_api_key))
-                except Exception:
-                    replacement = None
-            if replacement != stored_fingerprint:
-                conn.execute(
-                    sqlalchemy.update(db.models.Provider)
-                    .where(db.models.Provider.id == provider_id)
-                    .values(key_fingerprint=replacement)
-                )
+        conn.execute(sqlalchemy.text(f"UPDATE provider SET {assignments}"))
+    for column in sorted(legacy_columns):
+        with engine.begin() as conn:
+            conn.execute(sqlalchemy.text(f"ALTER TABLE provider DROP COLUMN {column}"))
 
 
 def _drop_legacy_agent_configs() -> None:
@@ -245,6 +253,18 @@ def _drop_legacy_agent_configs() -> None:
         conn.execute(sqlalchemy.text("DROP TABLE agent_configs"))
 
 
+def _migrate_request_trace_redacted_input() -> None:
+    """Add the safe-by-default request summary to existing trace tables."""
+    inspector = sqlalchemy.inspect(engine)
+    if "request_traces" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("request_traces")}
+    if "input_redacted" in columns:
+        return
+    with engine.begin() as conn:
+        conn.execute(sqlalchemy.text("ALTER TABLE request_traces ADD COLUMN input_redacted TEXT NOT NULL DEFAULT '{}'"))
+
+
 def init_db() -> None:
     """Create all tables and apply lightweight backward-compatible migrations."""
     SQLModel.metadata.create_all(engine)
@@ -253,11 +273,12 @@ def init_db() -> None:
     _migrate_extraction_context()
     _migrate_legacy_extraction_cache()
     _migrate_legacy_input_hashes()
-    _migrate_provider_key_fingerprints()
+    _migrate_legacy_provider_secrets()
     _drop_legacy_agent_configs()
     _migrate_masking_session_owner()
     _migrate_response_owner()
     _migrate_response_storage()
+    _migrate_request_trace_redacted_input()
 
 
 def get_session() -> Session:

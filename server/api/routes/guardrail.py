@@ -18,9 +18,8 @@ from typing import Any
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 
-from agents.masker import Masker
-from agents.router import PrivacyRouter
-from server.api import app, require_auth
+from agents import Masker, PrivacyRouter
+from server.api import annotate_pipeline_traces, app, require_auth
 
 
 @app.post("/api/v1/guardrail")
@@ -62,10 +61,23 @@ async def guardrail(request: Request, _auth: str = Depends(require_auth)) -> JSO
     modified_texts: list[str] = []
     any_masked = False
 
+    pipelines = []
     for text in texts:
         pipeline = router.process(text)
-
-        # ── Block ──────────────────────────────────────────────────────
+        pipelines.append(pipeline)
+        aggregate_action = (
+            "block"
+            if any(item.judgment.policy_action == "block" for item in pipelines)
+            else ("selective_mask" if any(item.route.requires_masking for item in pipelines) else "allow")
+        )
+        aggregate_route = (
+            "local_api" if any(item.route.endpoint == "local_api" for item in pipelines) else pipeline.route.endpoint
+        )
+        annotate_pipeline_traces(
+            pipelines,
+            policy_action=aggregate_action,
+            route=aggregate_route,
+        )
         if pipeline.judgment.policy_action == "block":
             return JSONResponse({"decision": "BLOCKED"})
 

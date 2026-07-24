@@ -46,6 +46,12 @@ def _get_session() -> Session:
 
 
 _RUNTIME_ROLES = ("decision", "local", "external")
+_PROVIDER_API_KEY_ENVS = {"openrouter": "OPENROUTER_API_KEY"}
+
+
+def _runtime_api_base(role: str, stored_api_base: str | None) -> str | None:
+    """Apply a process-local endpoint override without mutating the model registry."""
+    return os.environ.get(f"PRIVACY_ROUTER_{role.upper()}_API_BASE") or stored_api_base
 
 
 def _sync_runtime_schema(
@@ -60,14 +66,19 @@ def _sync_runtime_schema(
     for spec in yaml_config.models:
         provider_id = spec.id.split("/", 1)[0] if "/" in spec.id else "unknown"
         provider = session.get(ProviderDB, provider_id)
+        api_key_env = _PROVIDER_API_KEY_ENVS.get(provider_id)
         if provider is None:
             session.add(
                 ProviderDB(
                     id=provider_id,
                     name=provider_id.title(),
                     api_base=spec.api_base,
+                    api_key_env=api_key_env,
                 )
             )
+        elif api_key_env and not provider.api_key_env:
+            provider.api_key_env = api_key_env
+            session.add(provider)
 
         model = session.exec(select(ModelDB).where(ModelDB.model_id == spec.id)).first()
         if model is None:
@@ -160,7 +171,10 @@ def _load_config_from_session(session: Session) -> PrivacyRouterConfig:
         for pa in profile_agents:
             model = session.exec(select(ModelDB).where(ModelDB.model_id == pa.model_id)).first()
             if model:
-                api_base = model.api_base_override or _get_provider_api_base(session, model.provider_id)
+                api_base = _runtime_api_base(
+                    pa.agent_name,
+                    model.api_base_override or _get_provider_api_base(session, model.provider_id),
+                )
                 agent_configs[pa.agent_name] = AgentConfig(
                     model=pa.model_id,
                     api_base=api_base,
@@ -243,12 +257,20 @@ def _seed_from_yaml(
     for m in yaml_config.models:
         provider_id = m.id.split("/")[0] if "/" in m.id else "unknown"
         if provider_id not in provider_ids:
-            provider = ProviderDB(
-                id=provider_id,
-                name=provider_id.title(),
-                api_base=m.api_base,
-            )
-            session.merge(provider)
+            provider = session.get(ProviderDB, provider_id)
+            api_key_env = _PROVIDER_API_KEY_ENVS.get(provider_id)
+            if provider is None:
+                session.add(
+                    ProviderDB(
+                        id=provider_id,
+                        name=provider_id.title(),
+                        api_base=m.api_base,
+                        api_key_env=api_key_env,
+                    )
+                )
+            elif api_key_env and not provider.api_key_env:
+                provider.api_key_env = api_key_env
+                session.add(provider)
             provider_ids.add(provider_id)
 
     # Seed models
@@ -326,14 +348,11 @@ def _get_provider_api_base(session: Session, provider_id: str) -> str | None:
 
 
 def _get_provider_key(session: Session, provider_id: str) -> str | None:
-    """Resolve provider API key: DB encrypted → env fallback → None."""
-    # Delayed to break the agents -> config.db_loader -> agents import cycle.
-    from agents.masker.crypto import resolve_provider_key
-
+    """Resolve a provider API key only from its configured environment variable."""
     provider = session.exec(select(ProviderDB).where(ProviderDB.id == provider_id)).first()
-    if not provider:
+    if not provider or not provider.api_key_env:
         return None
-    return resolve_provider_key(provider.encrypted_api_key, provider.api_key_env)
+    return os.environ.get(provider.api_key_env)
 
 
 def resolve_model_api_key(model_id: str) -> str | None:

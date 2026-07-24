@@ -33,8 +33,6 @@ from agents.masker import (
     cache_fingerprint,
     decrypt_field,
     encrypt_field,
-    key_fingerprint,
-    resolve_provider_key,
 )
 from agents.router import (
     MiddleManAgent,
@@ -84,8 +82,6 @@ __all__ = [
     "cache_fingerprint",
     "decrypt_field",
     "encrypt_field",
-    "key_fingerprint",
-    "resolve_provider_key",
     # router
     "MiddleManAgent",
     "PipelineResult",
