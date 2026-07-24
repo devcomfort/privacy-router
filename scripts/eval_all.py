@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Privacy Router — Evaluation with per-case caching and N trials.
 
-Each test result is saved as an individual file:
-    results/{model_safe}/{case_safe}_t{N}.json
+Each test result is saved as a private individual file:
+    var/evaluations/{model_safe}/{case_safe}_t{N}.json
 
 Already-completed tests are skipped (cached). Add models or cases
 to the config and re-run — only new work is performed.
@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ.setdefault("OPENAI_API_KEY", "dummy")
 
-RESULTS_DIR = ROOT / "docs" / "devlog" / "results"
+RESULTS_DIR = ROOT / "var" / "evaluations"
 
 
 # ── Test cases ───────────────────────────────────────────────────────────────
@@ -827,6 +827,7 @@ def main():
 
     # Generate report
     print("\nGenerating report...")
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     all_results = []
     for mk in model_keys:
         if mk in MODELS:

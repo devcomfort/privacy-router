@@ -370,6 +370,8 @@ python3 scripts/eval_runner.py --model gemma4-e4b-vllm --trials 5
 python3 scripts/eval_runner.py --report
 ```
 
+Raw trial inputs, spans, prompts, and model responses are written to `var/evaluations/runner/` and ignored by Git. Public documentation retains aggregate-only summaries.
+
 | What | How | Metric |
 |------|-----|--------|
 | Sensitivity detection | N≥5 trials | Sensitivity Accuracy |

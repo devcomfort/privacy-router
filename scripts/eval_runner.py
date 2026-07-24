@@ -16,6 +16,8 @@ Usage:
 
     # Report only (no new runs)
     python scripts/eval_runner.py --report
+
+Raw trial payloads are stored in `var/evaluations/runner`, outside published documentation and Git tracking.
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ.setdefault("OPENAI_API_KEY", "dummy")
 
-RESULTS_DIR = ROOT / "docs" / "experiments" / "results"
+RESULTS_DIR = ROOT / "var" / "evaluations" / "runner"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # ═══════════════════════════════════════════════════════════════════════════

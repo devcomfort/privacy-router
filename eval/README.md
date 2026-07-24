@@ -52,8 +52,8 @@ agents/extractor/
 ├── extract.fixed.prompt   ← 고정 카테고리 프롬프트
 └── critic.prompt          ← 2단계 비판 프롬프트
 
-docs/experiments/results/  ← 평가 결과 JSON
-docs/developments/results/tuning/ ← Optuna 튜닝 JSON
+var/evaluations/            ← Raw evaluation payloads and reports (Git-ignored)
+docs/experiments/results/   ← Sanitized aggregate summaries for public documentation
 ```
 
 ## 평가 지표

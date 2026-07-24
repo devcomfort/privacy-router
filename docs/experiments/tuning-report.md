@@ -104,5 +104,5 @@ Multi-turn is significantly harder than single-turn (44% vs 76.5%). Adversarial 
 - `docker-compose.engines.yml` — Multi-engine Docker setup
 - `agents/extractor/extract.short.prompt` — Compressed prompt for ≤2B models
 - `test_data/` — 15 multi-turn test conversations
-- `docs/experiments/results/` — Per-model eval JSON
-- `docs/developments/results/tuning/` — Optuna tuning JSON
+- `var/evaluations/runner/` — Raw per-model evaluation payloads, ignored by Git
+- `docs/experiments/results/` — Sanitized aggregate summaries suitable for public documentation

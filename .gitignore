@@ -397,6 +397,9 @@ slides/node_modules/
 privacy_router.db
 presentation_ko.*
 
+# Private raw evaluation payloads
+/var/evaluations/
+
 # Model weights (too large for git)
 models/*.gguf
 models/*.safetensors
