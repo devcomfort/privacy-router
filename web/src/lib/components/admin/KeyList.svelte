@@ -31,7 +31,7 @@
 </script>
 
 {#if keys.length === 0}
-	<div class="rounded-xl border border-dashed border-slate-700 p-8 text-center text-slate-500">
+	<div class="rounded-xl border border-dashed border-slate-700 p-8 text-center text-slate-400">
 		{$t("admin.keys.empty")}
 	</div>
 {:else}
@@ -75,7 +75,7 @@
 									{key.prefix}…
 								</code>
 								<button
-									class="text-slate-500 hover:text-white transition text-xs cursor-pointer"
+									class="text-slate-400 hover:text-white transition text-xs cursor-pointer"
 									onclick={(e) => onCopyPrefix(key.prefix, e.currentTarget as HTMLButtonElement)}
 									title="{$t('admin.keys.copy_prefix')}"
 								>
@@ -90,7 +90,7 @@
 								<Badge variant="default">{$t("admin.keys.inactive")}</Badge>
 							{/if}
 						</td>
-						<td class="px-4 py-3 text-xs text-slate-500">
+						<td class="px-4 py-3 text-xs text-slate-400">
 							{key.last_used_at ? new Date(key.last_used_at).toLocaleString('ko-KR') : '—'}
 						</td>
 						<td class="px-4 py-3">

@@ -40,7 +40,7 @@
 					</svg>
 				</button>
 				<a href="/" class="text-sm font-semibold text-white hover:text-blue-400 transition">{$t('site.title')}</a>
-				<span class="text-xs text-slate-500">/</span>
+				<span class="text-xs text-slate-400">/</span>
 				<a href="/docs" class="text-sm text-slate-400 hover:text-white transition">{$t('docs.title')}</a>
 			</div>
 			<div class="flex items-center gap-3">
@@ -62,7 +62,7 @@
 						class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition {active ? 'bg-blue-500/10 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}"
 						onclick={() => sidebarOpen = false}
 					>
-						<span class="text-base">{item.icon}</span>
+						<span class="text-base" aria-hidden="true">{item.icon}</span>
 						<span>{$t(`docs.${item.key}`)}</span>
 					</a>
 				{/each}

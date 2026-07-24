@@ -14,6 +14,7 @@ export const locale = writable<Locale>(
 
 locale.subscribe((val) => {
 	if (typeof localStorage !== 'undefined') localStorage.setItem('locale', val);
+	if (typeof document !== 'undefined') document.documentElement.lang = val;
 });
 
 export const t = derived(locale, ($locale) => {

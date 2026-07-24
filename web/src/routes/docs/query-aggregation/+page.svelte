@@ -199,22 +199,22 @@
 			<Card class={`p-6 ${component.color}`}>
 				<div class="space-y-4">
 					<div>
-						<p class="text-xs uppercase tracking-[0.2em] text-slate-500">Component</p>
+						<p class="text-xs uppercase tracking-[0.2em] text-slate-400">Component</p>
 						<h2 class="mt-1 text-xl font-semibold text-white">{component.title}</h2>
 						<p class="text-sm text-slate-400">{component.ko}</p>
 					</div>
 					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-4 text-sm">
 						<div class="grid gap-3">
 							<div>
-								<span class="text-slate-500">Owner</span>
+								<span class="text-slate-400">Owner</span>
 								<p class="font-mono text-slate-200">{component.owner}</p>
 							</div>
 							<div>
-								<span class="text-slate-500">Input</span>
+								<span class="text-slate-400">Input</span>
 								<p class="font-mono text-slate-200">{component.input}</p>
 							</div>
 							<div>
-								<span class="text-slate-500">Output</span>
+								<span class="text-slate-400">Output</span>
 								<p class="font-mono text-slate-200">{component.output}</p>
 							</div>
 						</div>
@@ -252,7 +252,7 @@
 			</div>
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-sm">
-					<thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-500">
+					<thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
 						<tr>
 							<th class="px-4 py-3">Condition</th>
 							<th class="px-4 py-3">Action</th>
@@ -265,7 +265,7 @@
 							<tr class="align-top">
 								<td class="px-4 py-3">
 									<p class="text-slate-200">{row.condition}</p>
-									<p class="mt-1 text-xs text-slate-500">{row.ko}</p>
+									<p class="mt-1 text-xs text-slate-400">{row.ko}</p>
 								</td>
 								<td class="px-4 py-3"><Badge variant={row.variant}>{row.action}</Badge></td>
 								<td class="px-4 py-3 font-mono text-slate-300">{row.endpoint}</td>
@@ -323,15 +323,15 @@
 						</div>
 						<div class="grid gap-2 text-sm">
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-500">summary</span>
+								<span class="text-slate-400">summary</span>
 								<p class="font-mono text-slate-200">{example.summary}</p>
 							</div>
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-500">action</span>
+								<span class="text-slate-400">action</span>
 								<p class="font-mono text-blue-300">{example.action}</p>
 							</div>
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-500">effect</span>
+								<span class="text-slate-400">effect</span>
 								<p class="text-slate-300">{example.output}</p>
 							</div>
 						</div>
@@ -351,9 +351,9 @@
 				remains in the repository and should not be copied into public pages.
 			</p>
 			<ul class="mt-4 space-y-2 text-sm text-slate-300">
-				<li><span class="text-slate-500">Labels:</span> allow, selective_mask, block.</li>
-				<li><span class="text-slate-500">Checks:</span> sensitivity, essentiality, maskability, policy action.</li>
-				<li><span class="text-slate-500">Privacy rule:</span> examples use placeholders, not raw identifiers.</li>
+				<li><span class="text-slate-400">Labels:</span> allow, selective_mask, block.</li>
+				<li><span class="text-slate-400">Checks:</span> sensitivity, essentiality, maskability, policy action.</li>
+				<li><span class="text-slate-400">Privacy rule:</span> examples use placeholders, not raw identifiers.</li>
 			</ul>
 		</Card>
 
@@ -369,7 +369,7 @@
 						<div class="flex flex-wrap items-center justify-between gap-2">
 							<div>
 								<h3 class="font-semibold text-white">{download.name}</h3>
-								<p class="text-xs text-slate-500">{download.ko}</p>
+								<p class="text-xs text-slate-400">{download.ko}</p>
 							</div>
 							<Badge variant="default">{download.type}</Badge>
 						</div>

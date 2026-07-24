@@ -39,6 +39,14 @@
 	:global(.prose p) {
 		margin-bottom: 1rem;
 	}
+	:global(.prose img) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: 1.5rem auto;
+		border: 1px solid #334155;
+		border-radius: 0.5rem;
+	}
 	:global(.prose a) {
 		color: #60a5fa;
 		text-decoration: underline;

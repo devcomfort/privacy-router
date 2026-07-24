@@ -22,6 +22,7 @@
 		disabled = false,
 		onchange
 	}: Props = $props();
+	let selectedLabel = $derived(options.find((option) => option.value === value)?.label ?? '');
 </script>
 
 <div class="space-y-1.5">
@@ -33,6 +34,7 @@
 		{disabled}
 		bind:value
 		{onchange}
+		title={selectedLabel}
 		class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
 	>
 		{#each options as opt}

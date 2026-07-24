@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { HTMLInputAttributes } from 'svelte/elements';
 	const generatedId = $props.id();
 	interface Props {
 		id?: string;
 		value?: string;
 		placeholder?: string;
 		type?: string;
+		autocomplete?: HTMLInputAttributes['autocomplete'];
 		disabled?: boolean;
 		label?: string;
 		error?: string;
@@ -17,6 +19,7 @@
 		value = $bindable(''),
 		placeholder = '',
 		type = 'text',
+		autocomplete = 'off',
 		disabled = false,
 		label,
 		error,
@@ -33,6 +36,7 @@
 		{id}
 		{type}
 		{placeholder}
+		{autocomplete}
 		{disabled}
 		bind:value
 		{oninput}
