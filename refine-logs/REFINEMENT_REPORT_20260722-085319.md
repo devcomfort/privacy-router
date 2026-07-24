@@ -1,8 +1,8 @@
 # Refinement Report
 
-- **Date:** 2026-07-22
-- **Initial question:** Can Privacy Router become an academically defensible paper, and how should detection, masking, routing, and a new dataset be evaluated?
-- **Final status:** research direction selected; validity pilot approved; confirmatory study not yet approved.
+**Date:** 2026-07-22\
+**Initial question:** Can Privacy Router become an academically defensible paper, and how should detection, masking, routing, and a new dataset be evaluated?\
+**Final status:** research direction selected; validity pilot approved; confirmatory study not yet approved.
 
 ## 1. Initial Direction
 
