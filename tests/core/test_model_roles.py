@@ -72,9 +72,11 @@ def test_loads_exactly_three_runtime_roles(tmp_path: Path) -> None:
     assert not hasattr(cfg, "generator")
 
 
-def test_repository_default_uses_available_external_model() -> None:
+def test_repository_default_uses_gemma_for_all_model_roles() -> None:
     cfg = load_config_from_yaml(Path(__file__).resolve().parents[2] / ".privacy-router.config.yaml")
 
+    assert cfg.decision.model == "openai/google/gemma-4-26b-local"
+    assert cfg.local.model == "openai/google/gemma-4-26b-local"
     assert cfg.external.model == "openrouter/google/gemma-4-26b-a4b-it"
 
 
@@ -95,7 +97,7 @@ def test_repository_example_config_validates() -> None:
     config_path = Path(__file__).resolve().parents[2] / ".privacy-router.config.yaml.example"
     config = load_config_from_yaml(config_path)
 
-    assert config.decision.model == "openai/LGAI-EXAONE/EXAONE-4.0-1.2B"
+    assert config.decision.model == "openai/google/gemma-4-26b-local"
     assert config.local.model == "openai/google/gemma-4-26b-local"
     assert config.external.model == "openrouter/google/gemma-4-26b-a4b-it"
 
@@ -427,9 +429,41 @@ def test_fresh_database_bootstrap_uses_one_shared_session(
     monkeypatch.setattr("db.session.engine", test_engine)
     monkeypatch.setattr(db_loader, "_get_session", open_test_session)
     monkeypatch.setattr(db_loader, "load_yaml", lambda _path=None: yaml_config)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-openrouter-key")
 
     config = db_loader.load_config_from_db()
 
     assert len(opened_sessions) == 1
     assert config.active_profile == "default"
     assert config.decision.model == "openai/LGAI-EXAONE/EXAONE-4.0-1.2B"
+    with Session(test_engine) as session:
+        provider = session.get(Provider, "openrouter")
+        assert provider is not None
+        assert provider.api_key_env == "OPENROUTER_API_KEY"
+    assert db_loader.resolve_model_api_key("openrouter/google/gemma-4-26b-it") == "test-openrouter-key"
+
+
+def test_db_runtime_role_api_base_can_be_overridden_by_environment(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from config import db_loader
+
+    test_engine = create_engine(f"sqlite:///{tmp_path / 'runtime-override.db'}")
+    yaml_config = load_config_from_yaml(_write_config(tmp_path))
+    monkeypatch.setattr("db.session.engine", test_engine)
+    monkeypatch.setattr(db_loader, "_get_session", lambda: Session(test_engine))
+    monkeypatch.setattr(db_loader, "load_yaml", lambda _path=None: yaml_config)
+    monkeypatch.setenv(
+        "PRIVACY_ROUTER_DECISION_API_BASE",
+        "http://host.docker.internal:8010/v1",
+    )
+    monkeypatch.setenv(
+        "PRIVACY_ROUTER_TRUSTED_LOCAL_MODEL_HOSTS",
+        "host.docker.internal",
+    )
+
+    config = db_loader.load_config_from_db()
+
+    assert config.decision.api_base == "http://host.docker.internal:8010/v1"
+    assert config.local.api_base == "http://127.0.0.1:8001/v1"

@@ -31,9 +31,6 @@ from typing import Any
 
 import httpx
 
-from agents import ExtractionRecord
-from eval.dataset import MULTI_TURN_CONVERSATIONS
-from server.api import mask_chat_messages
 
 ROOT = Path(__file__).resolve().parents[1]
 GROUND_TRUTH_PATH = ROOT / "docs" / "experiments" / "ground-truth.json"
@@ -179,41 +176,32 @@ def _message_output(response: dict[str, Any]) -> tuple[str, bool]:
 
 
 def _masking_audit(
-    messages: list[dict[str, Any]],
-    detected_records: list[dict[str, Any]],
+    masked_text: object,
+    placeholder_map: object,
     expected_records: list[dict[str, Any]],
 ) -> bool:
-    if not detected_records or not expected_records:
+    if not isinstance(masked_text, str) or not isinstance(placeholder_map, list):
         return False
 
-    try:
-        records = [
-            ExtractionRecord(
-                category=str(record["category"]),
-                span=str(record["span"]),
-                confidence=float(record.get("confidence", 1.0)),
-                start=0,
-                end=len(str(record["span"])),
-                reasoning=str(record.get("reasoning", "")),
-                is_essential=bool(record.get("is_essential", False)),
-            )
-            for record in detected_records
-            if record.get("category") and record.get("span")
-        ]
-        masked = mask_chat_messages(messages, records)
-    except (KeyError, TypeError, ValueError):
-        return False
-
-    serialized = json.dumps(masked.value, ensure_ascii=False)
-    placeholders = masked.contract.placeholder_map
     expected_spans = {
-        str(record["span"]) for record in expected_records if isinstance(record, dict) and record.get("span")
+        str(record["span"])
+        for record in expected_records
+        if isinstance(record, dict) and record.get("span")
+    }
+    expected_uids = {
+        str(record["uid"]).lower()
+        for record in placeholder_map
+        if isinstance(record, dict) and record.get("uid")
+    }
+    masked_uids = {
+        match.group(0).strip("[]").rsplit("#", 1)[1].lower()
+        for match in PLACEHOLDER_RE.finditer(masked_text)
     }
     return bool(
         expected_spans
-        and placeholders
-        and all(span not in serialized for span in expected_spans)
-        and all(placeholder in serialized for placeholder in placeholders)
+        and expected_uids
+        and all(span not in masked_text for span in expected_spans)
+        and expected_uids.issubset(masked_uids)
     )
 
 
@@ -263,8 +251,8 @@ def evaluate_response(
     masking_safe = True
     if expected_action == "selective_mask":
         masking_safe = _masking_audit(
-            messages,
-            list(meta.get("extraction_records") or []),
+            meta.get("masked_text"),
+            meta.get("placeholder_map"),
             expected_records,
         )
 
@@ -498,17 +486,14 @@ def _request(
         return 0, {}, time.perf_counter() - started
 
 
-def _runtime_contract(settings: dict[str, Any]) -> tuple[str, str, dict[str, tuple[float, float]]]:
-    local_model = str(settings["local"]["model"])
-    external_model = str(settings["external"]["model"])
-    costs: dict[str, tuple[float, float]] = {}
-    for model in settings.get("models", []):
-        model_id = model.get("id")
-        if not model_id:
-            continue
-        input_rate = float(model.get("cost_per_1m_tokens", 0.0) or 0.0)
-        output_rate = float(model.get("cost_per_1m_output_tokens", input_rate) or input_rate)
-        costs[str(model_id)] = (input_rate, output_rate)
+def _runtime_contract(capabilities: dict[str, Any]) -> tuple[str, str, dict[str, tuple[float, float]]]:
+    roles = capabilities["model_roles"]
+    local_model = str(roles["local"])
+    external_model = str(roles["external"])
+    costs = {
+        str(model_id): (float(rate or 0.0), float(rate or 0.0))
+        for model_id, rate in capabilities.get("model_costs", {}).items()
+    }
     return local_model, external_model, costs
 
 
@@ -524,9 +509,10 @@ def run_evaluation(args: argparse.Namespace) -> dict[str, Any]:
         headers=headers,
         timeout=timeout,
     ) as client:
-        settings_response = client.get("/api/settings")
-        settings_response.raise_for_status()
-        local_model, external_model, model_costs = _runtime_contract(settings_response.json())
+        runtime_response = client.get("/api/runtime")
+        runtime_response.raise_for_status()
+        runtime_capabilities = runtime_response.json()
+        local_model, external_model, model_costs = _runtime_contract(runtime_capabilities)
 
         single_cases = _load_single_turn_cases() if args.suite in {"all", "single"} else []
         conversations = list(MULTI_TURN_CONVERSATIONS) if args.suite in {"all", "multi"} else []
@@ -615,7 +601,7 @@ def run_evaluation(args: argparse.Namespace) -> dict[str, Any]:
         "suite": args.suite,
         "trials": args.trials,
         "runtime_roles": {
-            "decision": settings_response.json()["decision"]["model"],
+            "decision": runtime_capabilities["model_roles"]["decision"],
             "local": local_model,
             "external": external_model,
         },

@@ -13,7 +13,7 @@ Examples
 >>> from config.loader import load_config
 >>> config = load_config()
 >>> config.decision.model
-'openai/LGAI-EXAONE/EXAONE-4.0-1.2B'
+'openai/google/gemma-4-26b-local'
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def load_config(path: str | Path | None = None) -> PrivacyRouterConfig:
     --------
     >>> config = load_config()
     >>> config.decision.model
-    'openai/LGAI-EXAONE/EXAONE-4.0-1.2B'
+    'openai/google/gemma-4-26b-local'
     """
     config_path = Path(path) if path is not None else _DEFAULT_PATH
     if not config_path.exists():

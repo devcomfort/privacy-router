@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from eval.final_e2e import (
     AcceptanceThresholds,
+    _runtime_contract,
     aggregate_checks,
     cumulative_expectations,
     evaluate_response,
@@ -22,13 +23,44 @@ def _selective_mask_response(*, content: str = "작성했습니다.") -> dict:
             "extraction_records": [
                 {
                     "category": "PERSONAL_IDENTIFIER_NUMBER",
-                    "span": "901212-1234567",
+                    "span": "<redacted>",
                     "confidence": 0.99,
                     "is_essential": False,
-                    "reasoning": "Background data can be masked.",
+                }
+            ],
+            "masked_text": "주민등록번호 SENSITIVE_DATA#deadbeef을 포함한 이메일을 작성해줘.",
+            "placeholder_map": [
+                {
+                    "category": "PERSONAL_IDENTIFIER_NUMBER",
+                    "uid": "deadbeef",
+                    "confidence": 0.99,
+                    "is_essential": False,
                 }
             ],
         },
+    }
+
+
+def test_runtime_contract_uses_public_model_role_metadata() -> None:
+    local, external, costs = _runtime_contract(
+        {
+            "model_roles": {
+                "decision": "openai/google/gemma-4-26b-local",
+                "local": "openai/google/gemma-4-26b-local",
+                "external": "openrouter/google/gemma-4-26b-a4b-it",
+            },
+            "model_costs": {
+                "openai/google/gemma-4-26b-local": 0.0,
+                "openrouter/google/gemma-4-26b-a4b-it": 0.06,
+            },
+        }
+    )
+
+    assert local == "openai/google/gemma-4-26b-local"
+    assert external == "openrouter/google/gemma-4-26b-a4b-it"
+    assert costs == {
+        "openai/google/gemma-4-26b-local": (0.0, 0.0),
+        "openrouter/google/gemma-4-26b-a4b-it": (0.06, 0.06),
     }
 
 

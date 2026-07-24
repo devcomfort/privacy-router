@@ -1,24 +1,18 @@
 # vLLM Local Model Server — Privacy Router
 # =============================================================================
 # Usage:
-#   # Run the complete local profile (decision + local generation):
-#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
-#     --profile exaone --profile gemma4 up -d vllm-exaone vllm-gemma4
-#
-#   # Run one role only:
-#   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
-#     --profile exaone up -d vllm-exaone
+#   # Run the local decision and generation model:
 #   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
 #     --profile gemma4 up -d vllm-gemma4
 #
 #   # Stop:
 #   docker compose -f docker-compose.yml -f docker-compose.vllm.yml \
-#     --profile exaone --profile gemma4 down
+#     --profile gemma4 down
 #
 # Notes:
-#   - Both selected models fit simultaneously on the GB10.
-#   - Host ports 8010/8011 avoid the common development ports 8000/8001.
-#   - HuggingFace cache is mounted read-only from the host.
+#   - One Gemma 4 26B endpoint serves both local runtime roles.
+#   - Host port 8011 avoids the common development ports 8000/8001.
+#   - HuggingFace cache is writable so the first run can download the model.
 #   - Models use text-only mode to avoid loading unused multimodal encoders.
 # =============================================================================
 
@@ -31,11 +25,10 @@ services:
     ports:
       - "8011:8000"
     volumes:
-      - ${HF_CACHE:-/home/donghyeon/.cache/huggingface}:/root/.cache/huggingface:ro
+      - ${HF_CACHE:-${HOME}/.cache/huggingface}:/root/.cache/huggingface
     environment:
       HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
-      HF_HUB_OFFLINE: "1"
-      # NCCL: unified memory on GB10
+      HF_HUB_OFFLINE: "${HF_HUB_OFFLINE:-0}"
       NCCL_P2P_DISABLE: "1"
     command:
       - "--model"
@@ -73,57 +66,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 120s
-    stop_signal: SIGTERM
-    stop_grace_period: 30s
-    restart: unless-stopped
-
-  # ── Decision extraction: EXAONE 4.0 1.2B (~2.4 GB weights) ───────────────
-  vllm-exaone:
-    image: vllm/vllm-openai:nightly
-    profiles:
-      - exaone
-    ports:
-      - "8010:8000"
-    volumes:
-      - ${HF_CACHE:-/home/donghyeon/.cache/huggingface}:/root/.cache/huggingface:ro
-    environment:
-      NCCL_P2P_DISABLE: "1"
-    command:
-      - "--model"
-      - "LGAI-EXAONE/EXAONE-4.0-1.2B"
-      - "--served-model-name"
-      - "LGAI-EXAONE/EXAONE-4.0-1.2B"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "8000"
-      - "--dtype"
-      - "auto"
-      - "--kv-cache-memory-bytes"
-      - "1G"
-      - "--gpu-memory-utilization"
-      - "0.35"
-      - "--max-model-len"
-      - "8192"
-      - "--trust-remote-code"
-      - "--limit-mm-per-prompt"
-      - '{"image":0}'
-      - "--enforce-eager"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
     stop_signal: SIGTERM
     stop_grace_period: 30s
     restart: unless-stopped
