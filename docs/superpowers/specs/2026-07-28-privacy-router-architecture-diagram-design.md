@@ -13,61 +13,49 @@
 
 - 산출물: `privacy-router-architecture.excalidraw` 한 파일
 - 참고 스타일: 루트의 `architecture.excalidraw`
-- 캔버스: 세 개의 큰 평면을 세로로 배치하고 평면 사이를 최소 600px 띄운다.
+- 캔버스: 세 개의 큰 Excalidraw `frame`을 세로로 배치하고 평면 사이를 최소 600px 띄운다.
 - Backend API는 시스템 컴포넌트 평면 안에서 독립된 영역과 구분선으로 분리한다.
 - 데이터는 추상 컴포넌트 수준으로 표현한다. 개발 단계의 세부 필드, Pydantic 스키마, DB 열은 넣지 않는다.
-- 화살표 라벨은 `전이 조건 / 행동 / 전달 데이터`를 짧게 표현한다.
-- Extractor, Judge, Router, Masker/Hydrator의 기능과 세 실행 경로가 반드시 한눈에 드러나야 한다.
+- 색상 없이도 이해되도록 컴포넌트 수와 화살표 수를 줄이고, 직선 또는 직각 화살표를 우선한다.
+- Extractor, Judge, Router, Masker/Hydrator의 책임과 세 실행 경로가 한눈에 드러나야 한다.
+- 다이어그램 내부 라벨은 폰트 호환성을 위해 English-only로 작성한다.
 - 참고 파일은 수정하지 않는다.
 
 ## 시각 체계
 
-참고 파일의 러프한 프레임·도형·화살표 문법을 유지하되 시스템 구분을 위해 제한된 의미색을 사용한다.
+참고 파일의 러프한 프레임·도형·화살표 문법은 유지하되, 색상 의존성을 제거한다. 구분은 위치, frame, 구분선, shape, 라벨, dashed line만으로 표현한다.
 
 - 선: 2px, roughness 1
 - 제목: 28px
-- 평면·영역 제목: 22–24px
+- 평면·영역 제목: 22px
 - 컴포넌트: 18–20px
-- 화살표 라벨: 16–18px
-- Local/Privacy Core: 연한 보라
-- Backend API/입력: 연한 파랑
-- External: 연한 주황
-- Data/Storage: 연한 청록
-- 완료: 연한 초록
-- 안전한 실패: 연한 빨강
-- 상태는 색상뿐 아니라 텍스트로도 구분한다.
+- 화살표 라벨: 16px
+- 다이어그램 내부 라벨: English-only
+- 도형 채움: 기본 `transparent`
+- 주 경로: solid arrow
+- 보조 저장·운영 경로: dashed arrow
+- 실패 상태: dashed rectangle과 명시적 `FAILED`/`REJECTED` 텍스트
 
 ## 캔버스 구조
 
 ### 평면 1 — 시스템 컴포넌트
 
-왼쪽에서 오른쪽으로 네 영역을 배치한다. 각 영역은 큰 프레임과 세로 구분선으로 독립시킨다.
+왼쪽에서 오른쪽으로 네 영역을 배치한다. 각 영역은 하나의 큰 frame 안에서 세로 구분선으로만 분리한다.
 
-1. **Client & Integration**
-   - Hermes Agent, OpenCode/OpenAI-compatible clients
-   - SvelteKit Demo/Admin UI
-   - LiteLLM Guardrail client
-   - MCP agent/client
-2. **Backend API**
-   - FastAPI application, authentication, request tracing
-   - Chat Completions, Responses(JSON/SSE/WebSocket)
-   - Classify/Generate/Guardrail
-   - Admin, model registry, masking session, telemetry APIs
-   - 이 영역은 Privacy Core와 명확한 구분선으로 나눈다.
+1. **Clients**
+   - Agent, SDK, UI가 OpenAI-compatible, MCP, Admin 요청을 보낸다.
+2. **Backend API Plane**
+   - FastAPI entry가 인증, 요청 추적, API shape 유지를 담당한다.
+   - Context Adapter가 chat, responses, tools 입력을 검사 가능한 텍스트로 정규화한다.
 3. **Privacy Core**
-   - Context Builder와 session context cache
-   - PrivacyRouter orchestrator
-   - Extractor facade, ExtractorCore, optional Critic
-   - deterministic Judge와 Router
-   - Masker/Hydrator, placeholder repair, fixed-route executor
-4. **Model, Data & Operations**
-   - Local Decision Model과 Local Generation Model
-   - External Model via adapter/LiteLLM/OpenRouter
-   - encrypted SQLModel storage, config/model registry, masking contracts, response/context retention
-   - telemetry, usage/cost/latency, Admin dashboard
-   - unit tests와 real-model evaluation은 작은 지원 컴포넌트로만 표시한다.
+   - PrivacyRouter Pipeline이 `Extractor → Judge → Router`를 실행한다.
+   - Transform/Execution 단계가 masking contract, fixed route execution, hydration/output inspection을 담당한다.
+4. **Models · Data**
+   - Local Models: Decision Model extraction과 Local Model sensitive generation.
+   - External Model: raw safe 또는 masked payload만 수신.
+   - Encrypted Storage + Telemetry: context, contract, response, route metrics.
 
-컴포넌트 간 화살표에는 protocol 또는 추상 데이터만 표시한다. 예: `OpenAI request`, `privacy analysis`, `masked payload`, `local raw prompt`, `safe telemetry`.
+컴포넌트 간 화살표에는 짧은 행동 또는 전달 데이터만 표시한다. 예: `request`, `normalize`, `inspected context`, `extract locally`, `safe or masked`.
 
 ### 평면 2 — 데이터 컴포넌트 흐름
 
@@ -90,7 +78,7 @@
 
 ### 평면 3 — 요청 상태 머신
 
-상태는 둥근 사각형, 조건 분기는 다이아몬드, 실패는 빨간 종료 상태로 표현한다.
+상태는 둥근 사각형, 조건 분기는 다이아몬드, 실패는 dashed rectangle과 명시적 실패 텍스트로 표현한다.
 
 주 경로:
 
@@ -115,11 +103,11 @@
 
 ## 화살표 라벨 규칙
 
-- 라벨은 한 화살표당 최대 두 줄을 원칙으로 한다.
-- 상태 전이는 `조건 / 행동` 형식으로 쓴다.
-- 데이터 이동은 `생산자 행동 / 데이터` 형식으로 쓴다.
-- 장문 설명은 별도 노트 하나로 모으지 않고, 필요하면 인접한 짧은 주석으로 분리한다.
+- 라벨은 짧은 동사 또는 조건어를 우선한다.
+- 흐름이 박스 이름만으로 분명하면 라벨을 생략한다.
+- 장문 설명은 화살표에 넣지 않는다.
 - 교차 화살표보다 중간 합류 노드를 사용한다.
+- 화살표 라벨이 컴포넌트 박스와 겹치면 라벨을 줄이거나 제거한다.
 
 ## 사실 기준
 
@@ -149,4 +137,4 @@
 - Extractor가 무엇을 추출하고 Judge와 Router가 무엇을 결정하는지 보인다.
 - allow, selective_mask, block과 fail-closed 경로가 모두 연결된다.
 - 세부 스키마 없이도 구현의 기능적 구조를 설명할 수 있다.
-- 참고 파일과 비슷한 러프한 그림체를 유지하면서도 더 풍부한 시스템 지도를 제공한다.
+- 참고 파일과 비슷한 러프한 그림체를 유지하되, 색상 없이 읽히는 단순 시스템 지도를 제공한다.
