@@ -29,6 +29,26 @@ from .critic import Critic
 from .extractor import Extractor, extract
 from .extractor_core import ExtractorCore, PrivacyAnalysisUnavailable, normalize_category
 from .schemas import ExtractionRecord, ExtractionResult, Sensitivity, redact_extraction_records
+from .lfm_extractor import LFMExtractor
+from .llm_extractor import LLMExtractionOutput, LLMExtractor, LLMRecord
+from .normalizer import EntityNormalizer, SpanReconciliationError
+from .opf_extractor import OPFExtractor
+from .parser import DetectorParser, ParsedEntity
+from .parsers import DetectorParseError, LFMParser, LLMParser, OPFParser, PresidioParser
+from .presidio_extractor import PresidioExtractor
+from .registry import DetectorRegistry, PrivacyExtractor
+from .schemas import (
+    DetectionResult,
+    DetectorRunBase,
+    DetectorRunProvenance,
+    LFMDetectorRun,
+    LLMDetectorRun,
+    OPFDetectorRun,
+    PrivacyEntity,
+    PresidioDetectorRun,
+    RecognizerDescriptor,
+    Requiredness,
+)
 
 __all__ = [
     "Critic",
@@ -41,4 +61,31 @@ __all__ = [
     "normalize_category",
     "redact_extraction_records",
     "extract",
+    # detector contract
+    "Requiredness",
+    "PrivacyEntity",
+    "DetectionResult",
+    "DetectorRunBase",
+    "DetectorRunProvenance",
+    "LLMDetectorRun",
+    "PresidioDetectorRun",
+    "OPFDetectorRun",
+    "LFMDetectorRun",
+    "RecognizerDescriptor",
+    "ParsedEntity",
+    "DetectorParser",
+    "DetectorParseError",
+    "EntityNormalizer",
+    "SpanReconciliationError",
+    "LLMRecord",
+    "LLMExtractionOutput",
+    "LLMExtractor",
+    "PresidioParser",
+    "PresidioExtractor",
+    "OPFParser",
+    "OPFExtractor",
+    "LFMParser",
+    "LFMExtractor",
+    "PrivacyExtractor",
+    "DetectorRegistry",
 ]

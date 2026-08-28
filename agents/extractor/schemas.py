@@ -11,7 +11,9 @@ relevant, ``examples`` to fully document the contract.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+import secrets
+from typing import Annotated, Any, Literal
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -270,3 +272,165 @@ class CriticOutput(BaseModel):
 
     found_missed: bool = Field(..., description="True if any sensitive spans were missed.")
     missed_records: list[_CriticItem] = Field(default_factory=list)
+
+
+class Requiredness(BaseModel):
+    """Whether the entity is required to answer or process the query."""
+
+    value: bool | None = Field(
+        default=None,
+        description="Whether this entity is required for the user's query response or processing.",
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Why the entity is or is not required.",
+    )
+
+
+class PrivacyEntity(BaseModel):
+    """One normalized privacy-relevant text entity."""
+
+    id: UUID = Field(default_factory=uuid4, description="Internal identity of this entity record.")
+    kind: Literal["contextual", "structural"] = Field(
+        ...,
+        description="Why the value is privacy-relevant.",
+    )
+    tag: str = Field(..., min_length=1, description="Canonical privacy tag, such as EMAIL or API_KEY.")
+    uid: str = Field(
+        default_factory=lambda: secrets.token_hex(16),
+        min_length=32,
+        max_length=32,
+        pattern=r"^[0-9a-f]{32}$",
+        description="Occurrence-specific opaque token.",
+    )
+    span: str = Field(..., min_length=1, description="Exact sensitive substring from the input.")
+    offsets: tuple[int, int] = Field(
+        ...,
+        description="Zero-based, end-exclusive Unicode code-point offsets as (start, end).",
+    )
+    reason: str | None = Field(default=None, description="Why the detector classified the span as sensitive.")
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    native_label: str | None = Field(default=None, description="Original backend label before normalization.")
+    native_metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Backend-specific metadata preserved for audit and comparison.",
+    )
+    detection_method: Literal["regex", "ner", "token_classifier", "llm", "hybrid"] = Field(
+        ...,
+        description="Mechanism that produced the detection.",
+    )
+    run_id: UUID = Field(..., description="Detector run that produced this entity.")
+    is_required: Requiredness = Field(
+        default_factory=Requiredness,
+        description="Whether this entity is required for the query's response or processing.",
+    )
+
+    @model_validator(mode="after")
+    def validate_offsets(self) -> PrivacyEntity:
+        start, end = self.offsets
+        if start < 0 or end <= start:
+            raise ValueError("offsets must satisfy 0 <= start < end")
+        return self
+
+    @property
+    def identifier(self) -> str:
+        """Return the computed tag#uid marker without persisting it."""
+        return f"{self.tag}#{self.uid}"
+
+
+
+class DetectorRunBase(BaseModel):
+    """Common provenance for one detector execution."""
+
+    run_id: UUID = Field(default_factory=uuid4)
+    detector_type: str
+    detector_id: str = Field(
+        ...,
+        pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+(?:-[0-9]+)*$",
+    )
+    status: Literal["complete", "partial", "failed"] = "complete"
+    external_opt_in: bool = False
+    adapter_version: str = Field(
+        ...,
+        pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+(?:-[0-9]+)*$",
+    )
+    error_code: str | None = None
+
+
+class RecognizerDescriptor(BaseModel):
+    """Configured Presidio recognizer identity."""
+
+    name: str
+    identifier: str | None = None
+    version: str | None = None
+
+
+class LLMDetectorRun(DetectorRunBase):
+    """Provenance for the LiteLLM-backed LLM extractor."""
+
+    detector_type: Literal["llm"] = "llm"
+    model_id: str
+    model_revision: str | None = None
+    prompt_version: str | None = None
+
+
+class PresidioDetectorRun(DetectorRunBase):
+    """Provenance for one Presidio analyzer execution."""
+
+    detector_type: Literal["presidio"] = "presidio"
+    configured_recognizers: list[RecognizerDescriptor] = Field(default_factory=list)
+    package_version: str | None = None
+
+
+class OPFDetectorRun(DetectorRunBase):
+    """Provenance for one OpenAI Privacy Filter execution."""
+
+    detector_type: Literal["opf"] = "opf"
+    model_id: str
+    model_revision: str | None = None
+    output_mode: str = "typed"
+    decode_mode: str | None = None
+
+
+class LFMDetectorRun(DetectorRunBase):
+    """Provenance for one LFM2.5 detector execution."""
+
+    detector_type: Literal["lfm"] = "lfm"
+    model_id: str
+    model_revision: str | None = None
+    decoder_revision: str | None = None
+    device: str | None = None
+
+
+DetectorRunProvenance = Annotated[
+    LLMDetectorRun | PresidioDetectorRun | OPFDetectorRun | LFMDetectorRun,
+    Field(discriminator="detector_type"),
+]
+
+
+class DetectionResult(BaseModel):
+    """Normalized detector output with auditable execution provenance."""
+
+    status: Literal["complete", "partial", "failed"] = "complete"
+    entities: list[PrivacyEntity] = Field(default_factory=list)
+    detector_runs: list[DetectorRunProvenance] = Field(default_factory=list)
+    diagnostics: dict[str, list[str]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_entity_references(self) -> DetectionResult:
+        ids = [entity.id for entity in self.entities]
+        uids = [entity.uid for entity in self.entities]
+        run_ids = {run.run_id for run in self.detector_runs}
+        if len(ids) != len(set(ids)):
+            raise ValueError("entity ids must be unique within a detection result")
+        if len(uids) != len(set(uids)):
+            raise ValueError("entity uids must be unique within a detection result")
+        missing_run_ids = {entity.run_id for entity in self.entities} - run_ids
+        if missing_run_ids:
+            raise ValueError(f"entities reference unrecorded run_id values: {sorted(missing_run_ids)}")
+        return self
+
+    def token_map(self) -> dict[str, str]:
+        """Derive identifier-to-value mapping without storing a duplicate binding list."""
+        return {entity.identifier: entity.span for entity in self.entities}
+

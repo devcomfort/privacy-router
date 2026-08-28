@@ -1,0 +1,82 @@
+from __future__ import annotations
+
+from typing import Any
+
+from .normalizer import EntityNormalizer
+from .parsers import DetectorParseError, OPFParser
+from .schemas import DetectionResult, DetectorRunProvenance, OPFDetectorRun
+
+_ADAPTER_VERSION = "privacy-router-opf-adapter-v1-0-0"
+_DETECTOR_ID = "openai-privacy-filter-v1-0-0"
+_MODEL_ID = "openai/privacy-filter"
+
+
+class OPFExtractor:
+    """Extract structural privacy entities with OpenAI Privacy Filter."""
+
+    def __init__(
+        self,
+        *,
+        opf: Any | None = None,
+        model: str | None = None,
+        device: str = "cpu",
+        decode_mode: str = "viterbi",
+        normalizer: EntityNormalizer | None = None,
+    ) -> None:
+        self._opf = opf
+        self._model = model
+        self._device = device
+        self._decode_mode = decode_mode
+        self._normalizer = normalizer or EntityNormalizer()
+
+    def extract(self, text: str) -> DetectionResult:
+        """Run OPF in typed mode and return normalized entities."""
+        opf = self._opf
+        try:
+            if opf is None:
+                opf = self._load_opf()
+            run = self._new_run()
+            raw = opf.redact(text)
+            candidates = OPFParser().parse(raw, text)
+            return self._normalizer.normalize(text, candidates, run)
+        except (DetectorParseError, ValueError, RuntimeError, TypeError) as exc:
+            run = self._new_run()
+            return self._failed(run, "OPF_BACKEND_ERROR", str(exc))
+        except Exception as exc:  # pragma: no cover - defensive optional-backend boundary
+            run = self._new_run()
+            return self._failed(run, "OPF_BACKEND_ERROR", str(exc))
+
+    def _load_opf(self) -> Any:
+        try:
+            from opf import OPF
+        except ImportError as exc:  # pragma: no cover - depends on optional installation
+            raise RuntimeError("Install OpenAI Privacy Filter to use OPFExtractor") from exc
+        return OPF(
+            model=self._model,
+            device=self._device,
+            output_mode="typed",
+            decode_mode=self._decode_mode,
+        )
+
+    def _new_run(self) -> OPFDetectorRun:
+        return OPFDetectorRun(
+            detector_type="opf",
+            detector_id=_DETECTOR_ID,
+            status="complete",
+            external_opt_in=False,
+            adapter_version=_ADAPTER_VERSION,
+            model_id=_MODEL_ID,
+            model_revision=self._model,
+            output_mode="typed",
+            decode_mode=self._decode_mode,
+        )
+
+    @staticmethod
+    def _failed(run: DetectorRunProvenance, error_code: str, message: str) -> DetectionResult:
+        failed = run.model_copy(update={"status": "failed", "error_code": error_code})
+        return DetectionResult(
+            status="failed",
+            entities=[],
+            detector_runs=[failed],
+            diagnostics={"errors": [message]},
+        )

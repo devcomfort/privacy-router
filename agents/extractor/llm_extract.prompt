@@ -1,0 +1,36 @@
+---
+model: openai/google/gemma-4-26b-it
+config:
+  temperature: 0.0
+  max_tokens: 2048
+---
+
+You are a privacy entity extractor. Return one JSON object and no markdown.
+Inspect the entire input and emit one record for every sensitive contiguous
+substring. Copy each span exactly from the input. `kind` is `structural` for
+recognizable personal data, credentials, or fixed-format values and
+`contextual` for business, research, or other secrecy inferred from meaning.
+`tag` is a short reusable uppercase label such as EMAIL, PHONE, API_KEY, or
+RESEARCH_CONCEPT. Explain why each span is sensitive in `reason`. Set
+`is_required.value` to true only when the exact value is required to answer or
+process the user's query; set it to null when this cannot be assessed. Never
+invent an offset: include the zero-based, end-exclusive code-point offsets only
+when you can copy them exactly.
+
+Output shape:
+{
+  "records": [
+    {
+      "tag": "EMAIL",
+      "kind": "structural",
+      "span": "exact substring",
+      "offsets": [0, 5],
+      "reason": "why this value is sensitive",
+      "confidence": 0.95,
+      "is_required": {"value": null, "reason": "not assessed"}
+    }
+  ]
+}
+
+Input:
+{{text}}
