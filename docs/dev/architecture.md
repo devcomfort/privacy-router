@@ -93,7 +93,7 @@ Detector adapter
 | `confidence: float \| None` | Optional detector score in `[0, 1]` |
 | `native_label: str \| None` | Original backend label before normalization |
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
-| `provenance` | Discriminated backend and version information |
+| `run_id: UUID` | Reference to the detector execution that produced this entity |
 
 The externally visible identifier is computed, not persisted:
 
@@ -108,9 +108,9 @@ normalizer issues a new value for every retained occurrence, checks collisions
 within the current extraction result, and does not deduplicate equal values by
 content.
 
-`provenance` is discriminated by `detector_type`. Every subtype requires a
-full kebab-case `detector_id` containing its implementation version, for
-example:
+`DetectorRunProvenance` is stored at result level, not only on entities. It is
+a discriminated union identified by `detector_type`, and every run requires a
+full kebab-case `detector_id` containing its implementation version:
 
 ```text
 llm:     privacy-router-llm-extractor-v1-0-0
@@ -119,18 +119,27 @@ opf:     openai-privacy-filter-v1-0-0
 lfm:     liquidai-lfm2-5-encoder-350m-pii-detector-v1-0-0
 ```
 
-The subtype may additionally record its model revision, recognizer name,
-prompt revision, or decoder revision. `reason` and `confidence` remain
-optional because OPF, Presidio, and LFM do not expose the same evidence as the
-LLM extractor.
+Each run records its `run_id`, `status` (`complete`, `partial`, or `failed`),
+`external_opt_in`, adapter version, and backend-specific model/configuration
+revision. LLM runs may also record the model and prompt revision; Presidio
+runs may record the recognizer; LFM runs may record the decoder revision.
 
-`DetectionResult` contains the entity list, a complete/partial/failed status,
-and diagnostics. It does not contain a second `uid → value` copy. A
-token-to-value mapping is derived from each entity's `uid` and `span` by a
-consumer-owned helper or storage adapter. The raw span may enter the trusted
-local detector, but must never enter telemetry. The LLM extractor is
-local-only by default; sending raw input to an external model requires
-explicit per-request opt-in and must be recorded in provenance.
+`DetectionResult.detector_runs` is populated even when a detector returns zero
+entities or fails. An entity's `run_id` points to the exact run that produced
+it. This preserves clean-negative and failed-run auditability without
+duplicating provenance on every entity.
+
+`reason` and `confidence` remain optional because OPF, Presidio, and LFM do
+not expose the same evidence as the LLM extractor.
+
+`DetectionResult` contains `detector_runs`, the entity list, a
+complete/partial/failed status, and diagnostics. It does not contain a second
+`uid → value` copy. A token-to-value mapping is derived from each entity's
+`uid` and `span` by a consumer-owned helper or storage adapter. The raw span
+may enter the trusted local detector, but must never enter telemetry. The LLM
+extractor is local-only by default; sending raw input to an external model
+requires explicit per-request opt-in, recorded on the detector run, and
+otherwise fails closed.
 
 ## Implementation Decisions Remaining
 
