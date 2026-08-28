@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable, Sequence
-from typing import TypeAlias
 from uuid import UUID, uuid4
 
 from .parser import ParsedEntity
 from .schemas import DetectionResult, DetectorRunProvenance, PrivacyEntity
 
-
-UidFactory: TypeAlias = Callable[[], str]
-IdFactory: TypeAlias = Callable[[], UUID]
+type UidFactory = Callable[[], str]
+type IdFactory = Callable[[], UUID]
 
 
 class SpanReconciliationError(ValueError):

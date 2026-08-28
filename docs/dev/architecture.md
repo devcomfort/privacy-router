@@ -95,6 +95,7 @@ Detector adapter
 | `native_metadata` | Backend-specific metadata, including recognizer identity |
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
 | `run_id: UUID` | Reference to the detector execution that produced this entity |
+| `is_required` | Nested assessment with `value: bool \| None` and optional reason |
 
 The externally visible identifier is computed, not persisted:
 
@@ -161,6 +162,23 @@ Before adding all adapters, the following decisions must be frozen:
 5. The LLM trust policy: local-only by default; raw-input extraction by an
    external model is permitted only with explicit opt-in, otherwise it fails
    closed.
+
+## Optional Detector Installation
+
+The base installation contains the LiteLLM-backed LLM extractor. Install the
+rule/model detector extras with:
+
+```bash
+uv sync --extra privacy-detectors --extra local-inference
+```
+
+`privacy-detectors` installs `presidio-analyzer` and the OpenAI Privacy Filter
+package from the immutable git revision
+`f7f00ca7fb869683eb732c010299d901457f19c3`. `local-inference` supplies the
+Transformers/PyTorch runtime used by LFM2.5. The LFM adapter pins model files
+and decoder helpers to revision
+`b8c9cf3d2d6ae52501b35a27ba46f271449c9ce2`; it enables
+`trust_remote_code=True` only for that pinned revision.
 
 ## Middle-Man Architecture
 

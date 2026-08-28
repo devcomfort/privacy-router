@@ -4,7 +4,6 @@ from typing import Any
 
 from agents.extractor.llm_extractor import LLMExtractor
 
-
 TEXT = "문의: synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"
 LOCAL_BASE = "http://127.0.0.1:8000/v1"

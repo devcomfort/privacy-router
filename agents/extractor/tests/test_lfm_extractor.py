@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
 from agents.extractor.lfm_extractor import LFMExtractor
 
-
 TEXT = "문의: synthetic@example.invalid"
 
 
 def test_lfm_decoded_span_maps_native_label_and_score():
-    predictor = lambda text: [{"label": "contact.email", "start": 4, "end": 29, "score": 0.91}]
+    def predictor(_: str) -> list[dict[str, object]]:
+        return [{"label": "contact.email", "start": 4, "end": 29, "score": 0.91}]
 
     result = LFMExtractor(
         predictor=predictor,

@@ -8,7 +8,6 @@ from agents.extractor.normalizer import EntityNormalizer, SpanReconciliationErro
 from agents.extractor.parser import ParsedEntity
 from agents.extractor.schemas import LLMDetectorRun, Requiredness
 
-
 TEXT = "send synthetic@example.invalid then synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"
 

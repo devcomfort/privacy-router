@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+
+from pydantic import BaseModel, Field
 
 from agents.llm import call_llm_structured, load_prompt, render_prompt
 from config import is_trusted_local_api_base, load_config
-from pydantic import BaseModel, Field
 
 from .normalizer import EntityNormalizer
-from .parser import ParsedEntity
 from .parsers import DetectorParseError, LLMParser
 from .schemas import (
     DetectionResult,

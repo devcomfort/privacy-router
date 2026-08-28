@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib.util
 import sys
 from collections.abc import Callable
-from typing import Any
 
 from .normalizer import EntityNormalizer
 from .parsers import DetectorParseError, LFMParser

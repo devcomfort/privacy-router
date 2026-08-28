@@ -14,7 +14,6 @@ from agents.extractor.parsers import (
 )
 from agents.extractor.schemas import Requiredness
 
-
 TEXT = "문의: synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"
 
@@ -42,6 +41,14 @@ def test_llm_parser_preserves_reason_and_requiredness():
     assert entity.reason == "개인 연락처 정보"
     assert entity.is_required == Requiredness(value=True, reason="응답에 실제 주소가 필요함")
 
+
+
+def test_llm_parser_rejects_unknown_kind():
+    with pytest.raises(DetectorParseError, match="kind"):
+        LLMParser().parse(
+            {"records": [{"tag": "EMAIL", "kind": "unknown", "span": SPAN}]},
+            TEXT,
+        )
 
 @dataclass
 class FakePresidioResult:
@@ -135,3 +142,26 @@ def test_lfm_parser_maps_dotted_native_label():
 def test_parser_rejects_malformed_payload():
     with pytest.raises(DetectorParseError):
         OPFParser().parse({"detected_spans": [{"label": "private_email"}]}, TEXT)
+
+
+@pytest.mark.parametrize(
+    ("label", "expected"),
+    [
+        ("private_address", "ADDRESS"),
+        ("private_phone", "PHONE"),
+        ("private_url", "URL"),
+        ("private_date", "DATE"),
+        ("account_number", "ACCOUNT_NUMBER"),
+        ("credential.private_key", "PRIVATE_KEY"),
+        ("identity.national_id", "NATIONAL_ID"),
+        ("contact.address", "ADDRESS"),
+        ("financial.credit_card", "CREDIT_CARD"),
+        ("healthcare.condition", "HEALTH_CONDITION"),
+        ("org.company_name", "COMPANY_NAME"),
+        ("legal.case_number", "CASE_NUMBER"),
+    ],
+)
+def test_backend_labels_map_to_shared_tags(label: str, expected: str):
+    [entity] = LFMParser().parse([{"label": label, "start": 0, "end": len(SPAN)}], SPAN)
+
+    assert entity.tag == expected

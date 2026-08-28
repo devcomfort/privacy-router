@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-
 from agents.extractor.opf_extractor import OPFExtractor
-
 
 TEXT = "문의: synthetic@example.invalid"
 

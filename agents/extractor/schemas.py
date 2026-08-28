@@ -12,6 +12,7 @@ relevant, ``examples`` to fully document the contract.
 from __future__ import annotations
 
 import secrets
+from collections.abc import Iterable
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 

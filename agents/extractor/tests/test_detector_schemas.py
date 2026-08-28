@@ -7,7 +7,6 @@ from pydantic import ValidationError
 
 from agents.extractor.schemas import DetectionResult, LLMDetectorRun, PrivacyEntity, Requiredness
 
-
 RUN_ID = uuid4()
 
 
