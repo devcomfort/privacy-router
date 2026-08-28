@@ -63,6 +63,86 @@ Judge (rule-based) — injected by Router
 
 Router — policy → execution path mapping
 ```
+## Detector Contract (approved design; implementation pending)
+
+The existing `ExtractorCore` is the compatibility starting point for this
+contract and will be adapted to emit the common type. The detector layer will
+normalize LLM, Presidio, OpenAI Privacy Filter (OPF), and LFM2.5 outputs into
+one privacy entity type. Detection does not perform policy judgment, masking,
+unmasking, or persistence.
+
+```text
+Detector adapter
+  → validate exact span and offsets
+  → normalize kind and tag
+  → issue an occurrence-specific uid
+  → return PrivacyEntity
+```
+
+`PrivacyEntity` fields:
+
+| Field | Meaning |
+|---|---|
+| `id: UUID` | Internal identity of this entity record |
+| `kind: "contextual" \| "structural"` | Why the value is privacy-relevant |
+| `tag: str` | Canonical short label, such as `EMAIL` or `API_KEY` |
+| `uid: str` | 128-bit random occurrence token generated with `secrets` |
+| `span: str` | Exact sensitive substring from the input |
+| `offsets: tuple[int, int]` | `(start, end)`, zero-based, end-exclusive Unicode code-point offsets |
+| `reason: str \| None` | Optional explanation from the detector |
+| `confidence: float \| None` | Optional detector score in `[0, 1]` |
+| `native_label: str \| None` | Original backend label before normalization |
+| `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
+| `provenance` | Discriminated backend and version information |
+
+The externally visible identifier is computed, not persisted:
+
+```python
+@property
+def identifier(self) -> str:
+    return f"{self.tag}#{self.uid}"
+```
+
+`uid` is an opaque random token, not a cryptographic hash of `span`. The
+normalizer issues a new value for every retained occurrence, checks collisions
+within the current extraction result, and does not deduplicate equal values by
+content.
+
+`provenance` is discriminated by `detector_type`. Every subtype requires a
+full kebab-case `detector_id` containing its implementation version, for
+example:
+
+```text
+llm:     privacy-router-llm-extractor-v1-0-0
+presidio: microsoft-presidio-analyzer-v2-2-358
+opf:     openai-privacy-filter-v1-0-0
+lfm:     liquidai-lfm2-5-encoder-350m-pii-detector-v1-0-0
+```
+
+The subtype may additionally record its model revision, recognizer name,
+prompt revision, or decoder revision. `reason` and `confidence` remain
+optional because OPF, Presidio, and LFM do not expose the same evidence as the
+LLM extractor.
+
+`DetectionResult` contains the entity list, a complete/partial/failed status,
+and diagnostics. It does not contain a second `uid → value` copy. A
+token-to-value mapping is derived from each entity's `uid` and `span` by a
+consumer-owned helper or storage adapter. The raw span may enter the trusted
+local detector, but must never enter telemetry or an untrusted external model
+input.
+
+## Implementation Decisions Remaining
+
+Before adding all adapters, the following decisions must be frozen:
+
+1. The canonical `tag` vocabulary and each backend's native-label mapping.
+2. Merge and overlap rules when multiple detectors return the same or
+   overlapping offsets.
+3. Failure behavior for `partial` and `failed` results; these must not be
+   interpreted as a clean no-detection result.
+4. The persistence boundary for consumer-owned `uid → span` storage.
+5. The trusted-backend rule for the LLM extractor; raw input must not go to an
+   external model before privacy analysis unless explicitly allowed.
 
 ## Middle-Man Architecture
 
@@ -213,6 +293,11 @@ PII, phone numbers, emails, real names — detectable by pattern.
 Business secrets, research ideas, strategy, budgets, internal URLs — requires contextual understanding.
 - Accuracy: 62.5% (Gemma4 E4B)
 
+`kind` describes the privacy property of the value, not the mechanism that
+found it. A structural entity may be detected by a regex, NER model, or token
+classifier; a contextual entity is normally detected by an LLM or another
+context-aware detector. `detection_method` records that mechanism separately.
+
 ## Prompts
 
 | File | Location | Purpose |
@@ -294,3 +379,25 @@ Without mocking, a test failure cannot distinguish "code bug" from "LLM variatio
 - [Config files](config-files.md) — YAML and DB configuration structure
 - [Integration architecture](integration-architecture.md) — Hermes Agent, OpenCode, LiteLLM integration
 - [Security](../user/security.md) — threat model and encryption
+
+## Change Log
+
+- 2026-08-28 — approved the detector abstraction around `PrivacyEntity`,
+  occurrence-specific opaque `uid` values, computed `tag#uid` identifiers,
+  and discriminated detector provenance. This separates extraction from
+  policy, masking, unmasking, and consumer-owned persistence.
+
+## Impact Surface
+
+- Code: `agents/extractor/` will add the common Pydantic contract and
+  backend adapters; current `ExtractorCore` remains the compatibility source.
+- Skills: none.
+- Docs: this architecture document is the canonical contract record.
+- Decisions: `kind` is `contextual|structural`; `uid` is a random token, not a
+  value hash; detector IDs are versioned kebab-case strings.
+- Archive/versioning: no archive; the document remains the current guidance.
+- Verification: schema validators, per-adapter normalization tests, offset
+  reconciliation, uid collision tests, and failure-state tests are required
+  before implementation is considered complete.
+- No-update rationale: masking/hydration and database persistence are
+  intentionally unchanged until their separate design phase.
