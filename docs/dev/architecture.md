@@ -128,8 +128,9 @@ LLM extractor.
 and diagnostics. It does not contain a second `uid → value` copy. A
 token-to-value mapping is derived from each entity's `uid` and `span` by a
 consumer-owned helper or storage adapter. The raw span may enter the trusted
-local detector, but must never enter telemetry or an untrusted external model
-input.
+local detector, but must never enter telemetry. The LLM extractor is
+local-only by default; sending raw input to an external model requires
+explicit per-request opt-in and must be recorded in provenance.
 
 ## Implementation Decisions Remaining
 
@@ -141,8 +142,9 @@ Before adding all adapters, the following decisions must be frozen:
 3. Failure behavior for `partial` and `failed` results; these must not be
    interpreted as a clean no-detection result.
 4. The persistence boundary for consumer-owned `uid → span` storage.
-5. The trusted-backend rule for the LLM extractor; raw input must not go to an
-   external model before privacy analysis unless explicitly allowed.
+5. The LLM trust policy: local-only by default; raw-input extraction by an
+   external model is permitted only with explicit opt-in, otherwise it fails
+   closed.
 
 ## Middle-Man Architecture
 
