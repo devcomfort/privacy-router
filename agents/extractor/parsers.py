@@ -161,7 +161,7 @@ class PresidioParser:
                     confidence=_confidence(_field(item, "score")),
                     detection_method=_presidio_method(metadata),
                     native_metadata=metadata,
-                    is_required=Requiredness(),
+                    is_required=Requiredness(value=None, reason="not assessed"),
                 )
             )
         return parsed
@@ -196,7 +196,7 @@ class OPFParser:
                     confidence=None,
                     detection_method="token_classifier",
                     native_metadata=metadata,
-                    is_required=Requiredness(),
+                    is_required=Requiredness(value=None, reason="not assessed"),
                 )
             )
         return parsed
@@ -236,7 +236,7 @@ class LFMParser:
                     confidence=_confidence(data.get("confidence", data.get("score"))),
                     detection_method="token_classifier",
                     native_metadata=metadata,
-                    is_required=Requiredness(),
+                    is_required=Requiredness(value=None, reason="not assessed"),
                 )
             )
         return parsed
@@ -328,7 +328,7 @@ def _requiredness(value: object) -> Requiredness:
         return value
     if isinstance(value, Mapping):
         return Requiredness.model_validate(value)
-    return Requiredness()
+    return Requiredness(value=None, reason="not assessed")
 
 
 def _kind(value: object, *, default: str) -> str:

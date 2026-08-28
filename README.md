@@ -156,9 +156,9 @@ docker exec privacy-router-hermes-1 hermes -z "내 주민등록번호가 뭐야?
 <!-- 2026-08-28: Plan only; no runtime implementation change. -->
 ## Planned Component Replacement
 
-This section records future work only. The current runtime remains unchanged
-until the new detector components, parsers, normalizer, token handling, and
-unit tests are complete.
+This section records future work only. The current Judge/Router runtime remains
+unchanged; the new detector components are implemented independently and will
+be cut over only after the later policy and masking work.
 
 1. Replace the current `ExtractorCore`/`Extractor`/`Critic` path with a
    backend-independent extraction contract implemented by the LiteLLM-backed
@@ -172,8 +172,8 @@ unit tests are complete.
 4. Remove obsolete compatibility fields, callers, tests, and documentation in
    the same cutover; do not maintain two competing runtime contracts.
 
-No Judge or Router implementation is changed by this plan entry. Reassess
-this section only after the new component suite and its unit tests are green.
+No Judge or Router implementation is changed by this plan entry. Reassess this
+section after the policy, masking, and routing replacement design is complete.
 
 
 ### Detection Examples

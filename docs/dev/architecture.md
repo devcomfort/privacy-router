@@ -63,13 +63,14 @@ Judge (rule-based) — injected by Router
 
 Router — policy → execution path mapping
 ```
-## Detector Contract (approved design; implementation pending)
+## Detector Contract (implemented detector layer)
 
-The existing `ExtractorCore` is the compatibility starting point for this
-contract and will be adapted to emit the common type. The detector layer will
-normalize LLM, Presidio, OpenAI Privacy Filter (OPF), and LFM2.5 outputs into
-one privacy entity type. Detection does not perform policy judgment, masking,
-unmasking, or persistence.
+The backend-independent detector contract is implemented in `agents/extractor`.
+The current `ExtractorCore`/`Extractor` path remains the compatibility surface
+for the existing Judge and Router until their planned cutover. The detector
+layer normalizes LLM, Presidio, OpenAI Privacy Filter (OPF), and LFM2.5 outputs
+into one privacy entity type. Detection does not perform policy judgment,
+masking, unmasking, or persistence.
 
 ```text
 Detector adapter
@@ -94,8 +95,7 @@ Detector adapter
 | `native_label: str \| None` | Original backend label before normalization |
 | `native_metadata` | Backend-specific metadata, including recognizer identity |
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
-| `run_id: UUID` | Reference to the detector execution that produced this entity |
-| `is_required` | Nested assessment with `value: bool \| None` and optional reason |
+| `is_required` | Nested assessment: `value` is `true`, `false`, or `null`; `reason` is required for every state |
 
 The externally visible identifier is computed, not persisted:
 
@@ -142,16 +142,17 @@ not expose the same evidence as the LLM extractor.
 
 `DetectionResult` contains `detector_runs`, the entity list, a
 complete/partial/failed status, and diagnostics. It does not contain a second
-`uid → value` copy. A token-to-value mapping is derived from each entity's
-`uid` and `span` by a consumer-owned helper or storage adapter. The raw span
-may enter the trusted local detector, but must never enter telemetry. The LLM
+`uid → value` storage copy. The result exposes a derived `identifier → span`
+mapping through a consumer-owned helper or storage adapter. The raw span may
+enter the trusted local detector, but must never enter telemetry. The LLM
 extractor is local-only by default; sending raw input to an external model
 requires explicit per-request opt-in, recorded on the detector run, and
 otherwise fails closed.
 
-## Implementation Decisions Remaining
+## Follow-up Cutover Decisions
 
-Before adding all adapters, the following decisions must be frozen:
+The initial detector adapters are implemented. Before replacing the current
+pipeline, the following decisions must be frozen:
 
 1. The canonical `tag` vocabulary and each backend's native-label mapping.
 2. Merge and overlap rules when multiple detectors return the same or
@@ -418,22 +419,22 @@ Without mocking, a test failure cannot distinguish "code bug" from "LLM variatio
 
 ## Change Log
 
-- 2026-08-28 — approved the detector abstraction around `PrivacyEntity`,
+- 2026-08-28 — implemented the detector abstraction around `PrivacyEntity`,
   occurrence-specific opaque `uid` values, computed `tag#uid` identifiers,
-  and discriminated detector provenance. This separates extraction from
-  policy, masking, unmasking, and consumer-owned persistence.
+  result-level discriminated detector provenance, and nested requiredness.
+  Judge, Router, and current pipeline callers remain unchanged by design.
 
 ## Impact Surface
 
-- Code: `agents/extractor/` will add the common Pydantic contract and
-  backend adapters; current `ExtractorCore` remains the compatibility source.
+- Code: `agents/extractor/` now contains the common Pydantic contract,
+  normalizer, parsers, four backend adapters, registry, and unit tests.
 - Skills: none.
 - Docs: this architecture document is the canonical contract record.
 - Decisions: `kind` is `contextual|structural`; `uid` is a random token, not a
-  value hash; detector IDs are versioned kebab-case strings.
+  value hash; detector IDs are versioned kebab-case strings; LLM external
+  opt-in is request-scoped.
 - Archive/versioning: no archive; the document remains the current guidance.
-- Verification: schema validators, per-adapter normalization tests, offset
-  reconciliation, uid collision tests, and failure-state tests are required
-  before implementation is considered complete.
-- No-update rationale: masking/hydration and database persistence are
+- Verification: detector and core agent unit tests pass; optional detector
+  package import smoke passes without loading model weights.
+- No-update rationale: masking/hydration and policy/routing replacement are
   intentionally unchanged until their separate design phase.

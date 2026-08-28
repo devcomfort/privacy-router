@@ -12,10 +12,12 @@ recognizable personal data, credentials, or fixed-format values and
 `contextual` for business, research, or other secrecy inferred from meaning.
 `tag` is a short reusable uppercase label such as EMAIL, PHONE, API_KEY, or
 RESEARCH_CONCEPT. Explain why each span is sensitive in `reason`. Set
-`is_required.value` to true only when the exact value is required to answer or
-process the user's query; set it to null when this cannot be assessed. Never
-invent an offset: include the zero-based, end-exclusive code-point offsets only
-when you can copy them exactly.
+`is_required.value` to true when the exact value is necessary to answer or
+process the user's query, false when the task remains answerable without that
+exact value, and null only when this detector cannot assess the requirement.
+Always explain the selected true, false, or null state in `is_required.reason`.
+Never invent an offset: include the zero-based, end-exclusive code-point
+offsets only when you can copy them exactly.
 
 Output shape:
 {

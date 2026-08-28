@@ -75,3 +75,9 @@ def test_token_map_is_derived_from_entities():
 def test_duplicate_uid_is_rejected_by_result():
     with pytest.raises(ValidationError):
         DetectionResult(entities=[make_entity(), make_entity(id=uuid4())], detector_runs=[make_run()])
+
+
+@pytest.mark.parametrize("value", [True, False, None])
+def test_requiredness_requires_a_reason_for_every_state(value: bool | None):
+    with pytest.raises(ValidationError, match="reason"):
+        Requiredness(value=value)

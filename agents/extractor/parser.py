@@ -19,7 +19,9 @@ class ParsedEntity(BaseModel):
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     detection_method: Literal["regex", "ner", "token_classifier", "llm", "hybrid"]
     native_metadata: dict[str, Any] = Field(default_factory=dict)
-    is_required: Requiredness = Field(default_factory=Requiredness)
+    is_required: Requiredness = Field(
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
+    )
 
 
 class DetectorParser(Protocol):

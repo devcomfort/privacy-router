@@ -287,6 +287,12 @@ class Requiredness(BaseModel):
         description="Why the entity is or is not required.",
     )
 
+    @model_validator(mode="after")
+    def require_reason(self) -> Requiredness:
+        if not self.reason or not self.reason.strip():
+            raise ValueError("is_required.reason is required for every value state")
+        return self
+
 
 class PrivacyEntity(BaseModel):
     """One normalized privacy-relevant text entity."""
@@ -322,7 +328,7 @@ class PrivacyEntity(BaseModel):
     )
     run_id: UUID = Field(..., description="Detector run that produced this entity.")
     is_required: Requiredness = Field(
-        default_factory=Requiredness,
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
         description="Whether this entity is required for the query's response or processing.",
     )
 

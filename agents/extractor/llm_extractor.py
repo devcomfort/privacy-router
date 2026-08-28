@@ -32,7 +32,9 @@ class LLMRecord(BaseModel):
     offsets: tuple[int, int] | None = None
     reason: str | None = None
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
-    is_required: Requiredness = Field(default_factory=Requiredness)
+    is_required: Requiredness = Field(
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
+    )
 
 
 class LLMExtractionOutput(BaseModel):

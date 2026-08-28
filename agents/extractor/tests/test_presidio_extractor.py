@@ -89,7 +89,7 @@ def test_presidio_does_not_invent_requiredness():
     result = PresidioExtractor(analyzer=analyzer).extract("홍길동")
 
     assert result.entities[0].is_required.value is None
-    assert result.entities[0].is_required.reason is None
+    assert result.entities[0].is_required.reason == "not assessed"
 
 
 def test_presidio_failure_is_a_failed_run():
