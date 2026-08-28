@@ -54,7 +54,6 @@ class LLMExtractor:
         api_base: str | None = None,
         prompt_path: str | Path | None = None,
         max_tokens: int | None = None,
-        allow_external: bool = False,
         call_structured: StructuredCall | None = None,
         normalizer: EntityNormalizer | None = None,
     ) -> None:
@@ -64,17 +63,16 @@ class LLMExtractor:
         self._model = model or decision.model or prompt["model"]
         self._api_base = api_base if api_base is not None else decision.api_base
         self._max_tokens = max_tokens if max_tokens is not None else decision.config.max_tokens
-        self._allow_external = allow_external
         self._call_structured = call_structured or call_llm_structured
         self._normalizer = normalizer or EntityNormalizer()
         self._template = prompt["template"]
 
-    def extract(self, text: str) -> DetectionResult:
+    def extract(self, text: str, *, allow_external: bool = False) -> DetectionResult:
         """Return normalized entities and the provenance of this detector run."""
         local = is_trusted_local_api_base(self._api_base)
-        run = self._new_run(external_opt_in=bool(self._allow_external and not local))
+        run = self._new_run(external_opt_in=bool(allow_external and not local))
 
-        if not local and not self._allow_external:
+        if not local and not allow_external:
             return self._failed(run, "EXTERNAL_BACKEND_NOT_ALLOWED", "External raw-input extraction requires explicit opt-in.")
         if not text or not text.strip():
             return DetectionResult(detector_runs=[run])

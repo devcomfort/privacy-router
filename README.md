@@ -152,6 +152,7 @@ docker exec privacy-router-hermes-1 hermes -z "내 주민등록번호가 뭐야?
 ## How It Works: Extractor → Judge → Router
 
 ![Privacy Router protection flow: every prompt is checked locally. Safe prompts go as raw text to an external LLM; maskable prompts go as placeholders and are restored locally; essential or uncertain prompts remain local.](assets/generated/privacy-router-consumer-flow.svg)
+
 <!-- 2026-08-28: Plan only; no runtime implementation change. -->
 ## Planned Component Replacement
 

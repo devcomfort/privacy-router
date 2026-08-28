@@ -60,16 +60,37 @@ def test_llm_extractor_rejects_external_raw_input_without_opt_in():
     assert result.detector_runs[0].status == "failed"
 
 
-def test_llm_extractor_allows_external_raw_input_only_with_opt_in():
+def test_llm_extractor_allows_external_raw_input_only_with_request_opt_in():
     result = LLMExtractor(
         model="openai/gpt-4o-mini",
         api_base=REMOTE_BASE,
-        allow_external=True,
         call_structured=llm_output,
-    ).extract(TEXT)
+    ).extract(TEXT, allow_external=True)
 
     assert result.status == "complete"
     assert result.detector_runs[0].external_opt_in is True
+
+
+def test_external_opt_in_does_not_persist_between_requests():
+    calls: list[int] = []
+
+    def record_call(*_: Any, **__: Any) -> dict[str, object]:
+        calls.append(1)
+        return llm_output()
+
+    extractor = LLMExtractor(
+        model="openai/gpt-4o-mini",
+        api_base=REMOTE_BASE,
+        call_structured=record_call,
+    )
+
+    allowed = extractor.extract(TEXT, allow_external=True)
+    denied = extractor.extract(TEXT)
+
+    assert allowed.status == "complete"
+    assert denied.status == "failed"
+    assert denied.detector_runs[0].external_opt_in is False
+    assert calls == [1]
 
 
 def test_llm_extractor_records_backend_failure():
