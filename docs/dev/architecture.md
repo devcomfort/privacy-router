@@ -110,6 +110,11 @@ normalizer issues a new value for every retained occurrence, checks collisions
 within the current extraction result, and does not deduplicate equal values by
 content.
 
+Valid supplied offsets are authoritative even when two recognizers report the
+same range or overlapping ranges; each retained evidence item receives its
+own `uid`. Only candidates without valid offsets are assigned to the next
+unused exact occurrence of their span.
+
 `DetectorRunProvenance` is stored at result level, not only on entities. It is
 a discriminated union identified by `detector_type`, and every run requires a
 full kebab-case `detector_id` containing its implementation version:
@@ -155,8 +160,8 @@ The initial detector adapters are implemented. Before replacing the current
 pipeline, the following decisions must be frozen:
 
 1. The canonical `tag` vocabulary and each backend's native-label mapping.
-2. Merge and overlap rules when multiple detectors return the same or
-   overlapping offsets.
+2. Cross-detector merge and overlap rules; same-run duplicate supplied offsets
+   are preserved as separate evidence by the normalizer.
 3. Failure behavior for `partial` and `failed` results; these must not be
    interpreted as a clean no-detection result.
 4. The persistence boundary for consumer-owned `uid → span` storage.

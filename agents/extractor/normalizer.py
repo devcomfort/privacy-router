@@ -73,7 +73,7 @@ class EntityNormalizer:
     ) -> tuple[int, int]:
         span = candidate.span
         supplied = candidate.offsets
-        if supplied is not None and self._matches(text, span, supplied) and supplied not in used_offsets:
+        if supplied is not None and self._matches(text, span, supplied):
             used_offsets.add(supplied)
             return supplied
 

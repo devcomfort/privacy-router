@@ -66,3 +66,15 @@ def test_result_entities_reference_their_detector_run():
     result = EntityNormalizer().normalize(TEXT, [candidate()], make_run())
 
     assert result.entities[0].run_id == result.detector_runs[0].run_id
+
+
+def test_duplicate_supplied_offsets_preserve_same_occurrence_evidence():
+    text = "x secret y secret"
+    first = candidate("secret", offsets=(2, 8))
+    second = candidate("secret", offsets=(2, 8)).model_copy(update={"native_label": "SECOND_RECOGNIZER"})
+
+    result = EntityNormalizer().normalize(text, [first, second], make_run())
+
+    assert [entity.offsets for entity in result.entities] == [(2, 8), (2, 8)]
+    assert len({entity.uid for entity in result.entities}) == 2
+    assert result.entities[1].native_label == "SECOND_RECOGNIZER"
