@@ -92,6 +92,7 @@ Detector adapter
 | `reason: str \| None` | Optional explanation from the detector |
 | `confidence: float \| None` | Optional detector score in `[0, 1]` |
 | `native_label: str \| None` | Original backend label before normalization |
+| `native_metadata` | Backend-specific metadata, including recognizer identity |
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
 | `run_id: UUID` | Reference to the detector execution that produced this entity |
 
@@ -122,7 +123,13 @@ lfm:     liquidai-lfm2-5-encoder-350m-pii-detector-v1-0-0
 Each run records its `run_id`, `status` (`complete`, `partial`, or `failed`),
 `external_opt_in`, adapter version, and backend-specific model/configuration
 revision. LLM runs may also record the model and prompt revision; Presidio
-runs may record the recognizer; LFM runs may record the decoder revision.
+runs record the configured recognizer list; LFM runs may record the decoder
+revision.
+
+For Presidio, one analyzer run may produce entities from multiple recognizers.
+The run-level provenance therefore preserves the configured recognizer list,
+while each entity's `native_metadata` preserves the result-level
+`recognizer_name` and `recognizer_identifier` when supplied.
 
 `DetectionResult.detector_runs` is populated even when a detector returns zero
 entities or fails. An entity's `run_id` points to the exact run that produced
