@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import sys
 from collections.abc import Callable
+from threading import Lock
 
 from .normalizer import EntityNormalizer
 from .parsers import DetectorParseError, LFMParser
@@ -30,6 +31,7 @@ class LFMExtractor:
         normalizer: EntityNormalizer | None = None,
     ) -> None:
         self._predictor = predictor
+        self._predictor_lock = Lock()
         self._model_id = model_id
         self._model_revision = model_revision
         self._decoder_revision = decoder_revision
@@ -39,7 +41,7 @@ class LFMExtractor:
     def extract(self, text: str) -> DetectionResult:
         """Run LFM decoding and return normalized detector output."""
         try:
-            predictor = self._predictor or self._load_predictor()
+            predictor = self._get_predictor()
             run = self._new_run()
             candidates = LFMParser().parse(predictor(text), text)
             return self._normalizer.normalize(text, candidates, run)
@@ -49,6 +51,17 @@ class LFMExtractor:
         except Exception as exc:  # pragma: no cover - defensive optional-backend boundary
             run = self._new_run()
             return self._failed(run, "LFM_BACKEND_ERROR", str(exc))
+
+    def _get_predictor(self) -> Predictor:
+        predictor = self._predictor
+        if predictor is not None:
+            return predictor
+        with self._predictor_lock:
+            predictor = self._predictor
+            if predictor is None:
+                predictor = self._load_predictor()
+                self._predictor = predictor
+        return predictor
 
     def _load_predictor(self) -> Predictor:
         try:

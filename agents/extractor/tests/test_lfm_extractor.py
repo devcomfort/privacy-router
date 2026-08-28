@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
@@ -117,3 +118,26 @@ def test_lfm_default_loader_pins_revision_and_enables_trusted_code(monkeypatch):
     ]
     assert tokenizer_calls == [{"revision": revision, "trust_remote_code": True}]
     assert model_calls == [{"revision": revision, "trust_remote_code": True}]
+
+
+def test_lfm_loader_is_cached_between_extract_calls(monkeypatch):
+    calls = 0
+    extractor = LFMExtractor()
+
+    def load_predictor() -> Callable[[str], list[dict[str, object]]]:
+        nonlocal calls
+        calls += 1
+
+        def predict(_: str) -> list[dict[str, object]]:
+            return []
+
+        return predict
+
+    monkeypatch.setattr(extractor, "_load_predictor", load_predictor)
+
+    first = extractor.extract("no sensitive data")
+    second = extractor.extract("still no sensitive data")
+
+    assert first.status == "complete"
+    assert second.status == "complete"
+    assert calls == 1

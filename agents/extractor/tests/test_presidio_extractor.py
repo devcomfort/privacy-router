@@ -103,3 +103,23 @@ def test_presidio_failure_is_a_failed_run():
     assert result.entities == []
     assert result.detector_runs[0].status == "failed"
     assert result.detector_runs[0].error_code == "PRESIDIO_BACKEND_ERROR"
+
+
+def test_presidio_loader_is_cached_between_extract_calls(monkeypatch):
+    calls = 0
+    analyzer = FakeAnalyzer([])
+    extractor = PresidioExtractor()
+
+    def load_analyzer() -> FakeAnalyzer:
+        nonlocal calls
+        calls += 1
+        return analyzer
+
+    monkeypatch.setattr(extractor, "_load_analyzer", load_analyzer)
+
+    first = extractor.extract("no sensitive data")
+    second = extractor.extract("still no sensitive data")
+
+    assert first.status == "complete"
+    assert second.status == "complete"
+    assert calls == 1

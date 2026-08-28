@@ -70,3 +70,23 @@ def test_opf_accepts_json_string_from_cli_boundary():
     result = OPFExtractor(opf=JsonOPF(opf_payload())).extract(TEXT)
 
     assert result.entities[0].tag == "EMAIL"
+
+
+def test_opf_loader_is_cached_between_extract_calls(monkeypatch):
+    calls = 0
+    opf = FakeOPF(opf_payload())
+    extractor = OPFExtractor()
+
+    def load_opf() -> FakeOPF:
+        nonlocal calls
+        calls += 1
+        return opf
+
+    monkeypatch.setattr(extractor, "_load_opf", load_opf)
+
+    first = extractor.extract(TEXT)
+    second = extractor.extract(TEXT)
+
+    assert first.status == "complete"
+    assert second.status == "complete"
+    assert calls == 1

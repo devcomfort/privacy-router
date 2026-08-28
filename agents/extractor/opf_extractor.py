@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from threading import Lock
 from typing import Any
 
 from .normalizer import EntityNormalizer
@@ -24,6 +25,7 @@ class OPFExtractor:
         normalizer: EntityNormalizer | None = None,
     ) -> None:
         self._opf = opf
+        self._opf_lock = Lock()
         self._model = model
         self._device = device
         self._decode_mode = decode_mode
@@ -33,8 +35,7 @@ class OPFExtractor:
         """Run OPF in typed mode and return normalized entities."""
         opf = self._opf
         try:
-            if opf is None:
-                opf = self._load_opf()
+            opf = self._get_opf()
             run = self._new_run()
             raw = opf.redact(text)
             candidates = OPFParser().parse(raw, text)
@@ -45,6 +46,17 @@ class OPFExtractor:
         except Exception as exc:  # pragma: no cover - defensive optional-backend boundary
             run = self._new_run()
             return self._failed(run, "OPF_BACKEND_ERROR", str(exc))
+
+    def _get_opf(self) -> Any:
+        opf = self._opf
+        if opf is not None:
+            return opf
+        with self._opf_lock:
+            opf = self._opf
+            if opf is None:
+                opf = self._load_opf()
+                self._opf = opf
+        return opf
 
     def _load_opf(self) -> Any:
         try:

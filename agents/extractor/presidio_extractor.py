@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from importlib.metadata import PackageNotFoundError, version
+from threading import Lock
 from typing import Any
 
 from .normalizer import EntityNormalizer
@@ -29,6 +30,7 @@ class PresidioExtractor:
         normalizer: EntityNormalizer | None = None,
     ) -> None:
         self._analyzer = analyzer
+        self._analyzer_lock = Lock()
         self._language = language
         self._entities = list(entities) if entities is not None else None
         self._normalizer = normalizer or EntityNormalizer()
@@ -37,8 +39,7 @@ class PresidioExtractor:
         """Run Presidio and return normalized detector output."""
         analyzer = self._analyzer
         try:
-            if analyzer is None:
-                analyzer = self._load_analyzer()
+            analyzer = self._get_analyzer()
             run = self._new_run(analyzer)
             raw = analyzer.analyze(
                 text=text,
@@ -54,6 +55,17 @@ class PresidioExtractor:
         except Exception as exc:  # pragma: no cover - defensive optional-backend boundary
             run = self._new_run(analyzer)
             return self._failed(run, "PRESIDIO_BACKEND_ERROR", str(exc))
+
+    def _get_analyzer(self) -> Any:
+        analyzer = self._analyzer
+        if analyzer is not None:
+            return analyzer
+        with self._analyzer_lock:
+            analyzer = self._analyzer
+            if analyzer is None:
+                analyzer = self._load_analyzer()
+                self._analyzer = analyzer
+        return analyzer
 
     @staticmethod
     def _load_analyzer() -> Any:
