@@ -152,6 +152,28 @@ docker exec privacy-router-hermes-1 hermes -z "내 주민등록번호가 뭐야?
 ## How It Works: Extractor → Judge → Router
 
 ![Privacy Router protection flow: every prompt is checked locally. Safe prompts go as raw text to an external LLM; maskable prompts go as placeholders and are restored locally; essential or uncertain prompts remain local.](assets/generated/privacy-router-consumer-flow.svg)
+<!-- 2026-08-28: Plan only; no runtime implementation change. -->
+## Planned Component Replacement
+
+This section records future work only. The current runtime remains unchanged
+until the new detector components, parsers, normalizer, token handling, and
+unit tests are complete.
+
+1. Replace the current `ExtractorCore`/`Extractor`/`Critic` path with a
+   backend-independent extraction contract implemented by the LiteLLM-backed
+   LLM extractor, Presidio, OpenAI Privacy Filter, and LFM2.5 adapters.
+2. Retire the current `Judge`, `Router`, and `MiddleMan` components after the
+   replacement pipeline is complete. They are deterministic heuristic policy
+   and execution code, not autonomous agents.
+3. Revisit the policy and routing layer after extraction and masking work is
+   complete, using the separate task/privacy/cost routing design rather than
+   preserving the current heuristic component boundaries.
+4. Remove obsolete compatibility fields, callers, tests, and documentation in
+   the same cutover; do not maintain two competing runtime contracts.
+
+No Judge or Router implementation is changed by this plan entry. Reassess
+this section only after the new component suite and its unit tests are green.
+
 
 ### Detection Examples
 
