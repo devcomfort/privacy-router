@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from agents.extractor.opf_extractor import OPFExtractor
 
 TEXT = "문의: synthetic@example.invalid"
@@ -90,3 +92,12 @@ def test_opf_loader_is_cached_between_extract_calls(monkeypatch):
     assert first.status == "complete"
     assert second.status == "complete"
     assert calls == 1
+
+
+def test_injected_opf_decode_mode_is_preserved_in_provenance():
+    opf = FakeOPF(opf_payload())
+    opf._decoder_config = SimpleNamespace(decode_mode="argmax")
+
+    result = OPFExtractor(opf=opf, decode_mode="viterbi").extract(TEXT)
+
+    assert result.detector_runs[0].decode_mode == "argmax"

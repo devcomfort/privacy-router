@@ -36,15 +36,15 @@ class OPFExtractor:
         opf = self._opf
         try:
             opf = self._get_opf()
-            run = self._new_run()
+            run = self._new_run(opf)
             raw = opf.redact(text)
             candidates = OPFParser().parse(raw, text)
             return self._normalizer.normalize(text, candidates, run)
         except (DetectorParseError, ValueError, RuntimeError, TypeError) as exc:
-            run = self._new_run()
+            run = self._new_run(opf)
             return self._failed(run, "OPF_BACKEND_ERROR", str(exc))
         except Exception as exc:  # pragma: no cover - defensive optional-backend boundary
-            run = self._new_run()
+            run = self._new_run(opf)
             return self._failed(run, "OPF_BACKEND_ERROR", str(exc))
 
     def _get_opf(self) -> Any:
@@ -70,7 +70,10 @@ class OPFExtractor:
             decode_mode=self._decode_mode,
         )
 
-    def _new_run(self) -> OPFDetectorRun:
+    def _new_run(self, opf: Any | None = None) -> OPFDetectorRun:
+        decoder_config = getattr(opf, "_decoder_config", None)
+        configured_mode = getattr(decoder_config, "decode_mode", None)
+        decode_mode = configured_mode if configured_mode in {"viterbi", "argmax"} else self._decode_mode
         return OPFDetectorRun(
             detector_type="opf",
             detector_id=_DETECTOR_ID,
@@ -80,7 +83,7 @@ class OPFExtractor:
             model_id=_MODEL_ID,
             model_revision=self._model,
             output_mode="typed",
-            decode_mode=self._decode_mode,
+            decode_mode=decode_mode,
         )
 
     @staticmethod
