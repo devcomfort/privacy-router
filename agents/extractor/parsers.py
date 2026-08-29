@@ -213,7 +213,7 @@ class LFMParser:
         for index, item in enumerate(raw):
             data = _as_mapping(item)
             label = _required_string(
-                data.get("label") or data.get("entity_type") or data.get("category"),
+                data.get("label") or data.get("entity_type") or data.get("category") or data.get("type"),
                 f"LFM span {index} label",
             )
             start, end = _required_offsets(data, index)
@@ -223,7 +223,7 @@ class LFMParser:
             metadata = {
                 key: value
                 for key, value in data.items()
-                if key not in {"label", "entity_type", "category", "start", "end", "text", "span", "score", "confidence"}
+                if key not in {"label", "entity_type", "category", "type", "start", "end", "text", "span", "score", "confidence"}
             }
             parsed.append(
                 ParsedEntity(

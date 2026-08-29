@@ -139,6 +139,17 @@ def test_lfm_parser_maps_dotted_native_label():
     assert entity.confidence == 0.91
 
 
+def test_lfm_parser_accepts_official_decoder_type_field():
+    raw = [{"start": 4, "end": 24, "type": "contact.email", "text": "alex@example.invalid"}]
+
+    [entity] = LFMParser().parse(raw, "문의: alex@example.invalid")
+
+    assert entity.tag == "EMAIL"
+    assert entity.native_label == "contact.email"
+    assert entity.span == "alex@example.invalid"
+    assert entity.confidence is None
+
+
 def test_parser_rejects_malformed_payload():
     with pytest.raises(DetectorParseError):
         OPFParser().parse({"detected_spans": [{"label": "private_email"}]}, TEXT)
