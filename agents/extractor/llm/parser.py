@@ -1,3 +1,5 @@
+"""Parser for the LiteLLM extractor's structured response."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -21,6 +23,18 @@ class LLMParser:
     """Parse structured output produced by the LiteLLM-backed extractor."""
 
     def parse(self, raw: object, text: str) -> list[ParsedEntity]:
+        """Parse one LLM response into backend-neutral candidates.
+
+        Args:
+            raw: Structured LLM payload or Pydantic model.
+            text: Original input text used for offset context.
+
+        Returns:
+            Parsed candidates without generated entity IDs.
+
+        Raises:
+            DetectorParseError: If the payload shape is invalid.
+        """
         payload = as_mapping(raw)
         records = payload.get("records", payload.get("entities", []))
         if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):

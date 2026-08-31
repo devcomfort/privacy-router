@@ -1,3 +1,5 @@
+"""LiteLLM-backed structured LLM privacy extractor."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -54,6 +56,19 @@ class LLMExtractor:
         call_structured: StructuredCall | None = None,
         normalizer: EntityNormalizer | None = None,
     ) -> None:
+        """Configure the LLM backend and normalization dependencies.
+
+        Args:
+            model: LiteLLM model identifier. Defaults to the configured
+                decision model.
+            api_base: Provider endpoint. Trusted local endpoints are allowed
+                by default; external endpoints require request-level opt-in.
+            prompt_path: Optional path to the structured extraction prompt.
+            max_tokens: Optional completion-token limit.
+            call_structured: Injectable structured-call function for tests or
+                alternate LiteLLM clients.
+            normalizer: Injectable candidate normalizer.
+        """
         prompt = load_prompt(str(prompt_path or _PROMPT_PATH))
         config = load_config()
         decision = config.decision
@@ -65,12 +80,23 @@ class LLMExtractor:
         self._template = prompt["template"]
 
     def extract(self, text: str, *, allow_external: bool = False) -> DetectionResult:
-        """Return normalized entities and the provenance of this detector run."""
+        """Extract privacy entities through the configured LLM.
+
+        Args:
+            text: Original input text.
+            allow_external: Per-request opt-in for sending raw text to an
+                untrusted external endpoint.
+
+        Returns:
+            Normalized entities, run provenance, and diagnostics.
+        """
         local = is_trusted_local_api_base(self._api_base)
         run = self._new_run(external_opt_in=bool(allow_external and not local))
 
         if not local and not allow_external:
-            return self._failed(run, "EXTERNAL_BACKEND_NOT_ALLOWED", "External raw-input extraction requires explicit opt-in.")
+            return self._failed(
+                run, "EXTERNAL_BACKEND_NOT_ALLOWED", "External raw-input extraction requires explicit opt-in."
+            )
         if not text or not text.strip():
             return DetectionResult(detector_runs=[run])
 

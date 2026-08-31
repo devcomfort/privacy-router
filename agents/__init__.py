@@ -5,7 +5,8 @@ of deep submodule paths.
 
 Public API (convenience re-exports)
 ------------------------------------
-From agents.extractor: Critic, Extractor, ExtractorCore, ExtractionResult, ExtractionRecord, Sensitivity, extract
+From agents.extractor: detector contract, four backend adapters, registry,
+  and current compatibility types
 From agents.masker:    Masker, ContractStore, MaskingContract, encrypt_field, decrypt_field
 From agents.router:    PrivacyRouter, PipelineResult, RouteResult, MiddleManAgent, RecordOverride, RoutingStrategy, UserAction, UserDecision
 From agents.judge:     Judge, Judgment

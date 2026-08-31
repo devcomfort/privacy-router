@@ -1,3 +1,5 @@
+"""Parser for typed OpenAI Privacy Filter output."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -19,6 +21,18 @@ class OPFParser:
     """Parse typed OpenAI Privacy Filter output without applying redaction."""
 
     def parse(self, raw: object, text: str) -> list[ParsedEntity]:
+        """Parse OPF typed spans without applying redaction.
+
+        Args:
+            raw: OPF ``RedactionResult``, mapping, or JSON string.
+            text: Original input text used to validate span offsets.
+
+        Returns:
+            Parsed structural candidates without generated entity IDs.
+
+        Raises:
+            DetectorParseError: If typed spans or offsets are invalid.
+        """
         payload = as_mapping(raw)
         spans = payload.get("detected_spans")
         if not isinstance(spans, Sequence) or isinstance(spans, (str, bytes)):

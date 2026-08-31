@@ -39,13 +39,13 @@ def test_llm_parser_preserves_reason_and_requiredness():
     assert entity.is_required == Requiredness(value=True, reason="응답에 실제 주소가 필요함")
 
 
-
 def test_llm_parser_rejects_unknown_kind():
     with pytest.raises(DetectorParseError, match="kind"):
         LLMParser().parse(
             {"records": [{"tag": "EMAIL", "kind": "unknown", "span": SPAN}]},
             TEXT,
         )
+
 
 @dataclass
 class FakePresidioResult:

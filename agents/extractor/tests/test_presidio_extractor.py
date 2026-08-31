@@ -46,7 +46,6 @@ class FakeAnalyzer:
         self.results = results
         self.calls: list[dict[str, Any]] = []
 
-
     def analyze(self, **kwargs: Any) -> list[FakePresidioResult]:
         self.calls.append(kwargs)
         return self.results

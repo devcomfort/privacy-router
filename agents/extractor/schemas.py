@@ -276,7 +276,13 @@ class CriticOutput(BaseModel):
 
 
 class Requiredness(BaseModel):
-    """Whether the entity is required to answer or process the query."""
+    """Tri-state assessment of whether a detected entity is required.
+
+    ``value=True`` means the exact value is required to answer or process the
+    query. ``value=False`` means the task can proceed without the exact value.
+    ``value=None`` means the detector did not assess the requirement. Every
+    state requires a non-empty ``reason``.
+    """
 
     value: bool | None = Field(
         default=None,
@@ -295,7 +301,12 @@ class Requiredness(BaseModel):
 
 
 class PrivacyEntity(BaseModel):
-    """One normalized privacy-relevant text entity."""
+    """Normalized privacy-relevant entity from one detector run.
+
+    The raw ``span`` is retained for trusted local processing. ``identifier``
+    is computed from ``tag`` and the occurrence-specific ``uid`` and is never
+    persisted as a duplicate field.
+    """
 
     id: UUID = Field(default_factory=uuid4, description="Internal identity of this entity record.")
     kind: Literal["contextual", "structural"] = Field(
@@ -345,9 +356,8 @@ class PrivacyEntity(BaseModel):
         return f"{self.tag}#{self.uid}"
 
 
-
 class DetectorRunBase(BaseModel):
-    """Common provenance for one detector execution."""
+    """Common fields shared by every detector execution provenance record."""
 
     run_id: UUID = Field(default_factory=uuid4)
     detector_type: str
@@ -365,7 +375,7 @@ class DetectorRunBase(BaseModel):
 
 
 class RecognizerDescriptor(BaseModel):
-    """Configured Presidio recognizer identity."""
+    """Identity metadata for one configured Presidio recognizer."""
 
     name: str
     identifier: str | None = None
@@ -373,7 +383,7 @@ class RecognizerDescriptor(BaseModel):
 
 
 class LLMDetectorRun(DetectorRunBase):
-    """Provenance for the LiteLLM-backed LLM extractor."""
+    """Execution provenance for the LiteLLM-backed LLM detector."""
 
     detector_type: Literal["llm"] = "llm"
     model_id: str
@@ -382,7 +392,7 @@ class LLMDetectorRun(DetectorRunBase):
 
 
 class PresidioDetectorRun(DetectorRunBase):
-    """Provenance for one Presidio analyzer execution."""
+    """Execution provenance for one Presidio Analyzer run."""
 
     detector_type: Literal["presidio"] = "presidio"
     configured_recognizers: list[RecognizerDescriptor] = Field(default_factory=list)
@@ -390,7 +400,7 @@ class PresidioDetectorRun(DetectorRunBase):
 
 
 class OPFDetectorRun(DetectorRunBase):
-    """Provenance for one OpenAI Privacy Filter execution."""
+    """Execution provenance for one OpenAI Privacy Filter run."""
 
     detector_type: Literal["opf"] = "opf"
     model_id: str
@@ -400,7 +410,7 @@ class OPFDetectorRun(DetectorRunBase):
 
 
 class LFMDetectorRun(DetectorRunBase):
-    """Provenance for one LFM2.5 detector execution."""
+    """Execution provenance for one LFM2.5 detector run."""
 
     detector_type: Literal["lfm"] = "lfm"
     model_id: str
@@ -416,7 +426,12 @@ DetectorRunProvenance = Annotated[
 
 
 class DetectionResult(BaseModel):
-    """Normalized detector output with auditable execution provenance."""
+    """Normalized detector output with auditable run provenance.
+
+    A failed or partial result is distinct from an empty successful result.
+    ``token_map`` derives identifier-to-span data from ``entities`` without
+    creating a second value binding store.
+    """
 
     status: Literal["complete", "partial", "failed"] = "complete"
     entities: list[PrivacyEntity] = Field(default_factory=list)
@@ -440,4 +455,3 @@ class DetectionResult(BaseModel):
     def token_map(self) -> dict[str, str]:
         """Derive identifier-to-value mapping without storing a duplicate binding list."""
         return {entity.identifier: entity.span for entity in self.entities}
-

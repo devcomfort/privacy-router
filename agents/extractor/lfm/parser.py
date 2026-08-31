@@ -1,3 +1,5 @@
+"""Parser for decoded LiquidAI LFM2.5 detector spans."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -20,6 +22,18 @@ class LFMParser:
     """Parse decoded LFM2.5 PII spans."""
 
     def parse(self, raw: object, text: str) -> list[ParsedEntity]:
+        """Parse decoded LFM2.5 spans into structural candidates.
+
+        Args:
+            raw: LFM decoder span sequence.
+            text: Original input text used to recover missing span text.
+
+        Returns:
+            Parsed structural candidates without generated entity IDs.
+
+        Raises:
+            DetectorParseError: If a decoded span is malformed.
+        """
         if not isinstance(raw, Sequence) or isinstance(raw, (str, bytes)):
             raise DetectorParseError("LFM output must be a decoded span array")
 
@@ -37,7 +51,19 @@ class LFMParser:
             metadata = {
                 key: value
                 for key, value in data.items()
-                if key not in {"label", "entity_type", "category", "type", "start", "end", "text", "span", "score", "confidence"}
+                if key
+                not in {
+                    "label",
+                    "entity_type",
+                    "category",
+                    "type",
+                    "start",
+                    "end",
+                    "text",
+                    "span",
+                    "score",
+                    "confidence",
+                }
             }
             parsed.append(
                 ParsedEntity(

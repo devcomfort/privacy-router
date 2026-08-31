@@ -1,3 +1,5 @@
+"""Microsoft Presidio Analyzer privacy extractor."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -24,6 +26,15 @@ class PresidioExtractor:
         entities: Sequence[str] | None = None,
         normalizer: EntityNormalizer | None = None,
     ) -> None:
+        """Configure the Presidio analyzer and extraction language.
+
+        Args:
+            analyzer: Optional initialized ``AnalyzerEngine``. When omitted,
+                the optional dependency is loaded lazily on first extraction.
+            language: Language code passed to Presidio.
+            entities: Optional allow-list of Presidio entity types.
+            normalizer: Injectable candidate normalizer.
+        """
         self._analyzer = analyzer
         self._analyzer_lock = Lock()
         self._language = language
@@ -31,7 +42,14 @@ class PresidioExtractor:
         self._normalizer = normalizer or EntityNormalizer()
 
     def extract(self, text: str) -> DetectionResult:
-        """Run Presidio and return normalized detector output."""
+        """Extract structural entities with Presidio.
+
+        Args:
+            text: Original input text.
+
+        Returns:
+            Normalized entities, run provenance, and diagnostics.
+        """
         analyzer = self._analyzer
         try:
             analyzer = self._get_analyzer()

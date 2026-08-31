@@ -1,3 +1,5 @@
+"""Normalize parsed detector candidates into privacy entities."""
+
 from __future__ import annotations
 
 import secrets
@@ -24,6 +26,12 @@ class EntityNormalizer:
         uid_factory: UidFactory | None = None,
         id_factory: IdFactory | None = None,
     ) -> None:
+        """Configure factories used for entity and occurrence-token IDs.
+
+        Args:
+            uid_factory: Callable that returns a fresh opaque occurrence token.
+            id_factory: Callable that returns the internal entity UUID.
+        """
         self._uid_factory = uid_factory or (lambda: secrets.token_hex(16))
         self._id_factory = id_factory or uuid4
 
@@ -33,7 +41,21 @@ class EntityNormalizer:
         candidates: Sequence[ParsedEntity],
         run: DetectorRunProvenance,
     ) -> DetectionResult:
-        """Build a result after reconciling every candidate to a source occurrence."""
+        """Normalize candidates against the original text.
+
+        Args:
+            text: Original input text in Unicode code-point indexing.
+            candidates: Backend-neutral parser candidates.
+            run: Provenance record for the detector execution.
+
+        Returns:
+            A complete, partial, or failed-compatible detection result with
+            occurrence-specific entity identifiers.
+
+        Raises:
+            SpanReconciliationError: If a candidate cannot be located in
+                ``text``.
+        """
         entities: list[PrivacyEntity] = []
         used_offsets: set[tuple[int, int]] = set()
         used_uids: set[str] = set()

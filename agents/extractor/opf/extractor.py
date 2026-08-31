@@ -1,3 +1,5 @@
+"""OpenAI Privacy Filter privacy extractor."""
+
 from __future__ import annotations
 
 from threading import Lock
@@ -24,6 +26,16 @@ class OPFExtractor:
         decode_mode: str = "viterbi",
         normalizer: EntityNormalizer | None = None,
     ) -> None:
+        """Configure the typed OPF runtime.
+
+        Args:
+            opf: Optional initialized OPF runtime. When omitted, OPF is loaded
+                lazily on first extraction.
+            model: Optional OPF checkpoint path.
+            device: Runtime device, such as ``"cpu"`` or ``"cuda"``.
+            decode_mode: OPF decode mode.
+            normalizer: Injectable candidate normalizer.
+        """
         self._opf = opf
         self._opf_lock = Lock()
         self._model = model
@@ -32,7 +44,14 @@ class OPFExtractor:
         self._normalizer = normalizer or EntityNormalizer()
 
     def extract(self, text: str) -> DetectionResult:
-        """Run OPF in typed mode and return normalized entities."""
+        """Extract typed entities with OPF without applying masking.
+
+        Args:
+            text: Original input text.
+
+        Returns:
+            Normalized entities, run provenance, and diagnostics.
+        """
         opf = self._opf
         try:
             opf = self._get_opf()

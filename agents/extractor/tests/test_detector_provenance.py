@@ -38,9 +38,7 @@ def test_presidio_run_preserves_configured_recognizers():
         status="complete",
         external_opt_in=False,
         adapter_version="privacy-router-presidio-adapter-v1-0-0",
-        configured_recognizers=[
-            {"name": "EmailRecognizer", "identifier": "email_recognizer"}
-        ],
+        configured_recognizers=[{"name": "EmailRecognizer", "identifier": "email_recognizer"}],
     )
 
     assert run.configured_recognizers[0].name == "EmailRecognizer"

@@ -98,6 +98,7 @@ def test_lfm_default_loader_pins_revision_and_enables_trusted_code(monkeypatch):
 
         def exec_module(self, module: ModuleType) -> None:
             module.predict = lambda text, tokenizer, model: []
+
     helper_module = ModuleType("privacy_router_lfm_decoder")
     monkeypatch.setattr(
         "agents.extractor.lfm.extractor.importlib.util.module_from_spec",

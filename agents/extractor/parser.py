@@ -1,3 +1,5 @@
+"""Shared parser contract and native detector payload helpers."""
+
 from __future__ import annotations
 
 import json

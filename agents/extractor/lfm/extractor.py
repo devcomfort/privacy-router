@@ -1,3 +1,5 @@
+"""LiquidAI LFM2.5 PII detector privacy extractor."""
+
 from __future__ import annotations
 
 import importlib.util
@@ -30,6 +32,17 @@ class LFMExtractor:
         device: str = "cpu",
         normalizer: EntityNormalizer | None = None,
     ) -> None:
+        """Configure the LFM predictor and immutable model revision.
+
+        Args:
+            predictor: Optional decoded-span predictor. When omitted, the
+                pinned Hugging Face runtime is loaded lazily.
+            model_id: Hugging Face model identifier or local model source.
+            model_revision: Immutable Hugging Face revision.
+            decoder_revision: Version identifier for the decoder helper.
+            device: Runtime device, such as ``"cpu"`` or ``"cuda"``.
+            normalizer: Injectable candidate normalizer.
+        """
         self._predictor = predictor
         self._predictor_lock = Lock()
         self._model_id = model_id
@@ -39,7 +52,14 @@ class LFMExtractor:
         self._normalizer = normalizer or EntityNormalizer()
 
     def extract(self, text: str) -> DetectionResult:
-        """Run LFM decoding and return normalized detector output."""
+        """Extract decoded structural entities with LFM2.5.
+
+        Args:
+            text: Original input text.
+
+        Returns:
+            Normalized entities, run provenance, and diagnostics.
+        """
         try:
             predictor = self._get_predictor()
             run = self._new_run()
