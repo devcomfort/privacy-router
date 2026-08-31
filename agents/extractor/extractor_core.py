@@ -3,7 +3,7 @@
 Pure extraction logic. No post-processing, no review.
 This is the foundation that Extractor and Critic build on.
 
-Examples
+Examples:
 --------
 >>> core = ExtractorCore()
 >>> result = core.extract("주민등록번호 901212-1234567")
@@ -182,6 +182,14 @@ class ExtractorCore:
         prompt_path: str | Path | None = None,
         max_tokens: int | None = None,
     ) -> None:
+        """Configure the decision model and extraction prompt.
+
+        Args:
+            model: Optional decision model identifier.
+            api_base: Optional model endpoint override.
+            prompt_path: Optional extraction prompt path.
+            max_tokens: Optional completion-token limit.
+        """
         path = str(prompt_path or _PROMPT_PATH)
         self._prompt = load_prompt(path)
         config = load_config()
@@ -201,7 +209,7 @@ class ExtractorCore:
         text : str
             The raw text to analyse.
 
-        Returns
+        Returns:
         -------
         ExtractionResult
             Sensitivity assessment and validated records.

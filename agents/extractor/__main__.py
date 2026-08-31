@@ -18,6 +18,7 @@ SAMPLE_INPUTS = [
 
 
 def main():
+    """Run the legacy command-line extraction demonstration."""
     print("=" * 70)
     print("Privacy Router - Extractor Demo")
     print("=" * 70)

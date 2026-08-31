@@ -5,7 +5,7 @@ the Extractor and finds what was missed.
 
 Standalone component — can be used independently or injected into Extractor.
 
-Examples
+Examples:
 --------
 >>> from agents.extractor.extractor_core import ExtractorCore
 >>> core = ExtractorCore()
@@ -57,6 +57,7 @@ class Critic:
         prompt_path: str | Path | None = None,
         max_tokens: int | None = None,
     ) -> None:
+        """Configure the second-pass review model and prompt."""
         path = str(prompt_path or _CRITIC_PROMPT_PATH)
         prompt_dict = load_prompt(path)
         config = load_config()
@@ -79,7 +80,7 @@ class Critic:
         existing_records : list[ExtractionRecord]
             Already-tagged spans from the Extractor.
 
-        Returns
+        Returns:
         -------
         CriticOutput
             Whether missed spans were found, and what they are.

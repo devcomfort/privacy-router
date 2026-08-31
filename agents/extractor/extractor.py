@@ -13,7 +13,7 @@ Extractor (facade)
 
 Both components are independently injectable for testing.
 
-Examples
+Examples:
 --------
 >>> extractor = Extractor()                        # default
 >>> extractor = Extractor(precision="high")        # with Critic review
@@ -70,6 +70,18 @@ class Extractor:
         critic: Critic | None = None,
         max_tokens: int | None = None,
     ) -> None:
+        """Configure the extraction facade and optional critic.
+
+        Args:
+            precision: ``"default"`` for one pass or ``"high"`` for critic
+                review.
+            model: Optional extraction model override.
+            api_base: Optional model endpoint override.
+            prompt_path: Optional ExtractorCore prompt path.
+            core: Optional injected ExtractorCore.
+            critic: Optional injected Critic.
+            max_tokens: Optional completion-token limit.
+        """
         self._precision = precision
         self._core = core or ExtractorCore(
             model=model,
@@ -85,6 +97,7 @@ class Extractor:
 
     @property
     def precision(self) -> str:
+        """Return the configured extraction precision."""
         return self._precision
 
     def extract(self, text: str) -> ExtractionResult:
@@ -95,7 +108,7 @@ class Extractor:
         text : str
             The raw text to analyse.
 
-        Returns
+        Returns:
         -------
         ExtractionResult
             Sensitivity assessment and validated records.
@@ -193,7 +206,7 @@ def extract(text: str, precision: Literal["default", "high"] = "default") -> Ext
     precision : "default" | "high"
         Extraction precision.
 
-    Returns
+    Returns:
     -------
     ExtractionResult
         Sensitivity assessment and validated records.
