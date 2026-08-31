@@ -100,9 +100,14 @@ _build_dir = Path(__file__).resolve().parent.parent.parent / "web" / "build"
 if _build_dir.exists():
     app.mount("/_app", StaticFiles(directory=str(_build_dir / "_app")), name="sveltekit-assets")
 
+_demo_assets_dir = Path(__file__).resolve().parent.parent / "static"
+if _demo_assets_dir.exists():
+    app.mount("/demo-assets", StaticFiles(directory=str(_demo_assets_dir)), name="demo-assets")
+
 # Lazy-import routes after app creation
 import server.api.routes.admin_session  # noqa: E402, F401
 import server.api.routes.classify  # noqa: E402, F401
+import server.api.routes.demo  # noqa: E402, F401
 import server.api.routes.guardrail  # noqa: E402, F401
 import server.api.routes.keys  # noqa: E402, F401
 import server.api.routes.masking  # noqa: E402, F401

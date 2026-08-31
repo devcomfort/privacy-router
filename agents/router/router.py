@@ -217,6 +217,11 @@ class PrivacyRouter:
         self._decision_model = decision_model
         self._api_base = resolve_local_api_base(cfg, decision_model, configured_api_base)
         self._extractor_prompt_path = extractor_prompt_path
+        self._extractor = Extractor(
+            model=self._decision_model,
+            api_base=self._api_base,
+            prompt_path=self._extractor_prompt_path,
+        )
 
     # ── Core pipeline ────────────────────────────────────────────────────────
 
@@ -240,15 +245,10 @@ class PrivacyRouter:
         >>> result.sensitivity.is_sensitive
         True
         """
-        extractor = Extractor(
-            model=self._decision_model,
-            api_base=self._api_base,
-            prompt_path=self._extractor_prompt_path,
-        )
         chunks = _extraction_chunks(text)
         with ThreadPoolExecutor(max_workers=min(_MAX_EXTRACTION_WORKERS, len(chunks))) as executor:
             results = executor.map(
-                extractor.extract,
+                self._extractor.extract,
                 (chunk for _, chunk in chunks),
             )
             extractions = [(offset, result) for (offset, _), result in zip(chunks, results, strict=True)]

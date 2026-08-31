@@ -80,6 +80,7 @@ def test_cli_without_mode_refuses_to_start(
     ("argv", "expected"),
     [
         (["dev"], ("dev", "127.0.0.1", 8787, False)),
+        (["dev", "--host", "0.0.0.0", "--port", "8790"], ("dev", "0.0.0.0", 8790, False)),
         (["dev", "--port", "8790", "--reload"], ("dev", "127.0.0.1", 8790, True)),
         (["serve"], ("serve", "0.0.0.0", 8787, False)),
         (["serve", "--host", "127.0.0.1", "--port", "8791"], ("serve", "127.0.0.1", 8791, False)),
@@ -614,11 +615,12 @@ class TestChatUI:
         assert resp.status_code == 200
         assert "Documentation — Privacy Router" in resp.text
         assert "Swagger UI" not in resp.text
+
     @pytest.mark.parametrize(
         ("path", "title"),
         [
             ("/admin/", "Admin Dashboard — Privacy Router"),
-            ("/demo/", "Protected AI demo — Privacy Router"),
+            ("/demo/", "Privacy Router Demo"),
             ("/docs/getting-started/", "Getting Started — Privacy Router Docs"),
         ],
     )
@@ -629,7 +631,6 @@ class TestChatUI:
 
         assert resp.status_code == 200
         assert f"<title>{title}</title>" in resp.text
-
 
     def test_api_docs_remain_available_under_api_namespace(self):
         resp = client.get("/api/docs")

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Router Demo</title>
+    <script src="/demo-assets/htmx.min.js" defer></script>
+    <style>
+      :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2d; --raised:#18233a; --line:#2a3854; --ink:#edf3ff; --muted:#9eacc4; --accent:#79a8ff; --success:#5ee0a0; --warning:#f2bd62; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-width:320px; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      main { width:min(960px,calc(100% - 32px)); margin:0 auto; padding:48px 0 72px; }
+      header { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:32px; }
+      h1,h2,h3,p { margin:0; } h1 { font-size:clamp(2rem,5vw,3.4rem); line-height:1.05; letter-spacing:-.04em; } h2 { font-size:1.2rem; line-height:1.2; } h3 { font-size:1rem; }
+      .kicker,.eyebrow { color:var(--accent); font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+      .lede { max-width:62ch; margin-top:12px; color:var(--muted); } .status { color:var(--success); font-size:.85rem; white-space:nowrap; }
+      .panel { margin-top:20px; padding:24px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+      .panel-heading,.result-heading,.batch-heading { display:flex; justify-content:space-between; align-items:start; gap:16px; } .panel-heading { margin-bottom:18px; }
+      .muted,small,.help,.rationale { color:var(--muted); } .help { margin-top:8px; font-size:.86rem; }
+      .key-row,.form-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; } input,textarea,button { font:inherit; }
+      input,textarea { width:100%; border:1px solid var(--line); border-radius:9px; background:#0d1527; color:var(--ink); padding:11px 12px; }
+      input:focus,textarea:focus,button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; } #api-key { flex:1 1 340px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+      textarea { min-height:128px; resize:vertical; } button { border:1px solid #4f78bd; border-radius:9px; background:var(--accent); color:#081224; cursor:pointer; font-weight:750; padding:10px 15px; } button.secondary { border-color:var(--line); background:var(--raised); color:var(--ink); } button:hover { filter:brightness(1.08); }
+      .key-issued { display:grid; gap:6px; padding:12px; border:1px solid rgba(94,224,160,.45); border-radius:9px; background:rgba(94,224,160,.08); } .key-issued code { overflow-wrap:anywhere; color:var(--success); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; } .key-issued span { color:var(--muted); font-size:.82rem; }
+      .result-panel,.batch-results { margin-top:18px; padding:18px; border-radius:10px; background:var(--raised); } .result-heading h2,.batch-heading h2 { margin-top:4px; } .route-pill { border:1px solid var(--line); border-radius:999px; color:var(--accent); font-size:.78rem; padding:4px 9px; white-space:nowrap; }
+      .result-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:20px 0; } .result-grid div { border-top:1px solid var(--line); padding-top:8px; } dt { color:var(--muted); font-size:.78rem; } dd { margin:2px 0 0; font-weight:700; }
+      .rationale { margin-top:12px; } .record-list { margin:14px 0 0; padding-left:20px; } .record-list small { margin-left:6px; } .batch-results { display:grid; gap:12px; } .batch-heading { align-items:center; } .batch-heading span { color:var(--muted); font-size:.84rem; }
+      .demo-card { padding:14px; border:1px solid var(--line); border-radius:9px; background:var(--panel); } .demo-card .rationale { margin-top:8px; font-size:.9rem; }
+      .notice { margin-top:24px; border:1px solid rgba(242,189,98,.45); border-radius:10px; background:rgba(242,189,98,.08); color:#f7d99b; padding:12px 14px; font-size:.88rem; }
+      @media (max-width:640px) { main { padding-top:28px; } header { display:block; } .status { display:block; margin-top:14px; } .panel { padding:18px; } .result-grid { grid-template-columns:1fr; } }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div><p class="kicker">Privacy Router / Local Demo</p><h1>Inspect the route before it runs.</h1><p class="lede">Use the FastAPI surface to inspect sensitivity, requiredness, and the selected local route. The page does not send demo inputs to a cloud model.</p></div>
+        <p class="status">● local development</p>
+      </header>
+      <p class="notice">This page is intended for local development. The generated client key is shown in the browser and stored only in this browser session.</p>
+
+      <section class="panel" aria-labelledby="key-heading">
+        <div class="panel-heading"><div><p class="eyebrow">01 / access</p><h2 id="key-heading">Browser API key</h2></div><button class="secondary" type="button" hx-post="/api/demo/key" hx-target="#key-status" hx-swap="innerHTML">Generate local key</button></div>
+        <div id="key-panel"><div class="key-row"><label for="api-key" style="width:100%">API key</label><input id="api-key" type="text" autocomplete="off" spellcheck="false" placeholder="Generate a dev key or paste an existing pr-* key"></div><p class="help">The key is attached to router demo requests by this page. Remote browsers should paste an existing key instead of using automatic issuance.</p></div>
+        <div id="key-status" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="router-heading">
+        <div class="panel-heading"><div><p class="eyebrow">02 / inspect</p><h2 id="router-heading">Router test</h2></div></div>
+        <form hx-post="/api/demo/router" hx-target="#router-result" hx-swap="innerHTML"><label for="router-text">Text to inspect</label><textarea id="router-text" name="text" required>테스트 주소 synthetic@example.invalid를 포함한 안내문을 작성해줘.</textarea><div class="form-row" style="margin-top:12px"><button type="submit">Inspect route</button><span class="help">POST /api/demo/router</span></div></form>
+        <div id="router-result"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="all-heading">
+        <div class="panel-heading"><div><p class="eyebrow">03 / batch</p><h2 id="all-heading">Run all local demos</h2></div><button class="secondary" type="button" hx-post="/api/demo/run-all" hx-target="#demo-results" hx-swap="innerHTML">Run all</button></div>
+        <p class="help">Runs the built-in router scenarios through one reused PrivacyRouter instance.</p><div id="demo-results"></div>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const storageKey = 'privacy-router.demo.api-key';
+        const input = () => document.getElementById('api-key');
+        const storedKey = () => window.sessionStorage.getItem(storageKey) || input()?.value.trim() || '';
+        document.addEventListener('DOMContentLoaded', () => { const key = window.sessionStorage.getItem(storageKey); if (key && input()) input().value = key; });
+        document.addEventListener('input', (event) => { if (event.target?.id === 'api-key') window.sessionStorage.setItem(storageKey, event.target.value.trim()); });
+        document.body.addEventListener('htmx:configRequest', (event) => { if (/^\/api\/demo\/(router|run-all)$/.test(event.detail.path)) { const key = storedKey(); if (key) event.detail.headers.Authorization = `Bearer ${key}`; } });
+        document.body.addEventListener('htmx:afterSwap', (event) => { const node = event.target.querySelector?.('[data-demo-api-key]'); if (!node) return; const key = node.dataset.demoApiKey; if (key) { window.sessionStorage.setItem(storageKey, key); if (input()) input().value = key; } });
+      })();
+    </script>
+  </body>
+</html>

@@ -90,8 +90,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
     commands = parser.add_subparsers(dest="mode", required=True)
 
-    dev = commands.add_parser("dev", help="Start a loopback-only keyless demo.")
+    dev = commands.add_parser("dev", help="Start a development demo (loopback by default).")
     dev.add_argument("--port", type=int, default=8787)
+    dev.add_argument("--host", default="127.0.0.1")
     dev.add_argument("--reload", action="store_true")
 
     serve = commands.add_parser("serve", help="Start the authenticated public server.")
@@ -100,5 +101,5 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
     mode = args.mode
-    host = "127.0.0.1" if mode == "dev" else args.host
+    host = args.host
     _start_server(mode, host, args.port, getattr(args, "reload", False))

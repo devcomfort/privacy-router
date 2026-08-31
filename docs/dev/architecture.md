@@ -210,6 +210,23 @@ and decoder helpers to revision
 `b8c9cf3d2d6ae52501b35a27ba46f271449c9ce2`; it enables
 `trust_remote_code=True` only for that pinned revision.
 
+## Local HTMX Demo
+
+The Svelte `/demo` route is removed. FastAPI serves
+`server/templates/demo.html` at `GET /demo`, with the vendored HTMX runtime
+available at `/demo-assets/htmx.min.js`.
+
+```text
+POST /api/demo/key       → dev + loopback browser key fragment
+POST /api/demo/router    → authenticated single-router HTML/JSON result
+POST /api/demo/run-all   → authenticated eight-case local router batch
+```
+
+The demo stores a generated `pr-*` key in browser `sessionStorage` and sends
+it as a bearer header for the two protected demo endpoints. `dev` binds to
+`127.0.0.1` by default; `privacy-router dev --host 0.0.0.0` broadens the
+listener, but automatic demo-key issuance remains loopback-only.
+
 ## Middle-Man Architecture
 
 The Middle-Man Agent orchestrates the pipeline and manages user interaction.
@@ -413,7 +430,7 @@ Model size   → Prompt
 | Backend | FastAPI + SQLModel |
 | Database | SQLite (dev) / PostgreSQL (prod) |
 | Models | SQLite-backed registry with local and external model entries |
-| Frontend | SvelteKit (SSG) |
+| Frontend | SvelteKit (SSG) + FastAPI-served HTMX demo |
 | Encryption | Fernet (AES-128-CBC + HMAC-SHA256) |
 | Integration | OpenAI Compatible API + MCP Server |
 
@@ -461,17 +478,25 @@ Without mocking, a test failure cannot distinguish "code bug" from "LLM variatio
   result-level discriminated detector provenance, and nested requiredness.
   Judge, Router, and current pipeline callers remain unchanged by design.
 
+- 2026-08-28 — replaced the Svelte demo route with FastAPI-served HTMX,
+  local asset serving, dev key issuance, router inspection, and eight-case
+  batch execution. Added reusable `PrivacyRouter` extraction state and
+  local-backend failure fragments.
+
 ## Impact Surface
 
-- Code: `agents/extractor/` now contains the common Pydantic contract,
-  normalizer, parsers, four backend adapters, registry, and unit tests.
+- Code: `agents/extractor/` contains the common Pydantic contract, normalizer,
+  parsers, four backend adapters, registry, and unit tests. `server/api/routes/demo.py`,
+  `server/templates/demo.html`, and `server/static/htmx.min.js` provide the
+  local demo surface.
 - Skills: none.
 - Docs: this architecture document is the canonical contract record.
 - Decisions: `kind` is `contextual|structural`; `uid` is a random token, not a
   value hash; detector IDs are versioned kebab-case strings; LLM external
   opt-in is request-scoped.
 - Archive/versioning: no archive; the document remains the current guidance.
-- Verification: detector and core agent unit tests pass; optional detector
-  package import smoke passes without loading model weights.
+- Verification: extractor, core agent, FastAPI demo, and router optimization
+  tests pass; local page, asset, key, router failure, and run-all smoke paths
+  are covered.
 - No-update rationale: masking/hydration and policy/routing replacement are
   intentionally unchanged until their separate design phase.

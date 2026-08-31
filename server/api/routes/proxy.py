@@ -3,7 +3,8 @@
 Endpoints:
     ``GET  /v1/models``           — OpenAI-compatible model registry
     ``POST /v1/chat/completions``  — OpenAI-compatible chat (pipeline + forwarding)
-    ``GET  /``                     — interactive web chat UI
+    ``GET  /``                     — landing page
+    ``GET  /demo``                 — FastAPI-served HTMX local demo
 """
 
 from __future__ import annotations
@@ -12,10 +13,11 @@ import json
 import os
 import time
 import uuid
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from sqlmodel import select
 from starlette.concurrency import iterate_in_threadpool, run_in_threadpool
 
@@ -912,11 +914,17 @@ async def landing_page():
 
 @app.get("/demo", response_class=HTMLResponse)
 async def chat_ui():
-    """Serve the interactive web chat UI."""
-    html_path = STATIC_DIR / "demo.html"
+    """Serve the HTMX development demo."""
+    html_path = Path(__file__).resolve().parents[2] / "templates" / "demo.html"
     if html_path.exists():
         return HTMLResponse(html_path.read_text())
-    return HTMLResponse("<h1>Privacy Router</h1><p>Chat UI not found.</p>")
+    return HTMLResponse("<h1>Privacy Router</h1><p>HTMX demo not found.</p>")
+
+
+@app.get("/demo/", include_in_schema=False)
+async def chat_ui_trailing_slash() -> RedirectResponse:
+    """Redirect the legacy trailing-slash demo URL."""
+    return RedirectResponse(url="/demo", status_code=308)
 
 
 @app.get("/admin", response_class=HTMLResponse)
