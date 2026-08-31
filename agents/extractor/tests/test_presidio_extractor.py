@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from agents.extractor.presidio_extractor import PresidioExtractor
+from agents.extractor.presidio import PresidioExtractor
 
 TEXT = "문의: synthetic@example.invalid"
 

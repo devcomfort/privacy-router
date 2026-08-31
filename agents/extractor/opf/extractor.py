@@ -3,9 +3,9 @@ from __future__ import annotations
 from threading import Lock
 from typing import Any
 
-from .normalizer import EntityNormalizer
-from .parsers import DetectorParseError, OPFParser
-from .schemas import DetectionResult, DetectorRunProvenance, OPFDetectorRun
+from ..normalizer import EntityNormalizer
+from ..schemas import DetectionResult, DetectorRunProvenance, OPFDetectorRun
+from .parser import DetectorParseError, OPFParser
 
 _ADAPTER_VERSION = "privacy-router-opf-adapter-v1-0-0"
 _DETECTOR_ID = "openai-privacy-filter-v1-0-0"

@@ -4,7 +4,7 @@ from collections.abc import Callable
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
-from agents.extractor.lfm_extractor import LFMExtractor
+from agents.extractor.lfm import LFMExtractor
 
 TEXT = "문의: synthetic@example.invalid"
 
@@ -100,12 +100,12 @@ def test_lfm_default_loader_pins_revision_and_enables_trusted_code(monkeypatch):
             module.predict = lambda text, tokenizer, model: []
     helper_module = ModuleType("privacy_router_lfm_decoder")
     monkeypatch.setattr(
-        "agents.extractor.lfm_extractor.importlib.util.module_from_spec",
+        "agents.extractor.lfm.extractor.importlib.util.module_from_spec",
         lambda spec: helper_module,
     )
 
     monkeypatch.setattr(
-        "agents.extractor.lfm_extractor.importlib.util.spec_from_file_location",
+        "agents.extractor.lfm.extractor.importlib.util.spec_from_file_location",
         lambda name, location: SimpleNamespace(name=name, loader=FakeLoader()),
     )
 

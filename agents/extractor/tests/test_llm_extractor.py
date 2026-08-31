@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from agents.extractor.llm_extractor import LLMExtractor
+from agents.extractor.llm import LLMExtractor
 
 TEXT = "문의: synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"

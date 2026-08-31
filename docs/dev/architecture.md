@@ -51,16 +51,40 @@ The pipeline has three model-bound roles, not one model per named component:
 
 ## Component Architecture
 
+The current Judge/Router compatibility pipeline remains available while the
+detector packages are adopted:
+
+```text
+agents/extractor/
+├── __init__.py       # package barrel
+├── schemas.py        # common Pydantic contract
+├── parser.py         # candidate type and shared parser helpers
+├── normalizer.py     # offset reconciliation and uid issuance
+├── registry.py       # PrivacyExtractor and DetectorRegistry
+├── llm/
+│   ├── __init__.py   # LLM barrel
+│   ├── extractor.py
+│   ├── parser.py
+│   └── llm_extract.prompt
+├── presidio/
+│   ├── __init__.py   # Presidio barrel
+│   ├── extractor.py
+│   └── parser.py
+├── opf/
+│   ├── __init__.py   # OPF barrel
+│   ├── extractor.py
+│   └── parser.py
+└── lfm/
+    ├── __init__.py   # LFM barrel
+    ├── extractor.py
+    └── parser.py
 ```
-Extractor (facade)
-  ├── ExtractorCore  — Socratic extraction (always runs)
-  │   └── extract.prompt / extract.short.prompt
-  └── Critic         — post-review (precision="high" only)
-      └── critic.prompt
 
+Each backend package exposes its extractor and parser through its own
+`__init__.py`; `agents.extractor.__init__` re-exports the complete public API.
+
+```text
 Judge (rule-based) — injected by Router
-  └── classify.prompt (reference only, not used)
-
 Router — policy → execution path mapping
 ```
 ## Detector Contract (implemented detector layer)
@@ -349,6 +373,7 @@ context-aware detector. `detection_method` records that mechanism separately.
 | `extractor.socratic.prompt` | `agents/extractor/extract.socratic.prompt` | Socratic CoT (131 lines) |
 | `extractor.fixed.prompt` | `agents/extractor/extract.fixed.prompt` | Fixed categories (232 lines) |
 | `critic.prompt` | `agents/extractor/critic.prompt` | 2nd-pass critique (92 lines) |
+| `llm_extract.prompt` | `agents/extractor/llm/llm_extract.prompt` | New LiteLLM extractor output contract |
 | `judge.prompt` | `agents/judge/classify.prompt` | Classification/policy (reference only) |
 
 ## Model Selection
@@ -365,9 +390,16 @@ Model size   → Prompt
 
 | Component | File | Description |
 |-----------|------|-------------|
-| Extractor | `agents/extractor/extractor.py` | Facade (precision, DI support) |
-| ExtractorCore | `agents/extractor/extractor_core.py` | Socratic extraction logic |
-| Critic | `agents/extractor/critic.py` | Post-review (standalone) |
+| Extractor | `agents/extractor/extractor.py` | Current compatibility facade |
+| ExtractorCore | `agents/extractor/extractor_core.py` | Current compatibility extraction logic |
+| LLMExtractor | `agents/extractor/llm/extractor.py` | LiteLLM-backed structured detector |
+| PresidioExtractor | `agents/extractor/presidio/extractor.py` | Presidio detector adapter |
+| OPFExtractor | `agents/extractor/opf/extractor.py` | OpenAI Privacy Filter adapter |
+| LFMExtractor | `agents/extractor/lfm/extractor.py` | LFM2.5 PII detector adapter |
+| Detector parsers | `agents/extractor/{llm,presidio,opf,lfm}/parser.py` | Native payload conversion |
+| Normalizer | `agents/extractor/normalizer.py` | Offset reconciliation and token issuance |
+| Detector registry | `agents/extractor/registry.py` | Named detector dispatch |
+| Critic | `agents/extractor/critic.py` | Current compatibility post-review |
 | Judge | `agents/judge/judge.py` | Rule-based policy decision |
 | Router | `agents/router/router.py` | Pipeline orchestration |
 | MiddleMan | `agents/router/middle_man.py` | User interaction orchestrator |

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from agents.extractor.opf_extractor import OPFExtractor
+from agents.extractor.opf import OPFExtractor
 
 TEXT = "문의: synthetic@example.invalid"
 

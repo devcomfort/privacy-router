@@ -13,13 +13,12 @@ No detector performs masking, unmasking, policy decisions, or persistence.
 from .critic import Critic
 from .extractor import Extractor, extract
 from .extractor_core import ExtractorCore, PrivacyAnalysisUnavailable, normalize_category
-from .lfm_extractor import LFMExtractor
-from .llm_extractor import LLMExtractionOutput, LLMExtractor, LLMRecord
+from .lfm import LFMExtractor, LFMParser
+from .llm import LLMExtractionOutput, LLMExtractor, LLMParser, LLMRecord
 from .normalizer import EntityNormalizer, SpanReconciliationError
-from .opf_extractor import OPFExtractor
-from .parser import DetectorParser, ParsedEntity
-from .parsers import DetectorParseError, LFMParser, LLMParser, OPFParser, PresidioParser
-from .presidio_extractor import PresidioExtractor
+from .opf import OPFExtractor, OPFParser
+from .parser import DetectorParseError, DetectorParser, ParsedEntity
+from .presidio import PresidioExtractor, PresidioParser
 from .registry import DetectorRegistry, PrivacyExtractor
 from .schemas import (
     DetectionResult,

@@ -8,14 +8,9 @@ from pydantic import BaseModel, Field
 from agents.llm import call_llm_structured, load_prompt, render_prompt
 from config import is_trusted_local_api_base, load_config
 
-from .normalizer import EntityNormalizer
-from .parsers import DetectorParseError, LLMParser
-from .schemas import (
-    DetectionResult,
-    DetectorRunProvenance,
-    LLMDetectorRun,
-    Requiredness,
-)
+from ..normalizer import EntityNormalizer
+from ..schemas import DetectionResult, DetectorRunProvenance, LLMDetectorRun, Requiredness
+from .parser import DetectorParseError, LLMParser
 
 _PROMPT_PATH = Path(__file__).with_name("llm_extract.prompt")
 _DETECTOR_ID = "privacy-router-llm-extractor-v1-0-0"

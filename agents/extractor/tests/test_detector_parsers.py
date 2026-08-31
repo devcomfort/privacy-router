@@ -4,14 +4,11 @@ from dataclasses import dataclass
 
 import pytest
 
-from agents.extractor.parser import ParsedEntity
-from agents.extractor.parsers import (
-    DetectorParseError,
-    LFMParser,
-    LLMParser,
-    OPFParser,
-    PresidioParser,
-)
+from agents.extractor.lfm import LFMParser
+from agents.extractor.llm import LLMParser
+from agents.extractor.opf import OPFParser
+from agents.extractor.parser import DetectorParseError, ParsedEntity
+from agents.extractor.presidio import PresidioParser
 from agents.extractor.schemas import Requiredness
 
 TEXT = "문의: synthetic@example.invalid"

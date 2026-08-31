@@ -5,14 +5,9 @@ from importlib.metadata import PackageNotFoundError, version
 from threading import Lock
 from typing import Any
 
-from .normalizer import EntityNormalizer
-from .parsers import DetectorParseError, PresidioParser
-from .schemas import (
-    DetectionResult,
-    DetectorRunProvenance,
-    PresidioDetectorRun,
-    RecognizerDescriptor,
-)
+from ..normalizer import EntityNormalizer
+from ..schemas import DetectionResult, DetectorRunProvenance, PresidioDetectorRun, RecognizerDescriptor
+from .parser import DetectorParseError, PresidioParser
 
 _ADAPTER_VERSION = "privacy-router-presidio-adapter-v1-0-0"
 _DEFAULT_DETECTOR_ID = "microsoft-presidio-analyzer-v2-2-358"

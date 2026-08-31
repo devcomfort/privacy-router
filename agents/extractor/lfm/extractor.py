@@ -5,9 +5,9 @@ import sys
 from collections.abc import Callable
 from threading import Lock
 
-from .normalizer import EntityNormalizer
-from .parsers import DetectorParseError, LFMParser
-from .schemas import DetectionResult, DetectorRunProvenance, LFMDetectorRun
+from ..normalizer import EntityNormalizer
+from ..schemas import DetectionResult, DetectorRunProvenance, LFMDetectorRun
+from .parser import DetectorParseError, LFMParser
 
 _ADAPTER_VERSION = "privacy-router-lfm-adapter-v1-0-0"
 _DETECTOR_ID = "liquidai-lfm2-5-encoder-350m-pii-detector-v1-0-0"
