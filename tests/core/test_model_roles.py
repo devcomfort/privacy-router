@@ -113,6 +113,16 @@ def test_repository_example_config_validates() -> None:
     assert config.external.model == "openrouter/google/gemma-4-26b-a4b-it"
 
 
+def test_repository_example_exposes_local_demo_profile(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PRIVACY_ROUTER_PROFILE", "local-demo")
+
+    config_path = Path(__file__).resolve().parents[2] / ".privacy-router.config.yaml.example"
+    config = load_config_from_yaml(config_path)
+
+    assert config.decision.model == "ollama/qwen3:1.7b"
+    assert config.local.model == "ollama/qwen3:1.7b"
+
+
 def test_mcp_generation_binding_keeps_local_endpoint(tmp_path: Path) -> None:
 
     cfg = load_config_from_yaml(_write_config(tmp_path))
