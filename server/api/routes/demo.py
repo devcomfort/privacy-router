@@ -1,4 +1,4 @@
-"""Loopback development endpoints for the HTMX router demonstration."""
+"""Development endpoints for the HTMX router demonstration."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from agents import PipelineResult, PrivacyRouter, redact_extraction_records
 from db import ApiKey, get_session
 from server import get_runtime_mode
-from server.api import app, create_api_key, is_loopback_request, require_auth
+from server.api import app, create_api_key, require_auth
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +37,10 @@ class DemoRouterRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=20_000)
 
 
-def _require_dev_loopback(request: Request) -> None:
-    """Allow browser demo state only from a loopback development request."""
+def _require_dev_demo() -> None:
+    """Allow demo key issuance only while the server runs in dev mode."""
     if get_runtime_mode() != "dev":
         raise HTTPException(status_code=404, detail="Not found")
-    if not is_loopback_request(request):
-        raise HTTPException(status_code=403, detail="Demo key issuance requires loopback access")
 
 
 def _is_htmx(request: Request) -> bool:
@@ -149,8 +147,8 @@ def _error_fragment() -> str:
 
 @app.post("/api/demo/key", response_class=HTMLResponse)
 def issue_demo_key(request: Request) -> HTMLResponse:
-    """Issue a development client key for a loopback browser demo."""
-    _require_dev_loopback(request)
+    """Issue a development client key from the browser demo."""
+    _require_dev_demo()
     raw_key, key_hash = create_api_key()
     name = f"htmx-demo-{uuid4().hex[:8]}"
     session = get_session()

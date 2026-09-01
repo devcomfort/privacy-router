@@ -41,7 +41,7 @@
 
       <section class="panel" aria-labelledby="key-heading">
         <div class="panel-heading"><div><p class="eyebrow">01 / access</p><h2 id="key-heading">Browser API key</h2></div><button class="secondary" type="button" hx-post="/api/demo/key" hx-target="#key-status" hx-swap="innerHTML">Generate local key</button></div>
-        <div id="key-panel"><div class="key-row"><label for="api-key" style="width:100%">API key</label><input id="api-key" type="text" autocomplete="off" spellcheck="false" placeholder="Generate a dev key or paste an existing pr-* key"></div><p class="help">The key is attached to router demo requests by this page. Remote browsers should paste an existing key instead of using automatic issuance.</p></div>
+        <div id="key-panel"><div class="key-row"><label for="api-key" style="width:100%">API key</label><input id="api-key" type="text" autocomplete="off" spellcheck="false" placeholder="Generate a dev key or paste an existing pr-* key"></div><p class="help">The key is attached to router demo requests by this page. Key issuance is available in dev mode; serve mode requires an existing key.</p></div>
         <div id="key-status" aria-live="polite"></div>
       </section>
 

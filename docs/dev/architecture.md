@@ -217,7 +217,7 @@ The Svelte `/demo` route is removed. FastAPI serves
 available at `/demo-assets/htmx.min.js`.
 
 ```text
-POST /api/demo/key       → dev + loopback browser key fragment
+POST /api/demo/key       → dev-mode browser key fragment
 POST /api/demo/router    → authenticated single-router HTML/JSON result
 POST /api/demo/run-all   → authenticated eight-case local router batch
 ```
@@ -225,7 +225,8 @@ POST /api/demo/run-all   → authenticated eight-case local router batch
 The demo stores a generated `pr-*` key in browser `sessionStorage` and sends
 it as a bearer header for the two protected demo endpoints. `dev` binds to
 `127.0.0.1` by default; `privacy-router dev --host 0.0.0.0` broadens the
-listener, but automatic demo-key issuance remains loopback-only.
+listener and permits the dev key flow for that explicitly selected posture.
+The authenticated `serve` posture does not expose automatic demo-key issuance.
 
 ## Middle-Man Architecture
 

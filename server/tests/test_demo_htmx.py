@@ -71,10 +71,27 @@ def test_demo_key_is_issued_to_loopback_dev_browser(
     assert session.commits == 1
 
 
-def test_demo_key_rejects_non_loopback_peer(demo_runtime):
-    response = TestClient(app, client=("192.168.0.19", 50000)).post("/api/demo/key")
+def test_demo_key_is_issued_to_non_loopback_dev_browser(
+    demo_runtime,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = FakeSession()
+    monkeypatch.setattr("server.api.routes.demo.get_session", lambda: session)
 
-    assert response.status_code == 403
+    response = TestClient(app, client=("100.69.181.62", 50000)).post("/api/demo/key")
+
+    assert response.status_code == 200
+    assert 'data-demo-api-key="pr-' in response.text
+    assert len(session.added) == 1
+    assert session.commits == 1
+
+
+def test_demo_key_remains_disabled_in_serve_mode(demo_runtime):
+    demo_runtime.set_runtime_mode("serve")
+
+    response = TestClient(app, client=("100.69.181.62", 50000)).post("/api/demo/key")
+
+    assert response.status_code == 404
 
 
 def _fake_pipeline(policy_action: str = "allow") -> SimpleNamespace:
