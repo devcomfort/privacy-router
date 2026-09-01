@@ -7,10 +7,19 @@ models:
     tier: middle
     cost_per_1m_tokens: 0.0
 
+
+  - id: ollama/qwen3:1.7b
+    api_base: http://127.0.0.1:11434
+    location: local
+    tier: small
+    cost_per_1m_tokens: 0.0
+
   - id: openrouter/google/gemma-4-26b-a4b-it
     location: external
     tier: middle
     cost_per_1m_tokens: 0.06
+
+
 
 decision:
   model: openai/google/gemma-4-26b-local
@@ -39,3 +48,12 @@ profiles:
       model: openai/google/gemma-4-26b-local
     external:
       model: openrouter/google/gemma-4-26b-a4b-it
+
+  local-demo:
+    description: Local Ollama demo profile for the bundled HTMX surface
+    decision:
+      model: ollama/qwen3:1.7b
+      api_base: http://127.0.0.1:11434
+    local:
+      model: ollama/qwen3:1.7b
+      api_base: http://127.0.0.1:11434

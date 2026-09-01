@@ -80,6 +80,17 @@ def test_repository_default_uses_gemma_for_all_model_roles() -> None:
     assert cfg.external.model == "openrouter/google/gemma-4-26b-a4b-it"
 
 
+def test_local_demo_profile_uses_available_ollama_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PRIVACY_ROUTER_PROFILE", "local-demo")
+
+    cfg = load_config_from_yaml(Path(__file__).resolve().parents[2] / ".privacy-router.config.yaml")
+
+    assert cfg.decision.model == "ollama/qwen3:1.7b"
+    assert cfg.decision.api_base == "http://127.0.0.1:11434"
+    assert cfg.local.model == "ollama/qwen3:1.7b"
+    assert cfg.local.api_base == "http://127.0.0.1:11434"
+
+
 def test_extractor_components_default_to_decision_binding() -> None:
     cfg = load_config()
     core = ExtractorCore()
