@@ -121,6 +121,23 @@ Detector adapter
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
 | `is_required` | Nested assessment: `value` is `true`, `false`, or `null`; `reason` is required for every state |
 
+## Requiredness Naming Cutover
+
+The active compatibility pipeline is being aligned with the detector contract:
+`ExtractionRecord`, prompts, Judge, Middle-Man, Masker, persistence, and API
+metadata will use `is_required` instead of `is_essential`. The canonical shape
+is `Requiredness(value: bool | null, reason: str)`, where `value=true` means
+the exact value is required and must remain local, while `value=false` means
+the value can be masked before external processing. Historical evaluation
+artifacts under `archive/` retain their original schema and are not migrated.
+
+The local demo will expose only validated offsets and requiredness metadata.
+The browser will render maskable spans (`is_required.value=false`) over the
+input text and link each span to its record block. Hover and keyboard focus on
+either side will highlight the paired elements without returning raw values
+from the API.
+
+
 The externally visible identifier is computed, not persisted:
 
 ```python
@@ -216,17 +233,16 @@ The Svelte `/demo` route is removed. FastAPI serves
 `server/templates/demo.html` at `GET /demo`, with the vendored HTMX runtime
 available at `/demo-assets/htmx.min.js`.
 
-```text
-POST /api/demo/key       → dev-mode browser key fragment
-POST /api/demo/router    → authenticated single-router HTML/JSON result
-POST /api/demo/run-all   → authenticated eight-case local router batch
-```
-
 The demo stores a generated `pr-*` key in browser `sessionStorage` and sends
 it as a bearer header for the two protected demo endpoints. `dev` binds to
 `127.0.0.1` by default; `privacy-router dev --host 0.0.0.0` broadens the
 listener and permits the dev key flow for that explicitly selected posture.
 The authenticated `serve` posture does not expose automatic demo-key issuance.
+The highlighted span and record block share a stable local identifier; the pair
+is highlighted on hover or keyboard focus, and color is supplemented by a
+textual masking label.
+
+
 
 ## Middle-Man Architecture
 
@@ -474,6 +490,11 @@ Without mocking, a test failure cannot distinguish "code bug" from "LLM variatio
 
 ## Change Log
 
+- 2026-09-01 — approved the requiredness naming cutover and linked local demo
+  span highlighting. Active pipeline callers will migrate from
+  `is_essential` to the nested `is_required` contract; historical evaluation
+  artifacts remain unchanged.
+
 - 2026-08-28 — implemented the detector abstraction around `PrivacyEntity`,
   occurrence-specific opaque `uid` values, computed `tag#uid` identifiers,
   result-level discriminated detector provenance, and nested requiredness.
@@ -486,18 +507,18 @@ Without mocking, a test failure cannot distinguish "code bug" from "LLM variatio
 
 ## Impact Surface
 
-- Code: `agents/extractor/` contains the common Pydantic contract, normalizer,
-  parsers, four backend adapters, registry, and unit tests. `server/api/routes/demo.py`,
-  `server/templates/demo.html`, and `server/static/htmx.min.js` provide the
-  local demo surface.
+- Code: the active `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker,
+  masking persistence, demo payload, and prompt contracts will migrate to
+  nested `is_required`; `archive/` evaluation artifacts remain unchanged.
 - Skills: none.
-- Docs: this architecture document is the canonical contract record.
-- Decisions: `kind` is `contextual|structural`; `uid` is a random token, not a
-  value hash; detector IDs are versioned kebab-case strings; LLM external
-  opt-in is request-scoped.
-- Archive/versioning: no archive; the document remains the current guidance.
-- Verification: extractor, core agent, FastAPI demo, and router optimization
-  tests pass; local page, asset, key, router failure, and run-all smoke paths
-  are covered.
-- No-update rationale: masking/hydration and policy/routing replacement are
-  intentionally unchanged until their separate design phase.
+- Docs: this architecture document is the canonical contract record; active
+  detection and API guidance must use `is_required`.
+- Decisions: `Requiredness.value=true` keeps the exact value local;
+  `value=false` permits masking. Demo links validated offsets to record blocks
+  without returning raw values.
+- Archive/versioning: no archive; historical evaluation output is retained as
+  a record with its original schema.
+- Verification: add migration, API payload, escaping/offset, hover/focus, and
+  full-pipeline regression checks plus agent-browser smoke coverage.
+- No-update rationale: no other current decision contradicts this cutover;
+  persisted old columns are migrated in place rather than versioned.
