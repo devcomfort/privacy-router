@@ -184,21 +184,21 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
       "span": "김동현",
       "confidence": 0.98,
       "reasoning": "식별 맥락에서의 실명",
-      "is_required": {"value": false, "reason": "식별 정보를 가려도 설명 가능"},
+      "is_required": {"value": false, "reason": "식별 정보를 가려도 설명 가능"}
     },
     {
       "category": "INSTITUTION",
       "span": "광주과학기술원",
       "confidence": 0.90,
       "reasoning": "학생의 소속 기관",
-      "is_required": {"value": false, "reason": "소속 정보를 가려도 설명 가능"},
+      "is_required": {"value": false, "reason": "소속 정보를 가려도 설명 가능"}
     },
     {
       "category": "UNPUBLISHED_RESEARCH",
       "span": "contextual distillation",
       "confidence": 0.85,
       "reasoning": "미공개 연구 주제",
-      "is_required": {"value": false, "reason": "연구 주제를 가려도 설명 가능"},
+      "is_required": {"value": false, "reason": "연구 주제를 가려도 설명 가능"}
     }
   ]
 }

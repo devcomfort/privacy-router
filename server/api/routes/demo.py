@@ -231,7 +231,10 @@ def _batch_card(case: object) -> str:
     status_label = _batch_status_label(status)
     payload = html.escape(json.dumps({"text": case.text}, ensure_ascii=False), quote=False)
     result = case.result
-    if result is None:
+    if status == "failed":
+        failure_message = str((result or {}).get("rationale") or _LOCAL_ROUTER_ERROR)
+        outcome = f'<p class="rationale failure-message"><strong>Failed:</strong> {html.escape(failure_message)}</p>'
+    elif result is None:
         outcome = '<p class="rationale">Waiting for this case to run.</p>'
     else:
         outcome = (

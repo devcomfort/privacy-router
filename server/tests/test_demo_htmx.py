@@ -318,3 +318,48 @@ def test_run_all_status_fragment_stops_polling_after_failure(monkeypatch: pytest
     assert "completed with failures" in response.text
     assert "hx-get=" not in response.text
     assert "synthetic@example.invalid" in response.text
+
+
+def test_failed_batch_card_shows_explicit_safe_message(monkeypatch: pytest.MonkeyPatch, demo_runtime):
+    from server.api.demo_jobs import DemoBatchStore
+    from server.api.routes import demo as demo_route
+
+    store = DemoBatchStore(ttl_seconds=60)
+    monkeypatch.setattr(demo_route, "_demo_batches", store)
+    batch = store.create(DEMO_CASES)
+    for index, (_name, _text) in enumerate(DEMO_CASES):
+        assert store.mark_running(batch.batch_id, index) is True
+        status = "failed" if index == 0 else "completed"
+        result = {
+            "is_sensitive": None,
+            "policy_action": "unavailable" if status == "failed" else "allow",
+            "route": "blocked" if status == "failed" else "external_api",
+            "record_count": 0,
+            "rationale": "Local router unavailable. Start the configured local model and retry.",
+        }
+        store.finish_case(batch.batch_id, index, status, result)
+
+    response = TestClient(app).get(
+        f"/api/demo/run-all/{batch.batch_id}",
+        headers={"HX-Request": "true", "Authorization": "Bearer demo"},
+    )
+
+    assert response.status_code == 200
+    assert "Failed" in response.text
+    assert "Local router unavailable" in response.text
+
+
+def test_failed_batch_card_without_result_uses_safe_message():
+    from server.api.routes.demo import _batch_card
+
+    card = _batch_card(
+        SimpleNamespace(
+            name="failed-case",
+            status="failed",
+            text="",
+            result=None,
+        )
+    )
+
+    assert "Failed" in card
+    assert "Local router unavailable" in card

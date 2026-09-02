@@ -249,6 +249,7 @@ hover 또는 keyboard focus에서 함께 강조되고, 색상만으로 의미를
 `Run all`은 동기 응답으로 한 번에 끝내지 않고 batch job으로 실행합니다. 버튼을 누르면 8개 synthetic payload와 `batch_id`를 담은 초기 HTMX fragment를 즉시 반환하고, 브라우저는 0.5초 간격으로 상태 fragment를 조회합니다.
 
 상태 fragment에는 전체 진행률, 현재 실행 중인 case, 각 case의 `대기`·`실행 중`·`완료`·`실패` 상태, `PrivacyRouter.process()`에 전달되는 synthetic payload 미리보기, 완료된 정책·route·record 수를 표시합니다. 한 case의 실패는 나머지 case를 중단하지 않습니다.
+실패한 case는 `Failed: Local router unavailable...` 형태의 안전한 메시지를 카드 안에 명시하고, 원본 exception 문자열은 표시하지 않습니다.
 
 payload 미리보기와 하이라이트용 원문·offset은 HTMX fragment 렌더링에만 사용합니다. JSON 응답과 `redact_extraction_records`는 raw span과 offset을 반환하지 않습니다. batch 상태는 개발 프로세스의 메모리에 짧게 보관하고 만료된 job은 안전한 상태로 표시합니다.
 
@@ -505,6 +506,8 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 변경 이력
 
+- 2026-09-02 — 실패한 batch case에 명시적인 안전 메시지를 표시하고, `extract.fixed.prompt`의 fenced JSON 예시를 파싱 가능한 형태로 교정했습니다.
+
 - 2026-09-01 — `Run all`을 batch payload 미리보기와 실시간 진행률을 제공하는 상태 polling 방식으로 구현했습니다. case별 실패 격리와 HTMX 전용 원문 경계를 유지합니다.
 
 - 2026-09-01 — 아키텍처 문서 전체를 한국어로 다시 작성했습니다. 기술 식별자와 API 계약은 유지하고, 활성 requiredness·HTMX·응답 보안 설명을 한국어로 통일했습니다.
@@ -517,7 +520,7 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 영향 범위
 
-- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환했습니다. 로컬 HTMX demo에 batch 시작·상태 조회와 case별 payload·진행률 표시를 추가했습니다. `archive/` 평가 artifact는 변경하지 않습니다.
+- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환했습니다. 로컬 HTMX demo에 batch 시작·상태 조회, case별 payload·진행률·안전한 실패 메시지 표시를 추가했습니다. `archive/` 평가 artifact는 변경하지 않습니다.
 - **스킬**: 없음.
 - **문서**: 이 아키텍처 문서가 canonical 계약 기록이며, 현재 탐지·API 안내는 `is_required`를 사용합니다.
 - **결정**: `Requiredness.value=true`이면 정확한 값을 로컬에 유지하고, `value=false`이면 마스킹할 수 있습니다. Demo는 HTMX fragment에서만 검증된 offset과 payload를 표시하고, JSON으로 raw 값을 반환하지 않습니다.
