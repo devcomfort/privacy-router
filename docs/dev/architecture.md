@@ -243,6 +243,15 @@ bind하며, `privacy-router dev --host 0.0.0.0`을 사용하면 명시적으로 
 hover 또는 keyboard focus에서 함께 강조되고, 색상만으로 의미를 전달하지 않도록
 텍스트 기반 마스킹 라벨도 표시합니다.
 
+### `Run all` 진행 상태
+
+`Run all`은 동기 응답으로 한 번에 끝내지 않고 batch job으로 실행합니다. 버튼을 누르면 8개 synthetic payload와 `batch_id`를 담은 초기 HTMX fragment를 즉시 반환하고, 브라우저는 0.5초 간격으로 상태 fragment를 조회합니다.
+
+상태 fragment에는 전체 진행률, 현재 실행 중인 case, 각 case의 `대기`·`실행 중`·`완료`·`실패` 상태, `PrivacyRouter.process()`에 전달되는 synthetic payload 미리보기, 완료된 정책·route·record 수를 표시합니다. 한 case의 실패는 나머지 case를 중단하지 않습니다.
+
+payload 미리보기와 하이라이트용 원문·offset은 HTMX fragment 렌더링에만 사용합니다. JSON 응답과 `redact_extraction_records`는 raw span과 offset을 반환하지 않습니다. batch 상태는 개발 프로세스의 메모리에 짧게 보관하고 만료된 job은 안전한 상태로 표시합니다.
+
+
 ## Middle-Man 아키텍처
 
 Middle-Man Agent는 파이프라인을 조정하고 사용자 상호작용을 관리합니다.
@@ -495,6 +504,8 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 변경 이력
 
+- 2026-09-01 — `Run all`의 batch payload 미리보기와 실시간 진행률 설계를 승인했습니다. 기존 동기 응답을 상태 polling 방식으로 바꾸되, case별 실패 격리와 HTMX 전용 원문 경계를 유지합니다.
+
 - 2026-09-01 — 아키텍처 문서 전체를 한국어로 다시 작성했습니다. 기술 식별자와 API 계약은 유지하고, 활성 requiredness·HTMX·응답 보안 설명을 한국어로 통일했습니다.
 
 - 2026-09-01 — requiredness 이름 전환과 로컬 데모 span 연결 하이라이트 설계를 승인했습니다. 활성 pipeline 호출부는 기존 필드명에서 중첩 `is_required` 계약으로 전환하고, historical evaluation artifact는 변경하지 않습니다.
@@ -505,10 +516,10 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 영향 범위
 
-- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환합니다. `archive/` 평가 artifact는 변경하지 않습니다.
+- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환합니다. 로컬 HTMX demo에는 batch 시작·상태 조회와 case별 payload·진행률 표시를 추가합니다. `archive/` 평가 artifact는 변경하지 않습니다.
 - **스킬**: 없음.
 - **문서**: 이 아키텍처 문서가 canonical 계약 기록이며, 현재 탐지·API 안내는 `is_required`를 사용합니다.
-- **결정**: `Requiredness.value=true`이면 정확한 값을 로컬에 유지하고, `value=false`이면 마스킹할 수 있습니다. Demo는 검증된 offset과 record block을 연결하지만 raw 값을 JSON으로 반환하지 않습니다.
+- **결정**: `Requiredness.value=true`이면 정확한 값을 로컬에 유지하고, `value=false`이면 마스킹할 수 있습니다. Demo는 HTMX fragment에서만 검증된 offset과 payload를 표시하고, JSON으로 raw 값을 반환하지 않습니다.
 - **보관·버전 관리**: 별도 archive를 만들지 않습니다. historical 평가 출력은 원래 schema를 가진 record로 유지합니다.
-- **검증**: migration, API payload, escaping/offset, hover/focus, 전체 pipeline 회귀 테스트와 agent-browser smoke 검증을 추가합니다.
+- **검증**: migration, API payload, escaping/offset, batch 상태·진행률, hover/focus, 전체 pipeline 회귀 테스트와 agent-browser smoke 검증을 추가합니다.
 - **업데이트하지 않는 이유**: 이 전환과 충돌하는 다른 현재 결정은 없습니다. 기존 저장 column은 versioned copy를 만들지 않고 in-place migration합니다.
