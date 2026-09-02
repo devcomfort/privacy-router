@@ -298,7 +298,7 @@ def process_with_middle_man(text, metadata):
   "privacy_router": {
     "status": "completed",
     "is_sensitive": true,
-    "extraction_records": [...],
+    "extraction_records": [{"index": 0, "category": "EMAIL_ADDRESS", "span": "<redacted>", "is_required": {"value": false, "reason": "주소를 가려도 요청 의미 유지"}, "confidence": 0.95}],
     "policy_action": "selective_mask",
     "masking_applied": true,
     "cached": false
@@ -317,23 +317,25 @@ def process_with_middle_man(text, metadata):
   "privacy_router": {
     "status": "needs_input",
     "question": "민감한 데이터가 감지되었습니다. 어떻게 처리할까요?",
-    "is_sensitive": true,
-    "record_count": 2,
-    "required_count": 1,
-    "extraction_records": [
-      {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_required": {"value": true, "reason": "응답의 핵심 연구 내용"}, "confidence": 0.95},
-      {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_required": {"value": false, "reason": "이름을 가려도 요청 의미 유지"}, "confidence": 0.90}
+    "extraction_summary": {
+      "is_sensitive": true,
+      "record_count": 2,
+      "required_count": 1,
+      "extraction_records": [
+        {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_required": {"value": true, "reason": "응답의 핵심 연구 내용"}, "confidence": 0.95},
+        {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_required": {"value": false, "reason": "이름을 가려도 요청 의미 유지"}, "confidence": 0.90}
+      ]
+    },
+    "default_action": "block",
+    "options": [
+      {"id": "auto", "label": "자동", "description": "시스템 결정을 따름"},
+      {"id": "mask_all", "label": "모두 마스킹", "description": "모든 민감 데이터를 마스킹"},
+      {"id": "mask_maskable", "label": "마스킹 가능한 값", "description": "is_required.value=false인 값만 마스킹"},
+      {"id": "block", "label": "로컬 처리", "description": "외부 API 대신 로컬 모델 사용"},
+      {"id": "custom", "label": "사용자 지정", "description": "record별 선택"}
     ],
-    "default_action": "block"
-  },
-  "options": [
-    {"id": "auto", "label": "자동", "description": "시스템 결정을 따름"},
-    {"id": "mask_all", "label": "모두 마스킹", "description": "모든 민감 데이터를 마스킹"},
-    {"id": "mask_maskable", "label": "마스킹 가능한 값", "description": "is_required.value=false인 값만 마스킹"},
-    {"id": "block", "label": "로컬 처리", "description": "외부 API 대신 로컬 모델 사용"},
-    {"id": "custom", "label": "사용자 지정", "description": "record별 선택"}
-  ],
-  "default_option": "auto"
+    "default_option": "auto"
+  }
 }
 ```
 
