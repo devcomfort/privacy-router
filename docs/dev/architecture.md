@@ -12,7 +12,7 @@ Agent Prompt
 │  ├── ExtractorCore: Socratic sensitivity detection          │
 │  │   → Free-form SCREAMING_CASE categories                  │
 │  │   → Minimal entity spans (exclude particles/adverbs)     │
-│  │   → is_essential flag (masking feasibility)               │
+│  │   → is_required.value (마스킹 후 외부 처리 가능 여부)    │
 │  └── Critic: post-review (precision="high" only)            │
 │      → Catches spans Phase 1 missed                         │
 │      → Runs even on empty texts                             │
@@ -22,8 +22,8 @@ Agent Prompt
 │  Query aggregation + Judge (rule-based, no LLM calls)       │
 │  Canonical policy decision:                                 │
 │    → not sensitive:              allow                      │
-│    → all spans non-essential:    selective_mask             │
-│    → essential span / no safe span: block                   │
+│    → all spans not required:       selective_mask             │
+│    → required span / no safe span:  block                     │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
                    ┌───────┴───────┐
@@ -34,7 +34,7 @@ Agent Prompt
               Hydration for masked responses
 ```
 
-![Privacy Router consumer protection flow: safe prompts go to an external model as raw text; maskable prompts leave as placeholders and are hydrated locally; essential or no-safe-span prompts stay local.](../../assets/generated/privacy-router-consumer-flow.svg)
+![Privacy Router consumer protection flow: safe prompts go to an external model as raw text; maskable prompts leave as placeholders and are hydrated locally; required or no-safe-span prompts stay local.](../../assets/generated/privacy-router-consumer-flow.svg)
 
 ## Runtime Model Bindings
 
@@ -42,8 +42,8 @@ The pipeline has three model-bound roles, not one model per named component:
 
 | Runtime role | Current model | Trust boundary | Used by |
 |---|---|---|---|
-| Decision Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | Local only | ExtractorCore and optional high-precision Critic; returns sensitivity, spans, categories, and `is_essential` |
-| Local Model | Gemma 4 26B (same endpoint) | Local only | Generation for essential-sensitive raw prompts |
+| Decision Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | Local only | ExtractorCore and optional high-precision Critic; returns sensitivity, spans, categories, and nested `is_required` |
+| Local Model | Gemma 4 26B (same endpoint) | Local only | Generation for required-sensitive raw prompts |
 | External Model | OpenRouter Gemma 4 26B (`openrouter/google/gemma-4-26b-a4b-it`) | External | Generation for non-sensitive prompts or validated masked prompts |
 
 `Judge` is rule-based policy code and `Router` is deterministic execution code. Neither has an LLM binding. Extractor, Critic, and Judge remain useful component names, but they are not independent selectable model roles.
@@ -51,8 +51,8 @@ The pipeline has three model-bound roles, not one model per named component:
 
 ## Component Architecture
 
-The current Judge/Router compatibility pipeline remains available while the
-detector packages are adopted:
+The detector packages and the existing Judge/Router compatibility pipeline
+coexist during the requiredness cutover:
 
 ```text
 agents/extractor/
@@ -121,21 +121,23 @@ Detector adapter
 | `detection_method` | `regex`, `ner`, `token_classifier`, `llm`, or `hybrid` |
 | `is_required` | Nested assessment: `value` is `true`, `false`, or `null`; `reason` is required for every state |
 
-## Requiredness Naming Cutover
 
-The active compatibility pipeline is being aligned with the detector contract:
-`ExtractionRecord`, prompts, Judge, Middle-Man, Masker, persistence, and API
-metadata will use `is_required` instead of `is_essential`. The canonical shape
-is `Requiredness(value: bool | null, reason: str)`, where `value=true` means
-the exact value is required and must remain local, while `value=false` means
-the value can be masked before external processing. Historical evaluation
-artifacts under `archive/` retain their original schema and are not migrated.
+## Requiredness 이름 전환
 
-The local demo will expose only validated offsets and requiredness metadata.
-The browser will render maskable spans (`is_required.value=false`) over the
-input text and link each span to its record block. Hover and keyboard focus on
-either side will highlight the paired elements without returning raw values
-from the API.
+활성 호환 pipeline을 detector contract에 맞춥니다. `ExtractionRecord`,
+prompt, Judge, Middle-Man, Masker, persistence, API metadata의 필드명을
+`is_essential`에서 `is_required`로 바꿉니다. canonical 형태는
+`Requiredness(value: bool | null, reason: str)`입니다. `value=true`는 정확한
+값이 답변 또는 처리에 필요해 로컬에 남겨야 함을 뜻하고, `value=false`는
+값을 마스킹한 뒤 외부 처리할 수 있음을 뜻합니다. `archive/` 아래 historical
+evaluation artifact는 원래 schema를 유지하며 migration하지 않습니다.
+
+원문과 offset은 HTMX fragment 렌더링 경로에만 전달합니다. 공개 JSON
+payload와 `redact_extraction_records`는 raw span과 offset을 계속 제외합니다.
+브라우저는 fragment의 검증된 offset으로 마스킹 대상
+(`is_required.value=false`)을 입력 위에 표시하고 record block과 연결합니다.
+양쪽에 hover 또는 keyboard focus가 들어오면 대응 요소를 함께 강조하며,
+원문 값은 API JSON metadata로 반환하지 않습니다.
 
 
 The externally visible identifier is computed, not persisted:
@@ -316,20 +318,19 @@ Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → comb
   "privacy_router": {
     "status": "needs_input",
     "question": "Sensitive data detected. How should it be handled?",
-    "extraction_summary": {
       "is_sensitive": true,
       "record_count": 2,
-      "essential_count": 1,
+      "required_count": 1,
       "extraction_records": [
-        {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_essential": true, "confidence": 0.95},
-        {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_essential": false, "confidence": 0.90}
+        {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_required": {"value": true, "reason": "응답의 핵심 연구 내용"}, "confidence": 0.95},
+        {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_required": {"value": false, "reason": "이름을 가려도 요청 의미 유지"}, "confidence": 0.90}
       ],
       "default_action": "block"
     },
     "options": [
       {"id": "auto", "label": "Auto", "description": "Follow system decision"},
       {"id": "mask_all", "label": "Mask all", "description": "Mask all sensitive data"},
-      {"id": "mask_essential", "label": "Mask essential only", "description": "Mask is_essential=true only"},
+      {"id": "mask_maskable", "label": "Mask maskable values", "description": "Mask values with is_required.value=false"},
       {"id": "block", "label": "Local processing", "description": "Use local model instead of external API"},
       {"id": "custom", "label": "Custom", "description": "Per-record selection"}
     ],
@@ -349,7 +350,7 @@ Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → comb
     {"role": "user", "content": null, "privacy_router": {
       "selected_option": "custom",
       "overrides": [
-        {"record_index": 0, "is_essential": true},
+        {"record_index": 0, "is_required": {"value": true, "reason": "원문 값이 답변에 필요함"}},
         {"record_index": 2, "remove": true}
       ]
     }}
