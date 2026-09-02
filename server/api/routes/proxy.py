@@ -582,7 +582,7 @@ async def chat_completions(request: Request, _auth: str = Depends(require_chat_a
                         "uid": placeholder.strip("[]").partition("#")[2],
                         "category": matching.category if matching else "UNKNOWN",
                         "confidence": matching.confidence if matching else 0.0,
-                        "is_essential": (matching.is_essential if matching else False),
+                        "is_required": ({"value": matching.is_required.value} if matching else {"value": None}),
                     }
                 )
             meta["masked_text"] = chat_context_text(

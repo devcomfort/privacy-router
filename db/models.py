@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlmodel import Field, SQLModel
 
@@ -214,7 +215,16 @@ class MaskingRecord(SQLModel, table=True):
     value_hash: str = Field(...)  # keyed HMAC fingerprint for equality checks
     span: str = Field(default="")  # Fernet-encrypted original text span
     confidence: float = Field(default=0.0)
-    is_essential: bool = Field(default=False)
+    is_required_value: bool | None = Field(default=None, nullable=True)
+    is_required_reason: str = Field(default="not assessed")
+
+    @property
+    def is_required(self) -> Any:
+        """Return the nested requiredness value without adding a SQL column."""
+        from agents.extractor.schemas import Requiredness
+
+        return Requiredness(value=self.is_required_value, reason=self.is_required_reason)
+
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
 
 

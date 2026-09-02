@@ -13,7 +13,7 @@ config:
 3. `span`은 입력에서 그대로 복사한 최소 연속 부분문자열이다. 사람의 직함(과장/교수/님), 조사, 활용어미(이/가/은/는/을/를/에서/에게), 동사(발견되었습니다), 요청어와 일반 문서명(아이디어/결과/프로젝트/보고서/논문 초안)은 보호 값 자체가 아니면 제외한다.
 4. 이름·소속·전화·이메일·금액·결정·일정·방법·결과는 서로 다른 값이므로 각각 별도 record다. 특히 연락처 목록의 `이름 전화번호`는 이름 record와 전화번호 record로 반드시 분리한다. 이메일·전화·예산처럼 눈에 띄는 값이 있어도 그 앞뒤 사람 이름 검사를 건너뛰지 않는다.
 5. `category`는 설명 없는 영문 `SCREAMING_SNAKE_CASE` 하나다. 괄호, 슬래시, 한글, 복합 카테고리를 쓰지 않는다.
-6. 모든 record는 정확히 `category`, `span`, `is_essential`, `confidence`, `reasoning` 다섯 키를 이 순서로 포함한다. 특히 `is_essential`을 절대 생략하지 않는다. `confidence`는 0~1 JSON 숫자, `reasoning`은 짧은 한국어 한 문장이다.
+6. 모든 record는 정확히 `category`, `span`, `is_required`, `confidence`, `reasoning` 다섯 키를 이 순서로 포함한다. 특히 `is_required`를 절대 생략하지 않는다. `is_required`는 `value`와 `reason`을 포함한 객체이며, `confidence`는 0~1 JSON 숫자, `reasoning`은 짧은 한국어 한 문장이다.
 
 # 1단계: 민감한 실제 값 전수 추출
 다음 중 하나라도 해당하면 민감하다. 사용자가 `비밀` 또는 `내부`라고 쓰지 않아도 적용한다.
@@ -82,10 +82,10 @@ category 이름 계약:
 - `팀원은 김동현, 이철수, 박영희` -> 세 이름을 각각 `PERSON_NAME` record로 추출
 - `경쟁사 A사가 6개월 앞서` -> `COMPETITOR_NAME` span `경쟁사 A사` + `COMPETITIVE_LEAD_TIME` span `6개월`
 
-# 3단계: is_essential 마스킹 검사
+# 3단계: is_required 평가
 이 span 하나만 `SENSITIVE_DATA#random8`로 바꿔도 외부 LLM이 같은 작업을 할 수 있는가?
-- 가능하고 나중에 복원할 수 있으면 false.
-- 정확한 비밀 값을 이해·비교·검증·기재·호출하거나 그 값에 근거해 조언해야 하면 true.
+- 가능하고 나중에 복원할 수 있으면 `is_required.value=false`.
+- 정확한 비밀 값을 이해·비교·검증·기재·호출하거나 그 값에 근거해 조언해야 하면 `is_required.value=true`.
 민감하다는 이유만으로 true가 아니다.
 
 정확한 판정:
@@ -99,39 +99,39 @@ category 이름 계약:
 
 # 출력 schema
 민감한 값이 있으면:
-{"sensitivity":{"is_sensitive":true,"rationale":"짧은 전체 근거"},"records":[{"category":"SCREAMING_SNAKE_CASE","span":"입력의 정확한 부분문자열","is_essential":false,"confidence":0.95,"reasoning":"짧은 근거"}]}
+{"sensitivity":{"is_sensitive":true,"rationale":"짧은 전체 근거"},"records":[{"category":"SCREAMING_SNAKE_CASE","span":"입력의 정확한 부분문자열","is_required":{"value":false,"reason":"짧은 근거"},"confidence":0.95,"reasoning":"짧은 근거"}]}
 없으면 정확히:
 {"sensitivity":{"is_sensitive":false,"rationale":"민감한 실제 값이 없음"},"records":[]}
 
 # 판정 예시
 입력: 주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"주민등록번호 포함"},"records":[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567","is_essential":false,"confidence":1.0,"reasoning":"주민등록번호"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"주민등록번호 포함"},"records":[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567","is_required":{"value":false,"reason":"이메일 작성은 값 없이 가능"},"confidence":1.0,"reasoning":"주민등록번호"}]}
 입력: 세금 신고서에 내 주민등록번호 901212-1234567을 기재해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"정확한 주민등록번호 기재 요청"},"records":[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567","is_essential":true,"confidence":1.0,"reasoning":"주민등록번호"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"정확한 주민등록번호 기재 요청"},"records":[{"category":"RESIDENT_REGISTRATION_NUMBER","span":"901212-1234567","is_required":{"value":true,"reason":"정확한 번호 기재가 요청에 필요"},"confidence":1.0,"reasoning":"주민등록번호"}]}
 입력: TSMC 3nm 공정 채택 결정에 대한 보고서를 작성해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"구체적 공정 채택 결정"},"records":[{"category":"FABRICATION_PROCESS_DECISION","span":"TSMC 3nm 공정","is_essential":false,"confidence":0.98,"reasoning":"제조공정 결정"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"구체적 공정 채택 결정"},"records":[{"category":"FABRICATION_PROCESS_DECISION","span":"TSMC 3nm 공정","is_required":{"value":false,"reason":"공정명을 가려도 보고서 작성 가능"},"confidence":0.98,"reasoning":"제조공정 결정"}]}
 입력: 오늘 날씨가 좋네. 그리고 프로젝트 알파 예산은 500억원이야.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"내부 프로젝트와 예산"},"records":[{"category":"INTERNAL_PROJECT_NAME","span":"프로젝트 알파","is_essential":false,"confidence":0.95,"reasoning":"내부 프로젝트명"},{"category":"PROJECT_BUDGET_AMOUNT","span":"500억원","is_essential":false,"confidence":0.98,"reasoning":"프로젝트 예산"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"내부 프로젝트와 예산"},"records":[{"category":"INTERNAL_PROJECT_NAME","span":"프로젝트 알파","is_required":{"value":false,"reason":"프로젝트명을 가려도 문장 의미 유지"},"confidence":0.95,"reasoning":"내부 프로젝트명"},{"category":"PROJECT_BUDGET_AMOUNT","span":"500억원","is_required":{"value":false,"reason":"금액을 가려도 문장 의미 유지"},"confidence":0.98,"reasoning":"프로젝트 예산"}]}
 입력: GIST AI 연구실에서 진행 중인 멀티모달 RAG 파이프라인 최적화 프로젝트에 대해 조언을 구하고 싶어.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"소속과 진행 중 연구 개념"},"records":[{"category":"INSTITUTION_NAME","span":"GIST AI 연구실","is_essential":false,"confidence":0.95,"reasoning":"연구실 소속"},{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"멀티모달 RAG 파이프라인 최적화","is_essential":true,"confidence":0.98,"reasoning":"진행 중 연구 방향"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"소속과 진행 중 연구 개념"},"records":[{"category":"INSTITUTION_NAME","span":"GIST AI 연구실","is_required":{"value":false,"reason":"소속을 가려도 조언 요청 가능"},"confidence":0.95,"reasoning":"연구실 소속"},{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"멀티모달 RAG 파이프라인 최적화","is_required":{"value":true,"reason":"정확한 연구 개념에 근거한 조언"},"confidence":0.98,"reasoning":"진행 중 연구 방향"}]}
 입력: 우리 모델은 시맨틱 청킹으로 문서를 분할하고 계층적 임베딩으로 표현한 뒤 크로스인코더로 리랭킹해.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"내부 모델 방법론"},"records":[{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"시맨틱 청킹","is_essential":false,"confidence":0.95,"reasoning":"파이프라인 구성요소"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"계층적 임베딩","is_essential":false,"confidence":0.95,"reasoning":"파이프라인 구성요소"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"크로스인코더","is_essential":false,"confidence":0.95,"reasoning":"파이프라인 구성요소"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"내부 모델 방법론"},"records":[{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"시맨틱 청킹","is_required":{"value":false,"reason":"구성요소를 가려도 일반 설명 가능"},"confidence":0.95,"reasoning":"파이프라인 구성요소"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"계층적 임베딩","is_required":{"value":false,"reason":"구성요소를 가려도 일반 설명 가능"},"confidence":0.95,"reasoning":"파이프라인 구성요소"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"크로스인코더","is_required":{"value":false,"reason":"구성요소를 가려도 일반 설명 가능"},"confidence":0.95,"reasoning":"파이프라인 구성요소"}]}
 입력: 연봉 협상을 준비 중인데 현재 연봉은 8,000만원이야. 시장 평균과 비교해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"개인 연봉 비교 요청"},"records":[{"category":"SALARY_INFORMATION","span":"8,000만원","is_essential":true,"confidence":0.99,"reasoning":"현재 연봉"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"개인 연봉 비교 요청"},"records":[{"category":"SALARY_INFORMATION","span":"8,000만원","is_required":{"value":true,"reason":"현재 연봉의 정확한 비교가 요청에 필요"},"confidence":0.99,"reasoning":"현재 연봉"}]}
 입력: 우리가 개발한 새로운 배터리 소재는 비밀로 해줘. 다음 주에 출원할 예정이야.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"비공개 개발 소재와 출원 일정"},"records":[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"새로운 배터리 소재","is_essential":true,"confidence":0.98,"reasoning":"비공개 개발 소재"},{"category":"PATENT_FILING_TIMELINE","span":"다음 주","is_essential":true,"confidence":0.98,"reasoning":"출원 일정"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"비공개 개발 소재와 출원 일정"},"records":[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"새로운 배터리 소재","is_required":{"value":true,"reason":"비공개 소재의 정확한 내용이 핵심"},"confidence":0.98,"reasoning":"비공개 개발 소재"},{"category":"PATENT_FILING_TIMELINE","span":"다음 주","is_required":{"value":true,"reason":"출원 시점이 요청 의미에 필요"},"confidence":0.98,"reasoning":"출원 일정"}]}
 입력: 새로운 그래프 기반 어텐션 메커니즘 아이디어를 바탕으로 실험 설계를 도와줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 연구 개념에 근거한 실험 설계"},"records":[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"그래프 기반 어텐션 메커니즘","is_essential":true,"confidence":0.99,"reasoning":"실험 설계의 핵심 연구 개념"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 연구 개념에 근거한 실험 설계"},"records":[{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"그래프 기반 어텐션 메커니즘","is_required":{"value":true,"reason":"정확한 연구 개념이 설계의 핵심"},"confidence":0.99,"reasoning":"실험 설계의 핵심 연구 개념"}]}
 입력: GSM8K 벤치마크에서 94.2% 정확도를 달성한 실험 결과를 바탕으로 논문 초안을 작성해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 성능값에 근거한 논문 작성"},"records":[{"category":"UNPUBLISHED_BENCHMARK_RESULT","span":"94.2%","is_essential":true,"confidence":1.0,"reasoning":"논문 주장의 핵심 성능값"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"미공개 성능값에 근거한 논문 작성"},"records":[{"category":"UNPUBLISHED_BENCHMARK_RESULT","span":"94.2%","is_required":{"value":true,"reason":"정확한 성능값이 논문 작성에 필요"},"confidence":1.0,"reasoning":"논문 주장의 핵심 성능값"}]}
 입력: 안녕, 나는 광주과학기술원 김동현이야. contextual distillation 연구 중인데, 긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인을 만들고 있어. 청킹 방법 조언해줘.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"신원과 미공개 연구 개념 및 방법론"},"records":[{"category":"INSTITUTION_NAME","span":"광주과학기술원","is_essential":false,"confidence":0.99,"reasoning":"소속 기관"},{"category":"PERSON_NAME","span":"김동현","is_essential":false,"confidence":1.0,"reasoning":"개인 이름"},{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"contextual distillation","is_essential":true,"confidence":0.99,"reasoning":"조언의 핵심 연구 개념"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인","is_essential":false,"confidence":0.98,"reasoning":"마스킹 가능한 방법론 설명"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"신원과 미공개 연구 개념 및 방법론"},"records":[{"category":"INSTITUTION_NAME","span":"광주과학기술원","is_required":{"value":false,"reason":"소속을 가려도 조언 요청 가능"},"confidence":0.99,"reasoning":"소속 기관"},{"category":"PERSON_NAME","span":"김동현","is_required":{"value":false,"reason":"이름을 가려도 조언 요청 가능"},"confidence":1.0,"reasoning":"개인 이름"},{"category":"UNPUBLISHED_RESEARCH_CONCEPT","span":"contextual distillation","is_required":{"value":true,"reason":"정확한 연구 개념이 조언의 핵심"},"confidence":0.99,"reasoning":"조언의 핵심 연구 개념"},{"category":"UNPUBLISHED_RESEARCH_METHODOLOGY","span":"긴 문서를 청킹해서 유의미한 정보만 추출하는 파이프라인","is_required":{"value":false,"reason":"방법론을 가려도 일반 조언 가능"},"confidence":0.98,"reasoning":"마스킹 가능한 방법론 설명"}]}
 입력: 이번 프로젝트 팀원은 김동현, 이철수, 박영희입니다.
-출력: {"sensitivity":{"is_sensitive":true,"rationale":"팀원 개인 이름들"},"records":[{"category":"PERSON_NAME","span":"김동현","is_essential":false,"confidence":1.0,"reasoning":"팀원 이름"},{"category":"PERSON_NAME","span":"이철수","is_essential":false,"confidence":1.0,"reasoning":"팀원 이름"},{"category":"PERSON_NAME","span":"박영희","is_essential":false,"confidence":1.0,"reasoning":"팀원 이름"}]}
+출력: {"sensitivity":{"is_sensitive":true,"rationale":"팀원 개인 이름들"},"records":[{"category":"PERSON_NAME","span":"김동현","is_required":{"value":false,"reason":"이름을 가려도 요청 의미 유지"},"confidence":1.0,"reasoning":"팀원 이름"},{"category":"PERSON_NAME","span":"이철수","is_required":{"value":false,"reason":"이름을 가려도 요청 의미 유지"},"confidence":1.0,"reasoning":"팀원 이름"},{"category":"PERSON_NAME","span":"박영희","is_required":{"value":false,"reason":"이름을 가려도 요청 의미 유지"},"confidence":1.0,"reasoning":"팀원 이름"}]}
 입력: 스타트업을 창업하려고 하는데 사업계획서 작성을 도와줘.
 출력: {"sensitivity":{"is_sensitive":false,"rationale":"민감한 실제 값이 없음"},"records":[]}
 
-출력 전 내부 검사: records 배열을 먼저 완성하고 그 길이로 is_sensitive를 정했는가, 모든 절을 보았는가, 이름/금액/방법을 누락하지 않았는가, span이 입력의 정확한 최소 부분문자열인가, category가 canonical인가, 각 is_essential에 마스킹 검사를 적용했는가, 모든 record에 다섯 키 특히 `is_essential`이 있는가, JSON 문법이 유효한가. 이 검사는 출력하지 않는다.
+출력 전 내부 검사: records 배열을 먼저 완성하고 그 길이로 is_sensitive를 정했는가, 모든 절을 보았는가, 이름/금액/방법을 누락하지 않았는가, span이 입력의 정확한 최소 부분문자열인가, category가 canonical인가, 각 is_required.value에 마스킹 검사를 적용했는가, 모든 record에 다섯 키와 중첩 reason을 포함했는가, JSON 문법이 유효한가. 이 검사는 출력하지 않는다.
 
 분석할 입력:
 {{text}}

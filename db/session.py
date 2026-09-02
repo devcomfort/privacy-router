@@ -23,15 +23,34 @@ engine = create_engine(DATABASE_URL, echo=False)
 
 
 def _migrate_db() -> None:
-    """Add the essentiality flag to legacy masking-record tables."""
+    """Migrate legacy masking essentiality to nested requiredness columns."""
     inspector = sqlalchemy.inspect(engine)
     if "masking_records" not in inspector.get_table_names():
         return
+
     columns = {column["name"] for column in inspector.get_columns("masking_records")}
-    if "is_essential" not in columns:
-        with engine.begin() as conn:
+    with engine.begin() as conn:
+        if "is_required_value" not in columns:
+            if "is_essential" in columns:
+                conn.execute(
+                    sqlalchemy.text("ALTER TABLE masking_records RENAME COLUMN is_essential TO is_required_value")
+                )
+            else:
+                conn.execute(sqlalchemy.text("ALTER TABLE masking_records ADD COLUMN is_required_value BOOLEAN"))
+        elif "is_essential" in columns:
             conn.execute(
-                sqlalchemy.text("ALTER TABLE masking_records ADD COLUMN is_essential BOOLEAN NOT NULL DEFAULT false")
+                sqlalchemy.text(
+                    "UPDATE masking_records SET is_required_value = is_essential WHERE is_required_value IS NULL"
+                )
+            )
+            conn.execute(sqlalchemy.text("ALTER TABLE masking_records DROP COLUMN is_essential"))
+
+        if "is_required_reason" not in columns:
+            conn.execute(
+                sqlalchemy.text(
+                    "ALTER TABLE masking_records ADD COLUMN is_required_reason VARCHAR "
+                    "NOT NULL DEFAULT 'migrated from legacy essentiality flag'"
+                )
             )
 
 

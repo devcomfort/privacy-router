@@ -25,7 +25,7 @@ def _selective_mask_response(*, content: str = "작성했습니다.") -> dict:
                     "category": "PERSONAL_IDENTIFIER_NUMBER",
                     "span": "<redacted>",
                     "confidence": 0.99,
-                    "is_essential": False,
+                    "is_required": {"value": False},
                 }
             ],
             "masked_text": "주민등록번호 SENSITIVE_DATA#deadbeef을 포함한 이메일을 작성해줘.",
@@ -34,7 +34,7 @@ def _selective_mask_response(*, content: str = "작성했습니다.") -> dict:
                     "category": "PERSONAL_IDENTIFIER_NUMBER",
                     "uid": "deadbeef",
                     "confidence": 0.99,
-                    "is_essential": False,
+                    "is_required": {"value": False},
                 }
             ],
         },
@@ -229,7 +229,7 @@ def test_each_scope_must_pass_instead_of_hiding_behind_overall_average() -> None
                         "category": "SECRET",
                         "span": "secret",
                         "confidence": 1.0,
-                        "is_essential": False,
+                        "is_required": {"value": False},
                     }
                 ],
             },

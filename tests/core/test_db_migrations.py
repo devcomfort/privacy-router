@@ -322,3 +322,55 @@ def test_purge_expired_data_removes_raw_rows_and_keeps_live_rows(tmp_path, monke
         assert session.get(RequestTrace, "live-trace") is not None
         assert session.get(ModelInvocation, "live-invocation") is not None
         assert session.get(Response, "live-response") is not None
+
+
+def test_migrate_legacy_masking_requiredness_columns(tmp_path, monkeypatch):
+    """Legacy essentiality values migrate to nested requiredness storage."""
+    legacy_engine = create_engine(f"sqlite:///{tmp_path / 'masking-requiredness.db'}")
+    with legacy_engine.begin() as connection:
+        connection.execute(
+            sqlalchemy.text(
+                """
+                CREATE TABLE masking_records (
+                    id VARCHAR PRIMARY KEY,
+                    session_id VARCHAR NOT NULL,
+                    uid VARCHAR NOT NULL,
+                    category VARCHAR NOT NULL,
+                    placeholder VARCHAR NOT NULL,
+                    value_hash VARCHAR NOT NULL,
+                    span VARCHAR NOT NULL,
+                    confidence FLOAT NOT NULL DEFAULT 0,
+                    is_essential BOOLEAN NOT NULL DEFAULT false
+                )
+                """
+            )
+        )
+        connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO masking_records (
+                    id, session_id, uid, category, placeholder,
+                    value_hash, span, confidence, is_essential
+                ) VALUES (
+                    'record-1', 'session-1', 'uid-1', 'EMAIL_ADDRESS',
+                    'EMAIL_ADDRESS#uid-1', 'hash', 'encrypted', 0.95, true
+                )
+                """
+            )
+        )
+
+    monkeypatch.setattr("db.session.engine", legacy_engine)
+    from db.session import _migrate_db
+
+    _migrate_db()
+
+    columns = {column["name"] for column in sqlalchemy.inspect(legacy_engine).get_columns("masking_records")}
+    assert "is_required" not in columns
+    assert "is_required_value" in columns
+    assert "is_required_reason" in columns
+    with legacy_engine.connect() as connection:
+        row = connection.execute(
+            sqlalchemy.text("SELECT is_required_value, is_required_reason FROM masking_records WHERE id = 'record-1'")
+        ).one()
+    assert row.is_required_value in (True, 1)
+    assert row.is_required_reason == "migrated from legacy essentiality flag"

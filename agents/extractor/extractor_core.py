@@ -147,7 +147,7 @@ def _validate_record(item: _ExtractedItem, original_text: str) -> ExtractionReco
         span=span,
         confidence=item.confidence,
         reasoning=item.reasoning or "",
-        is_essential=item.is_essential,
+        is_required=item.is_required,
         start=start,
         end=start + len(span),
     )

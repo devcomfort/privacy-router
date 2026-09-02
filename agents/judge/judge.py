@@ -4,14 +4,14 @@ The Judge receives sensitivity assessments and extraction records
 from the Extractor and produces a :class:`Judgment` that tells the
 Router what action to take.
 
-No LLM calls — all decisions are based on is_essential flags.
+No LLM calls — all decisions are based on nested is_required assessments.
 
 Examples
 --------
 >>> judge = Judge()
 >>> j = judge.classify(
 ...     sensitivity={"is_sensitive": True, "rationale": "..."},
-...     records=[{"category": "RESIDENT_REGISTRATION_NUMBER", "is_essential": False, ...}],
+...     records=[{"category": "RESIDENT_REGISTRATION_NUMBER", "is_required": {"value": False, "reason": "값을 가려도 의미 유지"}, ...}],
 ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
 ... )
 >>> j.policy_action
@@ -44,15 +44,23 @@ def _meaningfulness(is_meaningful: bool, rationale: str) -> MeaningfulnessAssess
     return assessment
 
 
+def _required_value(record: dict[str, Any]) -> bool | None:
+    """Return the nested requiredness value, treating missing data as unknown."""
+    requiredness = record.get("is_required")
+    if isinstance(requiredness, dict):
+        return requiredness.get("value")
+    return getattr(requiredness, "value", None)
+
+
 def resolve_policy_action(
     declared_sensitive: bool,
     record_count: int,
-    essential_count: int,
+    required_count: int,
 ) -> Literal["allow", "selective_mask", "block"]:
     """Resolve the fail-closed action for an extraction state."""
     if record_count == 0:
         return "block" if declared_sensitive else "allow"
-    return "block" if essential_count > 0 else "selective_mask"
+    return "block" if required_count > 0 else "selective_mask"
 
 
 # ── Judge ────────────────────────────────────────────────────────────────────
@@ -61,7 +69,7 @@ def resolve_policy_action(
 class Judge:
     """Privacy policy judge that decides what action to take.
 
-    Rule-based: no LLM calls. Decisions based on is_essential flags.
+    Rule-based: no LLM calls. Decisions based on nested is_required values.
 
     Parameters
     ----------
@@ -106,18 +114,18 @@ class Judge:
         >>> judge = Judge()
         >>> j = judge.classify(
         ...     sensitivity={"is_sensitive": True, "rationale": "주민등록번호"},
-        ...     records=[{"category": "RRN", "span": "901212-1234567", "is_essential": False}],
+        ...     records=[{"category": "RRN", "span": "901212-1234567", "is_required": {"value": False, "reason": "값을 가려도 의미 유지"}}],
         ...     text="주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
         ... )
         >>> j.policy_action
         'selective_mask'
         """
         declared_sensitive = bool(sensitivity.get("is_sensitive", False))
-        essential_count = sum(1 for r in records if r.get("is_essential", False))
+        required_count = sum(1 for r in records if _required_value(r) is not False)
         policy_action = resolve_policy_action(
             declared_sensitive,
             len(records),
-            essential_count,
+            required_count,
         )
 
         if policy_action == "allow":
@@ -149,11 +157,11 @@ class Judge:
             return Judgment(
                 meaningful_after_masking=_meaningfulness(
                     False,
-                    f"essential: {essential_count}/{len(records)} records",
+                    f"required: {required_count}/{len(records)} records",
                 ),
                 policy_action="block",
                 strategy="민감 정보가 질의의 핵심이므로 로컬에서 처리합니다.",
-                rationale=f"essential: {essential_count}/{len(records)} records",
+                rationale=f"required: {required_count}/{len(records)} records",
             )
 
         # All records are maskable

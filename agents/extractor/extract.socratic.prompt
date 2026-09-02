@@ -46,18 +46,18 @@ If YES → tag it. Look for: credentials, internal URLs, salaries, budgets.
 
 ---
 
-## The Masking Test (for essential)
+## The Masking Test (for requiredness)
 
 For EACH tagged record, ask:
 
 > "이 정보를 [MASKED]로 치환하면, 원래 질문의 의미가 유지되는가?"
 
-- YES, meaning preserved → `is_essential: false` (마스킹 후 외부 전송 가능)
-- NO, meaning lost → `is_essential: true` (로컬 처리 필요)
+- YES, meaning preserved → `is_required.value=false` (마스킹 후 외부 전송 가능)
+- NO, meaning lost → `is_required.value=true` (로컬 처리 필요)
 
 **Examples of the masking test:**
 
-| Question | After masking | Meaning preserved? | essential |
+| Question | After masking | Meaning preserved? | is_required.value |
 |---|---|---|---|
 | "주민번호 포함한 이메일 작성" | "주민번호 [MASKED] 포함한 이메일 작성" | ✅ (can still write email) | false |
 | "내 주민번호가 뭐야?" | "내 [MASKED]가 뭐야?" | ❌ (don't know what they're asking) | true |
@@ -65,9 +65,9 @@ For EACH tagged record, ask:
 | "고민 중인데 조언 줘" | "고민 중인데 조언 줘" | ✅ (can still give advice) | false |
 
 **Mandatory override rules:**
-- Explicit confidentiality markers ("비밀로 해줘", "공개하지 마") → ALWAYS `is_essential: true`
-- Internal URLs (`internal.`, `localhost`, VPN) → ALWAYS `is_essential: true`
-- Credentials (passwords, API keys) → ALWAYS `is_essential: true`
+- Explicit confidentiality markers ("비밀로 해줘", "공개하지 마") → ALWAYS `is_required.value=true`
+- Internal URLs (`internal.`, `localhost`, VPN) → ALWAYS `is_required.value=true`
+- Credentials (passwords, API keys) → ALWAYS `is_required.value=true`
 
 ---
 
@@ -117,7 +117,7 @@ Before you write JSON, ask yourself these THREE questions:
       "span": "extracted span",
       "confidence": 0.95,
       "reasoning": "왜 이게 민감한지 한 줄 설명",
-      "is_essential": false
+      "is_required": {"value": false, "reason": "masking preserves meaning"}
     }
   ]
 }

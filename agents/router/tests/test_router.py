@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents import ExtractionRecord, ExtractionResult, Sensitivity
+from agents import ExtractionRecord, ExtractionResult, Requiredness, Sensitivity
 from agents.judge import Judgment, MeaningfulnessAssessment
 from agents.router import (
     ChatMessage,
@@ -78,6 +78,7 @@ class TestMiddleManPolicyInvariants:
                     confidence=0.99,
                     start=0,
                     end=5,
+                    is_required=Requiredness(value=False, reason="background value"),
                 )
             ],
         )
@@ -235,7 +236,7 @@ class TestRouterPolicyActions:
                     confidence=0.99,
                     start=5,
                     end=19,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                 )
             ],
         )
@@ -266,7 +267,7 @@ class TestRouterPolicyActions:
                     confidence=0.99,
                     start=0,
                     end=15,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 )
             ],
         )
@@ -294,7 +295,7 @@ class TestRouterPolicyActions:
                     confidence=0.9,
                     start=0,
                     end=10,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 ),
                 ExtractionRecord(
                     category="RESIDENT_REGISTRATION_NUMBER",
@@ -302,7 +303,7 @@ class TestRouterPolicyActions:
                     confidence=0.99,
                     start=20,
                     end=35,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                 ),
             ],
         )
@@ -334,7 +335,7 @@ class TestRouterPipelineResult:
         assert hasattr(result, "records")
         assert hasattr(result, "mask_indices")
 
-    def test_rationale_contains_essential_info(self):
+    def test_rationale_contains_required_info(self):
         from unittest.mock import patch
 
         from agents.extractor.schemas import ExtractionRecord, ExtractionResult, Sensitivity
@@ -348,7 +349,7 @@ class TestRouterPipelineResult:
                     confidence=0.99,
                     start=0,
                     end=15,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 )
             ],
         )
@@ -357,7 +358,7 @@ class TestRouterPipelineResult:
             pr = PrivacyRouter()
             result = pr.process("주민등록번호 901212-1234567을 확인해주세요")
 
-        assert "essential" in result.judgment.rationale
+        assert "required" in result.judgment.rationale
 
     def test_records_have_schema_fields(self, monkeypatch):
         extractor = MagicMock()
@@ -370,7 +371,7 @@ class TestRouterPipelineResult:
                     confidence=0.99,
                     start=7,
                     end=21,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="direct identifier"),
                     reasoning="direct identifier",
                 )
             ],
@@ -383,7 +384,7 @@ class TestRouterPipelineResult:
             assert hasattr(r, "category")
             assert hasattr(r, "span")
             assert hasattr(r, "confidence")
-            assert hasattr(r, "is_essential")
+            assert hasattr(r, "is_required")
             assert hasattr(r, "reasoning")
 
 
@@ -457,7 +458,7 @@ class TestPrivacyRouterCanonicalActions:
                     confidence=0.98,
                     start=0,
                     end=14,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 ),
             ],
         )
@@ -485,7 +486,7 @@ class TestPrivacyRouterCanonicalActions:
                     confidence=0.98,
                     start=0,
                     end=14,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 ),
             ],
         )
@@ -535,7 +536,7 @@ class TestPrivacyRouterCanonicalActions:
                     confidence=0.98,
                     start=5,
                     end=19,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                 ),
             ],
         )

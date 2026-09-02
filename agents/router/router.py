@@ -91,7 +91,7 @@ class Router:
         "selective_mask": RouteResult(
             endpoint="external_api",
             requires_masking=True,
-            description="비-essential 레코드만 마스킹 후 외부 LLM으로 전송",
+            description="비필수 레코드만 마스킹 후 외부 LLM으로 전송",
         ),
     }
     _ACTION_PATHS: dict[str, tuple[str, bool]] = {
@@ -266,7 +266,7 @@ class PrivacyRouter:
         )
 
         records = []
-        seen_records: set[tuple[str, str, int, int, bool]] = set()
+        seen_records: set[tuple[str, str, int, int, bool | None]] = set()
         for offset, result in extractions:
             for record in result.records:
                 adjusted = record.model_copy(
@@ -280,7 +280,7 @@ class PrivacyRouter:
                     adjusted.span,
                     adjusted.start,
                     adjusted.end,
-                    adjusted.is_essential,
+                    adjusted.is_required.value,
                 )
                 if identity not in seen_records:
                     seen_records.add(identity)
@@ -288,7 +288,7 @@ class PrivacyRouter:
 
         # Phase 2: Rule-based Judge
         judge = Judge()
-        records_dict = [{"category": r.category, "span": r.span, "is_essential": r.is_essential} for r in records]
+        records_dict = [{"category": r.category, "span": r.span, "is_required": r.is_required} for r in records]
         judgment = judge.classify(
             sensitivity={
                 "is_sensitive": sensitivity.is_sensitive,

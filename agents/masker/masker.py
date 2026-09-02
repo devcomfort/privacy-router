@@ -139,7 +139,7 @@ class Masker:
         """Mask only the records at the given indices.
 
         Used when the PerRecordEvaluator determines some records are
-        non-essential and can be safely masked while others must
+        optional and can be safely masked while others are required and must
         remain visible for the query to be meaningful.
 
         Parameters

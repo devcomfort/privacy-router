@@ -22,6 +22,7 @@ from agents import (
     ExtractionResult,
     MaskingContract,
     PrivacyAnalysisUnavailable,
+    Requiredness,
     RouteResult,
     Sensitivity,
     decrypt_field,
@@ -75,7 +76,7 @@ def _extraction_record(span: str, category: str = "TEST_SECRET") -> ExtractionRe
         confidence=0.9,
         start=0,
         end=len(span),
-        is_essential=False,
+        is_required=Requiredness(value=False, reason="test"),
         reasoning="test",
     )
 
@@ -376,7 +377,7 @@ def _chat_dependencies(
                 confidence=0.9,
                 start=0,
                 end=len("SOURCE_SENTINEL"),
-                is_essential=False,
+                is_required=Requiredness(value=False, reason="test"),
                 reasoning="test",
             )
         ]
@@ -461,7 +462,7 @@ def test_classify_success_redacts_span_and_reasoning():
         confidence=0.9,
         start=0,
         end=len(secret),
-        is_essential=False,
+        is_required=Requiredness(value=False, reason=reasoning),
         reasoning=reasoning,
     )
     router = MagicMock()
@@ -564,7 +565,7 @@ def test_generate_masks_with_owner_bound_contract_and_chat_messages():
         confidence=0.9,
         start=0,
         end=len("SOURCE_SENTINEL"),
-        is_essential=False,
+        is_required=Requiredness(value=False, reason="test"),
         reasoning="test",
     )
     pipeline = _pipeline("external_api", True, [record])
@@ -802,7 +803,7 @@ def test_mcp_apply_decision_masks_with_complete_contract_call():
         confidence=0.9,
         start=0,
         end=len("SOURCE_SENTINEL"),
-        is_essential=False,
+        is_required=Requiredness(value=False, reason="test"),
         reasoning="test",
     )
     pipeline = _pipeline("external_api", True, [record])
@@ -934,7 +935,7 @@ def test_mcp_review_to_apply_round_trips_real_encrypted_cache(
                 end=start + len(span),
                 detection_type="contextual",
                 reasoning="The acquisition target is not public.",
-                is_essential=True,
+                is_required=Requiredness(value=True, reason="The acquisition target is not public."),
             )
         ],
     )
@@ -1667,7 +1668,7 @@ def _responses_dependencies(
                 confidence=0.9,
                 start=0,
                 end=len("SOURCE_SENTINEL"),
-                is_essential=False,
+                is_required=Requiredness(value=False, reason="test"),
                 reasoning="test",
             )
         ]
@@ -2611,7 +2612,7 @@ def test_chat_response_matches_web_demo_metadata_contract():
                 "category": "INTERNAL_PROJECT_NAME",
                 "span": "<redacted>",
                 "confidence": 0.9,
-                "is_essential": False,
+                "is_required": {"value": False},
             }
         ],
         "masked_text": "[message[0].user.content]\nMASKED_REQUEST",
@@ -2621,7 +2622,7 @@ def test_chat_response_matches_web_demo_metadata_contract():
                 "uid": "deadbeef",
                 "category": "INTERNAL_PROJECT_NAME",
                 "confidence": 0.9,
-                "is_essential": False,
+                "is_required": {"value": False},
             }
         ],
         "policy_action": "allow",
@@ -2644,7 +2645,7 @@ def test_chat_metadata_never_echoes_extractor_reasoning_from_session_context():
         reasoning="The prior turn says Project Aurora is confidential",
         start=5,
         end=18,
-        is_essential=False,
+        is_required=Requiredness(value=False, reason="test"),
     )
 
     with _chat_dependencies(

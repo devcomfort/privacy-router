@@ -74,7 +74,7 @@ class TestContractStoreSaveAndLoad:
                 "category": "PERSONAL_IDENTIFIER_NUMBER",
                 "span": "901212-1234567",
                 "confidence": 0.98,
-                "is_essential": False,
+                "is_required": {"value": False, "reason": "테스트용 마스킹 가능 값"},
             },
         ]
         placeholder_map = {"SENSITIVE_DATA#a1b2c3d4": "901212-1234567"}
@@ -106,7 +106,13 @@ class TestContractStoreSaveAndLoad:
             policy_action="selective_mask",
         )
 
-        records = [{"category": "PERSONAL_IDENTIFIER_NUMBER", "span": "010-1234-5678"}]
+        records = [
+            {
+                "category": "PERSONAL_IDENTIFIER_NUMBER",
+                "span": "010-1234-5678",
+                "is_required": {"value": False, "reason": "테스트용 마스킹 가능 값"},
+            }
+        ]
         placeholder_map = {"SENSITIVE_DATA#xyz12345": "010-1234-5678"}
         store.save_records(session_id, records, placeholder_map)
 
@@ -134,7 +140,7 @@ class TestContractStoreSaveAndLoad:
         )
         store.save_records(
             session_id,
-            [{"category": "CREDENTIAL", "span": "secret-value"}],
+            [{"category": "CREDENTIAL", "span": "secret-value", "is_required": {"value": True, "reason": "test"}}],
             {"SENSITIVE_DATA#deadbeef": "secret-value"},
         )
 
@@ -153,7 +159,7 @@ class TestContractStoreSaveAndLoad:
         with pytest.raises(ValueError, match="No extraction record matches"):
             store.save_records(
                 session_id,
-                [{"category": "TEST", "span": "expected"}],
+                [{"category": "TEST", "span": "expected", "is_required": {"value": False, "reason": "test"}}],
                 {"SENSITIVE_DATA#deadbeef": "different"},
             )
 

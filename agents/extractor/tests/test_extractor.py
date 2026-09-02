@@ -6,7 +6,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agents.extractor import Critic, ExtractionRecord, PrivacyAnalysisUnavailable
+from agents.extractor import (
+    Critic,
+    ExtractionRecord,
+    PrivacyAnalysisUnavailable,
+    Requiredness,
+    redact_extraction_records,
+)
 from agents.extractor.extractor import Extractor, _validate_critic_records
 from agents.extractor.extractor_core import ExtractorCore, _validate_record
 from agents.extractor.schemas import (
@@ -32,7 +38,7 @@ _RECORD = ExtractionRecord(
     span="901212-1234567",
     confidence=0.98,
     reasoning="주민등록번호",
-    is_essential=False,
+    is_required=Requiredness(value=False, reason="테스트 requiredness"),
     start=5,
     end=20,
 )
@@ -456,3 +462,27 @@ class TestExtractorCriticPath:
         spans = {r.span for r in result.records}
         assert "901212-1234567" in spans
         assert "test@co.kr" in spans
+
+
+def test_public_record_projection_exposes_required_value_without_reason() -> None:
+    record = ExtractionRecord(
+        category="EMAIL_ADDRESS",
+        span="synthetic@example.invalid",
+        confidence=0.95,
+        start=0,
+        end=25,
+        is_required=Requiredness(value=False, reason="SECRET_REQUIREDNESS_REASON"),
+    )
+
+    public = redact_extraction_records([record])
+
+    assert public == [
+        {
+            "index": 0,
+            "category": "EMAIL_ADDRESS",
+            "span": "<redacted>",
+            "confidence": 0.95,
+            "is_required": {"value": False},
+        }
+    ]
+    assert "SECRET_REQUIREDNESS_REASON" not in str(public)

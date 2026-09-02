@@ -13,7 +13,7 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine, select
 
-from agents import ExtractionRecord, redact_extraction_records
+from agents import ExtractionRecord, Requiredness, redact_extraction_records
 from db import ApiKey, init_db
 from server.api import app, bootstrap_api_key_from_env, require_admin_auth, require_auth
 
@@ -609,7 +609,7 @@ def test_public_extraction_records_never_echo_raw_span_or_reasoning() -> None:
             confidence=0.93,
             start=8,
             end=8 + len(secret),
-            is_essential=True,
+            is_required=Requiredness(value=True, reason=reasoning),
             reasoning=reasoning,
         )
     ]
@@ -622,7 +622,7 @@ def test_public_extraction_records_never_echo_raw_span_or_reasoning() -> None:
             "category": "INTERNAL_PROJECT_NAME",
             "span": "<redacted>",
             "confidence": 0.93,
-            "is_essential": True,
+            "is_required": {"value": True},
         }
     ]
     assert secret not in repr(public)

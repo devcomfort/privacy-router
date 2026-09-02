@@ -25,8 +25,8 @@ async def get_masking_session(
     """Retrieve masking session details.
 
     Returns session metadata and per-record masking details
-    (category, placeholder, confidence, is_essential).
-    Original values are NEVER returned — only metadata.
+    (category, placeholder, confidence, is_required). Original values are
+    NEVER returned — only metadata.
     """
     db = get_session()
     try:
@@ -55,7 +55,7 @@ async def get_masking_session(
                     "category": r.category,
                     "placeholder": r.placeholder,
                     "confidence": r.confidence,
-                    "is_essential": r.is_essential,
+                    "is_required": {"value": r.is_required.value},
                 }
                 for r in records
             ],

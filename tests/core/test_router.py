@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents import ExtractionRecord, ExtractionResult, Sensitivity
+from agents import ExtractionRecord, ExtractionResult, Requiredness, Sensitivity
 from agents.router import PrivacyRouter, Router, get_cache
 from config import load_config, resolve_model
 from db import ExtractionCache, get_session, init_db
@@ -201,8 +201,8 @@ class TestPrivacyRouterProcess:
         assert result.judgment.policy_action == "allow"
         assert result.records == []
 
-    def test_sensitive_pii_essential(self, monkeypatch):
-        """An essential PII target uses the canonical block action."""
+    def test_sensitive_pii_required(self, monkeypatch):
+        """A required PII target uses the canonical block action."""
         extraction = ExtractionResult(
             sensitivity=Sensitivity(is_sensitive=True, rationale="PII target"),
             records=[
@@ -212,13 +212,13 @@ class TestPrivacyRouterProcess:
                     confidence=0.99,
                     start=2,
                     end=9,
-                    is_essential=True,
+                    is_required=Requiredness(value=True, reason="테스트용 요청 필수 값"),
                 )
             ],
         )
         result = self._process(monkeypatch, "내 주민등록번호가 뭐야?", extraction)
         assert result.sensitivity.is_sensitive is True
-        assert any(record.is_essential for record in result.records)
+        assert any(record.is_required.value for record in result.records)
         assert result.judgment.policy_action == "block"
         assert result.route.endpoint == "local_api"
 
@@ -233,7 +233,7 @@ class TestPrivacyRouterProcess:
                     confidence=0.99,
                     start=7,
                     end=21,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                 )
             ],
         )
@@ -271,7 +271,7 @@ class TestPrivacyRouterProcess:
                         confidence=0.99,
                         start=start,
                         end=start + len("SECRET"),
-                        is_essential=False,
+                        is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                     )
                 ],
             )
@@ -302,7 +302,7 @@ class TestPrivacyRouterProcess:
                     confidence=0.95,
                     start=0,
                     end=11,
-                    is_essential=False,
+                    is_required=Requiredness(value=False, reason="테스트용 마스킹 가능 값"),
                 )
             ],
         )

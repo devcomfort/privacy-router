@@ -22,6 +22,7 @@ from agents import (
     MiddleManAgent,
     PrivacyRouter,
     RecordOverride,
+    Requiredness,
     RoutingStrategy,
     Sensitivity,
     UserAction,
@@ -95,7 +96,7 @@ def _load_extraction(
                         "start": record.start,
                         "end": record.end,
                         "detection_type": record.detection_type,
-                        "is_essential": record.is_essential,
+                        "is_required": record.is_required.model_dump(),
                         "confidence": record.confidence,
                         "reasoning": record.reasoning,
                     }
@@ -333,7 +334,7 @@ def process(
                     "category": matching["category"] if matching else "UNKNOWN",
                     "placeholder": placeholder,
                     "confidence": matching["confidence"] if matching else 0.0,
-                    "is_essential": matching["is_essential"] if matching else False,
+                    "is_required": matching["is_required"] if matching else {"value": None},
                 }
             )
 
@@ -437,7 +438,7 @@ def review(
             "summary": {
                 "is_sensitive": None,
                 "record_count": 0,
-                "essential_count": 0,
+                "required_count": 0,
                 "default_action": "block",
                 "confidence_avg": 0.0,
                 "low_confidence_records": [],
@@ -451,7 +452,7 @@ def review(
         "summary": {
             "is_sensitive": summary.is_sensitive,
             "record_count": summary.record_count,
-            "essential_count": summary.essential_count,
+            "required_count": summary.required_count,
             "default_action": summary.default_action,
             "confidence_avg": summary.confidence_avg,
             "low_confidence_records": summary.low_confidence_records,
@@ -481,7 +482,7 @@ def apply_decision(
         strategy: Routing strategy — "auto", "mask_all", "block_all", "allow_all".
         overrides: List of record overrides, each with:
             - record_index: int
-            - is_essential: bool (optional)
+            - is_required: {"value": bool | null, "reason": str} (optional)
             - remove: bool (optional)
         model: Override the generator model.
         no_cache: If True, bypass cache and re-run extraction.
@@ -517,7 +518,9 @@ def apply_decision(
             user_overrides.append(
                 RecordOverride(
                     record_index=o.get("record_index", 0),
-                    is_essential=o.get("is_essential"),
+                    is_required=(
+                        Requiredness.model_validate(o["is_required"]) if o.get("is_required") is not None else None
+                    ),
                     remove=o.get("remove", False),
                 )
             )
@@ -572,7 +575,7 @@ def apply_decision(
                     "category": matching["category"] if matching else "UNKNOWN",
                     "placeholder": placeholder,
                     "confidence": matching["confidence"] if matching else 0.0,
-                    "is_essential": matching["is_essential"] if matching else False,
+                    "is_required": matching["is_required"] if matching else {"value": None},
                 }
             )
 

@@ -53,6 +53,32 @@ class Sensitivity(BaseModel):
     )
 
 
+class Requiredness(BaseModel):
+    """Tri-state assessment of whether a detected entity is required.
+
+    ``value=True`` means the exact value is required to answer or process the
+    query. ``value=False`` means the task can proceed without the exact value.
+    ``value=None`` means the detector did not assess the requirement. Every
+    state requires a non-empty ``reason``.
+    """
+
+    value: bool | None = Field(
+        default=None,
+        description="Whether this entity is required for the user's query response or processing.",
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Why the entity is or is not required.",
+    )
+
+    @model_validator(mode="after")
+    def require_reason(self) -> Requiredness:
+        """Require a non-empty explanation for the selected state."""
+        if not self.reason or not self.reason.strip():
+            raise ValueError("is_required.reason is required for every value state")
+        return self
+
+
 class ExtractionRecord(BaseModel):
     """A single detected sensitive span.
 
@@ -115,10 +141,9 @@ class ExtractionRecord(BaseModel):
         description="One sentence explaining WHY this span is sensitive.",
         examples=["주민등록번호는 개인 식별 정보이므로", "미공개 연구 방법론이므로 경쟁사에게 이점이 됨"],
     )
-    is_essential: bool = Field(
-        default=False,
-        description="True if masking this record would break the query's meaning.",
-        examples=[False, True],
+    is_required: Requiredness = Field(
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
+        description="Whether masking this record would preserve the query meaning.",
     )
 
 
@@ -167,7 +192,7 @@ class ExtractionResult(BaseModel):
 
 def redact_extraction_records(
     records: Iterable[ExtractionRecord],
-) -> list[dict[str, str | float | bool | int]]:
+) -> list[dict[str, Any]]:
     """Build public metadata without exposing raw spans or model reasoning."""
     return [
         {
@@ -175,7 +200,7 @@ def redact_extraction_records(
             "category": record.category,
             "span": "<redacted>",
             "confidence": record.confidence,
-            "is_essential": record.is_essential,
+            "is_required": {"value": record.is_required.value},
         }
         for index, record in enumerate(records)
     ]
@@ -224,10 +249,9 @@ class _ExtractedItem(BaseModel):
         description="One sentence explaining WHY this span is sensitive.",
         examples=["주민등록번호는 개인 식별 정보이므로", "미공개 연구 방법론이므로 경쟁사에게 이점이 됨"],
     )
-    is_essential: bool = Field(
-        default=False,
-        description="True if masking this record would break the query's meaning.",
-        examples=[False, True],
+    is_required: Requiredness = Field(
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
+        description="Whether masking this record would preserve the query meaning.",
     )
 
 
@@ -262,9 +286,9 @@ class _CriticItem(BaseModel):
     confidence: float = Field(default=0.9, ge=0.0, le=1.0)
     detection_type: str = Field(default="contextual")
     reasoning: str = Field(default="", description="Why this was missed and why it's sensitive.")
-    is_essential: bool = Field(
-        default=False,
-        description="True if masking this record would break the query's meaning.",
+    is_required: Requiredness = Field(
+        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
+        description="Whether masking this record would preserve the query meaning.",
     )
 
 
@@ -273,32 +297,6 @@ class CriticOutput(BaseModel):
 
     found_missed: bool = Field(..., description="True if any sensitive spans were missed.")
     missed_records: list[_CriticItem] = Field(default_factory=list)
-
-
-class Requiredness(BaseModel):
-    """Tri-state assessment of whether a detected entity is required.
-
-    ``value=True`` means the exact value is required to answer or process the
-    query. ``value=False`` means the task can proceed without the exact value.
-    ``value=None`` means the detector did not assess the requirement. Every
-    state requires a non-empty ``reason``.
-    """
-
-    value: bool | None = Field(
-        default=None,
-        description="Whether this entity is required for the user's query response or processing.",
-    )
-    reason: str | None = Field(
-        default=None,
-        description="Why the entity is or is not required.",
-    )
-
-    @model_validator(mode="after")
-    def require_reason(self) -> Requiredness:
-        """Require a non-empty explanation for the selected state."""
-        if not self.reason or not self.reason.strip():
-            raise ValueError("is_required.reason is required for every value state")
-        return self
 
 
 class PrivacyEntity(BaseModel):

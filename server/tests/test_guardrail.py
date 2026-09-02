@@ -70,10 +70,10 @@ def _make_pipeline(
 def _make_record(
     category: str = "PERSONAL_IDENTIFIER_NUMBER",
     span: str = "901212-1234567",
-    is_essential: bool = False,
+    is_required: bool = False,
 ):
     """Build an ExtractionRecord with correct schema fields."""
-    from agents.extractor.schemas import ExtractionRecord
+    from agents.extractor.schemas import ExtractionRecord, Requiredness
 
     return ExtractionRecord(
         category=category,
@@ -81,7 +81,7 @@ def _make_record(
         confidence=0.95,
         start=0,
         end=len(span),
-        is_essential=is_essential,
+        is_required=Requiredness(value=is_required, reason="mock"),
         detection_type="pattern",
         reasoning="mock",
     )
@@ -229,7 +229,7 @@ class TestGuardrailMasking:
         record = _make_record(
             category="PERSONAL_IDENTIFIER_NUMBER",
             span="901212-1234567",
-            is_essential=False,
+            is_required=False,
         )
         with (
             patch("server.api.routes.guardrail.PrivacyRouter") as MockRouter,

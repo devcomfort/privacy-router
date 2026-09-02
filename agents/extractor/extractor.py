@@ -183,7 +183,7 @@ def _validate_critic_records(
                 confidence=item.confidence,
                 detection_type=item.detection_type,
                 reasoning=item.reasoning or "",
-                is_essential=item.is_essential,
+                is_required=item.is_required,
                 start=start,
                 end=start + len(span),
             )

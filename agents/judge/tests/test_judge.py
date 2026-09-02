@@ -116,7 +116,9 @@ class TestJudgeFallback:
     def test_sensitive_records_default_to_selective_mask(self):
         """Non-essential sensitive records are masked without an LLM fallback."""
         judge = Judge()
-        records = [{"category": "RRN", "span": "901212-1234567"}]
+        records = [
+            {"category": "RRN", "span": "901212-1234567", "is_required": {"value": False, "reason": "background value"}}
+        ]
         judgment = judge.classify(
             {"is_sensitive": True},
             records,
@@ -128,7 +130,9 @@ class TestJudgeFallback:
     def test_records_override_not_sensitive_flag(self):
         """Validated records are sensitive evidence even when the flag disagrees."""
         judge = Judge()
-        records = [{"category": "RRN", "span": "901212-1234567"}]
+        records = [
+            {"category": "RRN", "span": "901212-1234567", "is_required": {"value": False, "reason": "background value"}}
+        ]
         judgment = judge.classify({"is_sensitive": False, "rationale": "context"}, records, "test")
         assert judgment.policy_action == "selective_mask"
 
@@ -142,3 +146,14 @@ class TestJudgeFallback:
         )
         assert judgment.policy_action == "block"
         assert judgment.meaningful_after_masking.is_meaningful_after_masking is False
+
+
+def test_unknown_nested_requiredness_fails_closed() -> None:
+    judge = Judge()
+    judgment = judge.classify(
+        {"is_sensitive": True, "rationale": "민감 정보 탐지"},
+        [{"category": "EMAIL_ADDRESS", "is_required": {"value": None, "reason": "not assessed"}}],
+        "민감한 요청",
+    )
+
+    assert judgment.policy_action == "block"

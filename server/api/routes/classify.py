@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -26,7 +28,7 @@ class ClassifyRequest(BaseModel):
 
 
 class ClassificationResponse(BaseModel):
-    records: list[dict[str, str | float | bool | int]] = Field(default_factory=list)
+    records: list[dict[str, Any]] = Field(default_factory=list)
     is_sensitive: bool
     policy_action: str
     route: RouteResult

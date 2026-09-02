@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from fastapi import HTTPException, Request, Response
-from config import load_config
 
+from config import load_config
 from server import get_runtime_mode
 from server.api import (
     DEMO_SESSION_COOKIE,
@@ -28,11 +28,7 @@ async def runtime_capabilities() -> dict[str, object]:
         "external": config.external.model,
     }
     selected_models = set(model_roles.values())
-    model_costs = {
-        model.id: model.cost_per_1m_tokens
-        for model in config.models
-        if model.id in selected_models
-    }
+    model_costs = {model.id: model.cost_per_1m_tokens for model in config.models if model.id in selected_models}
     return {
         "mode": mode,
         "default_model": "privacy-router",

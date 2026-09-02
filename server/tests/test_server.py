@@ -662,7 +662,14 @@ class TestMaskingOwnership:
         )
         store.save_records(
             session_id,
-            [{"category": "SECRET", "span": "private", "confidence": 0.9}],
+            [
+                {
+                    "category": "SECRET",
+                    "span": "private",
+                    "confidence": 0.9,
+                    "is_required": {"value": False, "reason": "MASKING_REASON_SENTINEL"},
+                }
+            ],
             {"SECRET#deadbeef": "private"},
         )
 
@@ -687,6 +694,8 @@ class TestMaskingOwnership:
             store.deactivate_session(session_id)
 
         assert own_get.status_code == 200
+        assert own_get.json()["extraction_records"][0]["is_required"] == {"value": False}
+        assert "MASKING_REASON_SENTINEL" not in own_get.text
         assert own_hydrate.status_code == 200
         assert own_hydrate.json()["hydrated"] == "value=private"
         assert other_get.status_code == 404

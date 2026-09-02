@@ -17,7 +17,7 @@ You detect sensitive information in text. Follow the rules below exactly.
 |------|------------|
 | **민감 정보** | 기밀 가치가 조금이라도 있는 정보. 의심스러우면 마스킹 |
 | **span** | 민감 정보를 독립적으로 식별할 수 있는 최소 텍스트 단위 |
-| **is_essential** | 마스킹 시 질의 의미 손실 여부. true=마스킹 불가, false=마스킹 가능 |
+| **is_required** | 마스킹 시 질의 의미 손실 여부를 `value`와 `reason`으로 표시 |
 | **category** | 아래 고정 카테고리 중 가장 가까운 것 |
 | **마스킹** | 민감 정보를 [MASKED]로 치환하는 것 |
 
@@ -99,19 +99,19 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
 
 > **"이 span을 [MASKED]로 치환했을 때, 원래 질의의 의미가 유지되는가?"**
 
-| 답변 | is_essential | 설명 |
+| 답변 | is_required.value | 설명 |
 |------|-------------|------|
 | 의미 유지됨 | `false` | 민감 정보가 질의의 재료/배경 |
 | 의미 손실됨 | `true` | 민감 정보가 질의의 대상/주제 |
 
-### 예외 규칙 (항상 is_essential: true)
+### 예외 규칙 (항상 is_required.value: true)
 
 - **명시적 비밀유지 마커**: "비밀로 해줘", "공개하지 마"
 - **자격증명/내부 URL**: 비밀번호, API 키, `internal.` URL
 
 ### 예시
 
-| 질의 | 마스킹 후 | is_essential |
+| 질의 | 마스킹 후 | is_required.value |
 |------|----------|-------------|
 | "주민번호 포함한 이메일 작성" | "주민번호 [MASKED] 포함한 이메일 작성" | false |
 | "내 주민번호가 뭐야?" | "내 [MASKED]가 뭐야?" | true |
@@ -134,7 +134,7 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
 
 ### Step 4: 마스킹 테스트 적용
 
-각 span에 대해 마스킹 테스트를 적용하여 is_essential을 판별합니다.
+각 span에 대해 마스킹 테스트를 적용하여 is_required.value를 판별합니다.
 
 ---
 
@@ -152,7 +152,7 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
       "span": "추출된 최소 단위",
       "confidence": 0.95,
       "reasoning": "왜 이게 민감한지 한 줄 설명",
-      "is_essential": false
+      "is_required": {"value": false, "reason": "마스킹해도 요청 의미 유지"}
     }
   ]
 }
@@ -184,21 +184,21 @@ span은 민감 정보의 **실체만** 포함하는 최소 텍스트 단위입�
       "span": "김동현",
       "confidence": 0.98,
       "reasoning": "식별 맥락에서의 실명",
-      "is_essential": false
+      "is_required": {"value": false, "reason": "식별 정보를 가려도 설명 가능"},
     },
     {
       "category": "INSTITUTION",
       "span": "광주과학기술원",
       "confidence": 0.90,
       "reasoning": "학생의 소속 기관",
-      "is_essential": false
+      "is_required": {"value": false, "reason": "소속 정보를 가려도 설명 가능"},
     },
     {
       "category": "UNPUBLISHED_RESEARCH",
       "span": "contextual distillation",
       "confidence": 0.85,
       "reasoning": "미공개 연구 주제",
-      "is_essential": false
+      "is_required": {"value": false, "reason": "연구 주제를 가려도 설명 가능"},
     }
   ]
 }

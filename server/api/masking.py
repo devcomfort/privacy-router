@@ -673,5 +673,5 @@ def _record_dict(record: ExtractionRecord) -> dict[str, Any]:
         "confidence": record.confidence,
         "start": record.start,
         "end": record.end,
-        "is_essential": record.is_essential,
+        "is_required": record.is_required,
     }

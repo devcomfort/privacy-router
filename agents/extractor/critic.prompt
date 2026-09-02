@@ -28,6 +28,8 @@ Read the text carefully. Ignore the already-tagged spans — they are handled. L
 
 If you find something, extract it. If nothing remains, say so.
 
+For every missed record, set `is_required.value` to true when the exact value is needed to answer the query, false when masking preserves meaning, or null when it cannot be assessed. Always include a non-empty `is_required.reason`.
+
 ---
 
 ## Category naming — same contract as the first pass
@@ -58,7 +60,8 @@ Forbidden → valid:
       "span": "exact text the first pass missed",
       "confidence": 0.9,
       "detection_type": "contextual",
-      "reasoning": "이 부분은 첫 번째 패스에서 놓친 민감 정보이다. 왜냐하면..."
+      "reasoning": "이 부분은 첫 번째 패스에서 놓친 민감 정보이다. 왜냐하면...",
+      "is_required": {"value": null, "reason": "not assessed"}
     }
   ]
 }

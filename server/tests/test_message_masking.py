@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from agents import ExtractionRecord
+from agents import ExtractionRecord, Requiredness
 from server.api.masking import (
     chat_context_segments,
     chat_context_text,
@@ -24,7 +24,7 @@ def _record(category: str, span: str, start: int, end: int) -> ExtractionRecord:
         confidence=0.99,
         start=start,
         end=end,
-        is_essential=False,
+        is_required=Requiredness(value=False, reason="mock"),
     )
 
 

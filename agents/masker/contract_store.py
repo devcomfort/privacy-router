@@ -26,6 +26,14 @@ from .crypto import decrypt_field, encrypt_field, fingerprint_field
 from .schemas import MaskingContract
 
 
+def _requiredness_parts(record: dict[str, Any]) -> tuple[bool | None, str]:
+    """Extract the persisted value and reason from nested requiredness."""
+    requiredness = record.get("is_required")
+    if isinstance(requiredness, dict):
+        return requiredness.get("value"), requiredness.get("reason") or "not assessed"
+    return getattr(requiredness, "value", None), getattr(requiredness, "reason", None) or "not assessed"
+
+
 class ContractStore:
     """Persists masking contracts to PostgreSQL.
 
@@ -85,6 +93,7 @@ class ContractStore:
                 if not separator or not uid:
                     raise ValueError(f"Invalid masking placeholder {placeholder!r}")
 
+                required_value, required_reason = _requiredness_parts(matching)
                 record = MaskingRecord(
                     session_id=session_id,
                     uid=uid,
@@ -93,7 +102,8 @@ class ContractStore:
                     value_hash=fingerprint_field(original_value),
                     span=encrypt_field(original_value),
                     confidence=matching.get("confidence", 0.0),
-                    is_essential=matching.get("is_essential", False),
+                    is_required_value=required_value,
+                    is_required_reason=required_reason,
                 )
                 db.add(record)
             db.commit()

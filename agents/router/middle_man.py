@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from agents.extractor import ExtractionRecord, ExtractionResult, redact_extraction_records
+from agents.extractor import ExtractionRecord, ExtractionResult, Requiredness, redact_extraction_records
 from agents.judge import (
     Judgment,
     MeaningfulnessAssessment,
@@ -41,7 +41,7 @@ class RecordOverride:
     """User override for a specific record."""
 
     record_index: int
-    is_essential: bool | None = None
+    is_required: Requiredness | None = None
     remove: bool = False
 
 
@@ -64,7 +64,7 @@ class ExtractionSummary:
 
     is_sensitive: bool
     record_count: int
-    essential_count: int
+    required_count: int
     records: list[dict]
     default_action: str
     confidence_avg: float
@@ -91,7 +91,7 @@ class MiddleManAgent:
     def summarize(self, extraction: ExtractionResult) -> ExtractionSummary:
         """Create a user-friendly summary of extraction results."""
         records = extraction.records
-        essential_count = sum(1 for r in records if r.is_essential)
+        required_count = sum(1 for r in records if r.is_required.value is not False)
         confidences = [r.confidence for r in records if r.confidence > 0]
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 
@@ -100,18 +100,18 @@ class MiddleManAgent:
         policy_action = resolve_policy_action(
             extraction.sensitivity.is_sensitive,
             len(records),
-            essential_count,
+            required_count,
         )
         default_action = {
             "allow": "allow (no sensitive info)",
             "block": "block (sensitive data requires local processing)",
-            "selective_mask": "mask (non-essential only)",
+            "selective_mask": "mask (optional values only)",
         }[policy_action]
 
         return ExtractionSummary(
             is_sensitive=extraction.sensitivity.is_sensitive,
             record_count=len(records),
-            essential_count=essential_count,
+            required_count=required_count,
             records=redact_extraction_records(records),
             default_action=default_action,
             confidence_avg=avg_confidence,
@@ -123,7 +123,7 @@ class MiddleManAgent:
         lines = []
         lines.append("=== Privacy Router — Extraction Results ===")
         lines.append(f"Sensitive: {summary.is_sensitive}")
-        lines.append(f"Records: {summary.record_count} ({summary.essential_count} essential)")
+        lines.append(f"Records: {summary.record_count} ({summary.required_count} required)")
         lines.append(f"Avg Confidence: {summary.confidence_avg:.1%}")
         lines.append(f"Default Action: {summary.default_action}")
         lines.append("")
@@ -131,9 +131,9 @@ class MiddleManAgent:
         if summary.records:
             lines.append("Detected Records:")
             for r in summary.records:
-                ess = "essential" if r["is_essential"] else "non-essential"
+                required = "required" if r["is_required"]["value"] is not False else "optional"
                 conf = f"{r['confidence']:.0%}"
-                lines.append(f"  [{r['index']}] {r['category']}: '{r['span']}' ({ess}, {conf})")
+                lines.append(f"  [{r['index']}] {r['category']}: '{r['span']}' ({required}, {conf})")
 
         if summary.low_confidence_records:
             lines.append("")
@@ -158,8 +158,8 @@ class MiddleManAgent:
         for override in decision.overrides:
             if override.remove:
                 records[override.record_index] = None
-            elif override.is_essential is not None:
-                records[override.record_index].is_essential = override.is_essential
+            elif override.is_required is not None:
+                records[override.record_index].is_required = override.is_required
 
         # Remove marked records
         records = [r for r in records if r is not None]
@@ -169,7 +169,7 @@ class MiddleManAgent:
             action = resolve_policy_action(
                 extraction.sensitivity.is_sensitive,
                 len(records),
-                sum(1 for record in records if record.is_essential),
+                sum(1 for record in records if record.is_required.value is not False),
             )
         elif decision.strategy == RoutingStrategy.MASK_ALL:
             action = "block" if extraction.sensitivity.is_sensitive and not records else "selective_mask"
@@ -194,7 +194,7 @@ class MiddleManAgent:
             action = resolve_policy_action(
                 extraction.sensitivity.is_sensitive,
                 len(records),
-                sum(1 for record in records if record.is_essential),
+                sum(1 for record in records if record.is_required.value is not False),
             )
         else:
             records, action = self.apply_decision(extraction, decision)
@@ -202,8 +202,8 @@ class MiddleManAgent:
         router = Router()
         route = router.resolve(action)
 
-        essential_count = sum(1 for r in records if r.is_essential)
-        rationale = f"essential: {essential_count}/{len(records)} records"
+        required_count = sum(1 for r in records if r.is_required.value is not False)
+        rationale = f"required: {required_count}/{len(records)} records"
 
         judgment = Judgment(
             meaningful_after_masking=MeaningfulnessAssessment(
