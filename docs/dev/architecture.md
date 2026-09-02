@@ -231,6 +231,7 @@ Svelte `/demo` route는 제거되었습니다. FastAPI가 `GET /demo`에서
 POST /api/demo/key       → dev 모드 브라우저 key fragment
 POST /api/demo/router    → 인증된 단일 router HTML/JSON result
 POST /api/demo/run-all   → 인증된 8개 로컬 router batch
+GET  /api/demo/run-all/{batch_id} → 인증된 batch 상태 HTML fragment
 ```
 
 Demo는 생성한 `pr-*` key를 브라우저 `sessionStorage`에 저장하고, 보호된 두 demo
@@ -307,7 +308,7 @@ def process_with_middle_man(text, metadata):
   "privacy_router": {
     "status": "completed",
     "is_sensitive": true,
-    "extraction_records": [{"index": 0, "category": "EMAIL_ADDRESS", "span": "<redacted>", "is_required": {"value": false, "reason": "주소를 가려도 요청 의미 유지"}, "confidence": 0.95}],
+    "extraction_records": [{"index": 0, "category": "EMAIL_ADDRESS", "span": "<redacted>", "is_required": {"value": false}, "confidence": 0.95}],
     "policy_action": "selective_mask",
     "masking_applied": true,
     "cached": false
@@ -317,7 +318,7 @@ def process_with_middle_man(text, metadata):
 
 ### 사례 2: 사용자 입력 필요
 
-공개 JSON의 `span`은 원문이 아니라 자리표시자이며, raw span과 offset은 포함하지 않습니다.
+공개 JSON의 `span`은 원문이 아니라 자리표시자이며, raw span·offset·requiredness reason은 포함하지 않습니다. 공개 projection에는 `is_required.value`만 포함합니다.
 
 ```json
 {
@@ -331,8 +332,8 @@ def process_with_middle_man(text, metadata):
       "record_count": 2,
       "required_count": 1,
       "extraction_records": [
-        {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_required": {"value": true, "reason": "응답의 핵심 연구 내용"}, "confidence": 0.95},
-        {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_required": {"value": false, "reason": "이름을 가려도 요청 의미 유지"}, "confidence": 0.90}
+        {"index": 0, "category": "UNPUBLISHED_RESEARCH_CONCEPT", "span": "<research-concept>", "is_required": {"value": true}, "confidence": 0.95},
+        {"index": 1, "category": "INTERNAL_PROJECT_NAME", "span": "<internal-project-name>", "is_required": {"value": false}, "confidence": 0.90}
       ]
     },
     "default_action": "block",
@@ -504,7 +505,7 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 변경 이력
 
-- 2026-09-01 — `Run all`의 batch payload 미리보기와 실시간 진행률 설계를 승인했습니다. 기존 동기 응답을 상태 polling 방식으로 바꾸되, case별 실패 격리와 HTMX 전용 원문 경계를 유지합니다.
+- 2026-09-01 — `Run all`을 batch payload 미리보기와 실시간 진행률을 제공하는 상태 polling 방식으로 구현했습니다. case별 실패 격리와 HTMX 전용 원문 경계를 유지합니다.
 
 - 2026-09-01 — 아키텍처 문서 전체를 한국어로 다시 작성했습니다. 기술 식별자와 API 계약은 유지하고, 활성 requiredness·HTMX·응답 보안 설명을 한국어로 통일했습니다.
 
@@ -516,10 +517,10 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 영향 범위
 
-- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환합니다. 로컬 HTMX demo에는 batch 시작·상태 조회와 case별 payload·진행률 표시를 추가합니다. `archive/` 평가 artifact는 변경하지 않습니다.
+- **코드**: 활성 `ExtractorCore`/`Extractor`, Judge, Middle-Man, Masker, masking persistence, demo payload, prompt 계약을 중첩 `is_required`로 전환했습니다. 로컬 HTMX demo에 batch 시작·상태 조회와 case별 payload·진행률 표시를 추가했습니다. `archive/` 평가 artifact는 변경하지 않습니다.
 - **스킬**: 없음.
 - **문서**: 이 아키텍처 문서가 canonical 계약 기록이며, 현재 탐지·API 안내는 `is_required`를 사용합니다.
 - **결정**: `Requiredness.value=true`이면 정확한 값을 로컬에 유지하고, `value=false`이면 마스킹할 수 있습니다. Demo는 HTMX fragment에서만 검증된 offset과 payload를 표시하고, JSON으로 raw 값을 반환하지 않습니다.
 - **보관·버전 관리**: 별도 archive를 만들지 않습니다. historical 평가 출력은 원래 schema를 가진 record로 유지합니다.
-- **검증**: migration, API payload, escaping/offset, batch 상태·진행률, hover/focus, 전체 pipeline 회귀 테스트와 agent-browser smoke 검증을 추가합니다.
-- **업데이트하지 않는 이유**: 이 전환과 충돌하는 다른 현재 결정은 없습니다. 기존 저장 column은 versioned copy를 만들지 않고 in-place migration합니다.
+- **검증**: migration, API payload, escaping/offset, batch 상태·진행률, hover/focus, 전체 pipeline 회귀 테스트와 agent-browser smoke 검증을 완료했습니다.
+- **업데이트하지 않는 이유**: 이 전환과 충돌하는 다른 현재 결정은 없습니다. 기존 저장 column은 versioned copy를 만들지 않고 in-place migration했습니다.
