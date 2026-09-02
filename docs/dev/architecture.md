@@ -127,9 +127,7 @@ def identifier(self) -> str:
     return f"{self.tag}#{self.uid}"
 ```
 
-`uid`는 `span`의 암호학적 hash가 아닌 불투명한 무작위 token입니다. normalizer는
-유지되는 각 occurrence에 새 값을 발급하고 현재 extraction result 안에서 충돌을
-확인하며, 같은 값이라는 이유만으로 동일한 occurrence를 합치지 않습니다.
+`uid`는 `span`의 암호학적 hash가 아닌 불투명한 무작위 token입니다. normalizer는 유지되는 각 occurrence에 새 값을 발급하고 현재 extraction result 안에서 충돌을 확인하며, 같은 값이라는 이유만으로 동일한 occurrence를 합치지 않습니다.
 
 여러 recognizer가 같은 범위나 겹치는 범위를 보고하더라도 유효한 supplied offset은
 권위 있는 근거로 취급합니다. 유지되는 각 evidence item은 자체 `uid`를 받습니다.
