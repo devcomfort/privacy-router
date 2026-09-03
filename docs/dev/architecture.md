@@ -482,6 +482,7 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 - [Integration 아키텍처](integration-architecture.md) — Hermes Agent, OpenCode, LiteLLM 통합
 - [보안](../user/security.md) — threat model과 암호화
 - [로컬 추론 속도 스파이크](local-inference-speed-spike.md) — GB10에서 vLLM 설정 변형의 속도·정확도 실측
+- [Gemma4 가중치·Speculative Decoding 스파이크](gemma4-speculation-spike.md) — 공식 MTP·DFlash·QAT 경로와 GB10 실측
 
 ## 변경 이력
 
