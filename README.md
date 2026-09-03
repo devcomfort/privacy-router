@@ -67,34 +67,33 @@ cp .env.example .env
 python -m pip install -e .
 ```
 
-For a loopback-only demo, start the single local inference service, then launch the app in another terminal:
+For local development, start the single local inference service, then launch the app in another terminal:
 
 ```bash
 ./scripts/start_vllm.sh gemma4
 # second terminal
-privacy-router dev
+PRIVACY_ROUTER_API_KEY=pr-... privacy-router dev
 ```
 
 
 The first model start downloads Gemma 4 26B into `${HF_CACHE:-$HOME/.cache/huggingface}`. The base package intentionally excludes GPU, experiment, and report-generation libraries; install `.[local-inference]`, `.[experiments]`, or `.[reports]` only for the corresponding developer workflows.
-`dev` creates a short-lived browser session automatically, requires no client API key, and never selects an external model. For deployment, set `PRIVACY_ROUTER_MASTER_KEY`, `PRIVACY_ROUTER_ADMIN_PASSWORD`, and each provider environment variable such as `OPENROUTER_API_KEY`, then run:
+`dev` binds to loopback by default and never selects an external model. `PRIVACY_ROUTER_API_KEY`, when set, is bootstrapped as a ready-to-use client key. For deployment, set `PRIVACY_ROUTER_MASTER_KEY`, `PRIVACY_ROUTER_ADMIN_PASSWORD`, and each provider environment variable such as `OPENROUTER_API_KEY`, then run:
 
 ```bash
 docker compose up -d
 # equivalent process entry point: privacy-router serve
 ```
 
-Docker Compose starts the API on `http://localhost:8787`, PostgreSQL on port 5433, and Hermes Agent on port 7860. Published ports bind to `127.0.0.1` by default. Compose permits the administrator password exchange over HTTP only for this loopback-published setup; if `PRIVACY_ROUTER_BIND_HOST` is changed, set `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN=0` and terminate HTTPS before the API.
+Docker Compose starts the API on `http://localhost:8787` and PostgreSQL on port 5433. Published ports bind to `127.0.0.1` by default. Compose permits the administrator password exchange over HTTP only for this loopback-published setup; if `PRIVACY_ROUTER_BIND_HOST` is changed, set `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN=0` and terminate HTTPS before the API.
 
 ### 2. Create a Client API Key
 
-Open http://localhost:8787/admin and enter `PRIVACY_ROUTER_ADMIN_PASSWORD`.
+There is no bundled web UI. Two ways to obtain a `pr-...` client key:
 
-1. Click **"Create Key"**
-2. Enter a name (for example, `my-app`)
-3. Copy the generated `pr-...` key; it is shown only once
+1. **Environment bootstrap** — set `PRIVACY_ROUTER_API_KEY` before starting the server; the key is registered on startup.
+2. **Admin API** — exchange `PRIVACY_ROUTER_ADMIN_PASSWORD` for a short-lived session via `POST /api/admin/session`, then `POST /api/v1/keys` with the session's CSRF token. State-changing management requests require the `pr_admin_csrf` header.
 
-The password is exchanged for a short-lived `HttpOnly`, `SameSite=Strict` session cookie. State-changing management requests also require the session's CSRF token. Provider credentials are not editable in the UI or stored in SQLite; rotate them through server environment variables and restart the service.
+Provider credentials are not stored in SQLite; rotate them through server environment variables and restart the service.
 
 ### 3. Configure Your Agent
 
@@ -140,12 +139,6 @@ Clients may send either a complete transcript or only the latest-turn delta. Sup
 
 Only extraction records from the current request may appear in response privacy metadata. Persisted prior context and internal extractor reasoning are never echoed.
 
-### 5. Try with Hermes Agent
-
-```bash
-docker exec privacy-router-hermes-1 hermes -z "안녕하세요" --accept-hooks
-docker exec privacy-router-hermes-1 hermes -z "내 주민등록번호가 뭐야?" --accept-hooks
-```
 
 ---
 
@@ -226,7 +219,7 @@ No keyword like "secret" or "confidential" appears — but the system understand
 
 ## 7-Day Usage Log
 
-46 real API calls through Hermes Agent during live demo sessions (2026-06-17). 67.4% contained sensitive information.
+46 real API calls through Privacy Router during live demo sessions (2026-06-17). 67.4% contained sensitive information.
 
 | Date | Total | Sensitive | Safe | Local | Masked |
 |------|------:|----------:|-----:|------:|-------:|
@@ -427,9 +420,18 @@ Without mocks, test failures cannot distinguish between "code bug" and "LLM vari
 ```
 privacy-router/
 ├── agents/                  # Extractor, Judge, Router, Masker
+│   └── extractor/
+│       ├── __init__.py      # public barrel
+│       ├── schemas.py       # shared Pydantic contract
+│       ├── parser.py        # shared parser helpers
+│       ├── normalizer.py    # offsets and uid issuance
+│       ├── registry.py      # detector registry
+│       ├── llm/             # extractor + parser + barrel
+│       ├── presidio/        # extractor + parser + barrel
+│       ├── opf/             # extractor + parser + barrel
+│       └── lfm/             # extractor + parser + barrel
 ├── server/                  # FastAPI server + MCP tools
 ├── db/                      # SQLModel database layer
-├── web/                     # SvelteKit frontend (SSG)
 ├── eval/                    # Evaluation package
 ├── slides/                  # HTML presentations + PDF/PPTX
 ├── paper/                   # TeX research paper
@@ -442,11 +444,7 @@ privacy-router/
 
 | URL | Description |
 |-----|-------------|
-| http://localhost:8787/ | Landing page (EN/KO) |
-| http://localhost:8787/admin | Model, API key, and redacted telemetry management |
-| http://localhost:8787/demo | Interactive chat demo |
-| http://localhost:8787/docs | Product documentation |
-| http://localhost:9119 | Hermes Agent dashboard |
+| http://localhost:8787/api/runtime | Runtime capabilities (JSON) |
 | http://localhost:8787/api/docs | OpenAPI Swagger UI |
 
 ---
@@ -455,7 +453,7 @@ privacy-router/
 
 **YouTube:** https://youtu.be/tX8oVv5DlAs (5 minutes)
 
-Demonstrates: real-time PII detection, business secret classification, masking/routing decisions, and admin dashboard visibility through Hermes Agent.
+Demonstrates: real-time PII detection, business secret classification, masking/routing decisions, and redacted telemetry visibility through Privacy Router.
 
 ---
 

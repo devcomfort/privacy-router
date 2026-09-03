@@ -90,7 +90,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
     commands = parser.add_subparsers(dest="mode", required=True)
 
-    dev = commands.add_parser("dev", help="Start a development demo (loopback by default).")
+    dev = commands.add_parser("dev", help="Start a development server (loopback by default).")
     dev.add_argument("--port", type=int, default=8787)
     dev.add_argument("--host", default="127.0.0.1")
     dev.add_argument("--reload", action="store_true")

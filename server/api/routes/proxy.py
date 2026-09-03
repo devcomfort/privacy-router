@@ -3,8 +3,6 @@
 Endpoints:
     ``GET  /v1/models``           — OpenAI-compatible model registry
     ``POST /v1/chat/completions``  — OpenAI-compatible chat (pipeline + forwarding)
-    ``GET  /``                     — landing page
-    ``GET  /demo``                 — FastAPI-served HTMX local demo
 """
 
 from __future__ import annotations
@@ -13,11 +11,10 @@ import json
 import os
 import time
 import uuid
-from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import select
 from starlette.concurrency import iterate_in_threadpool, run_in_threadpool
 
@@ -49,7 +46,6 @@ from db import (
     get_session,
 )
 from server.api import (
-    STATIC_DIR,
     StreamingHydrator,
     adapter_for,
     annotate_pipeline_traces,
@@ -70,7 +66,7 @@ from server.api import (
     reject_sensitive_tool_call_protocol_fields,
     render_context_segments,
     require_admin_auth,
-    require_chat_auth,
+    require_auth,
     sensitive_tool_arguments_allowed,
     session_cache_key,
     validate_stream_tool_call_index,
@@ -397,7 +393,7 @@ def activate_profile(
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request, _auth: str = Depends(require_chat_auth)):
+async def chat_completions(request: Request, _auth: str = Depends(require_auth)):
     """OpenAI-compatible chat completions with a fail-closed privacy route."""
     body = await request.json()
     allow_sensitive_tool_arguments = sensitive_tool_arguments_allowed(body)
@@ -895,45 +891,6 @@ async def chat_completions(request: Request, _auth: str = Depends(require_chat_a
         )
 
     return _chat_response(content, formatted["finish_reason"], formatted["usage"], meta)
-
-
-# ── GET / — landing page ─────────────────────────────────────────────────────
-
-
-@app.get("/", response_class=HTMLResponse)
-async def landing_page():
-    """Serve the landing page."""
-    html_path = STATIC_DIR / "index.html"
-    if html_path.exists():
-        return HTMLResponse(html_path.read_text())
-    return HTMLResponse("<h1>Privacy Router</h1><p>Landing page not found.</p>")
-
-
-# ── GET /demo — web chat UI ──────────────────────────────────────────────────
-
-
-@app.get("/demo", response_class=HTMLResponse)
-async def chat_ui():
-    """Serve the HTMX development demo."""
-    html_path = Path(__file__).resolve().parents[2] / "templates" / "demo.html"
-    if html_path.exists():
-        return HTMLResponse(html_path.read_text())
-    return HTMLResponse("<h1>Privacy Router</h1><p>HTMX demo not found.</p>")
-
-
-@app.get("/demo/", include_in_schema=False)
-async def chat_ui_trailing_slash() -> RedirectResponse:
-    """Redirect the legacy trailing-slash demo URL."""
-    return RedirectResponse(url="/demo", status_code=308)
-
-
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_ui():
-    """Serve the admin dashboard."""
-    html_path = STATIC_DIR / "admin.html"
-    if html_path.exists():
-        return HTMLResponse(html_path.read_text())
-    return HTMLResponse("<h1>Privacy Router Admin</h1><p>Admin UI not found.</p>")
 
 
 # ── Dashboard Data API ─────────────────────────────────────────────────────

@@ -20,7 +20,7 @@ import server.config as server_config
 from agents import ContractStore
 from db import Model, ProfileAgent, Provider, get_session
 from server.adapters import LiteLLMAdapter
-from server.api import app, require_admin_auth, require_auth, require_chat_auth
+from server.api import app, require_admin_auth, require_auth
 
 
 async def _mock_auth() -> str:
@@ -32,7 +32,6 @@ def _override_auth(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep this module's integration requests independent of auth boundary tests."""
     monkeypatch.setitem(app.dependency_overrides, require_auth, _mock_auth)
     monkeypatch.setitem(app.dependency_overrides, require_admin_auth, _mock_auth)
-    monkeypatch.setitem(app.dependency_overrides, require_chat_auth, _mock_auth)
 
 
 client = TestClient(app)
@@ -600,37 +599,8 @@ class TestProviderSecretBoundary:
                 session.close()
 
 
-class TestChatUI:
-    """GET / — should serve the web chat UI."""
-
-    def test_serves_html(self):
-        resp = client.get("/")
-        assert resp.status_code == 200
-        assert "<!doctype html>" in resp.text.lower()
-        assert "Privacy Router" in resp.text
-
-    def test_docs_path_serves_product_documentation(self):
-        resp = client.get("/docs")
-
-        assert resp.status_code == 200
-        assert "Documentation — Privacy Router" in resp.text
-        assert "Swagger UI" not in resp.text
-
-    @pytest.mark.parametrize(
-        ("path", "title"),
-        [
-            ("/admin/", "Admin Dashboard — Privacy Router"),
-            ("/demo/", "Privacy Router Demo"),
-            ("/docs/getting-started/", "Getting Started — Privacy Router Docs"),
-        ],
-    )
-    def test_static_pages_accept_trailing_slashes(self, path: str, title: str):
-        resp = client.get(path)
-        assert resp.history
-        assert resp.url.path == path.rstrip("/")
-
-        assert resp.status_code == 200
-        assert f"<title>{title}</title>" in resp.text
+class TestApiDocs:
+    """Swagger UI stays available under the API namespace."""
 
     def test_api_docs_remain_available_under_api_namespace(self):
         resp = client.get("/api/docs")
@@ -640,7 +610,7 @@ class TestChatUI:
 
 
 class TestRoutePrecedence:
-    """API routes must take precedence over the static SPA fallback."""
+    """API routes must return JSON errors, not HTML fallbacks."""
 
     def test_api_route_is_not_shadowed_by_static_fallback(self):
         resp = client.get("/v1/responses/nonexistent-response")

@@ -12,15 +12,11 @@ from fastapi import Cookie, Header, HTTPException, Request
 from sqlmodel import select
 
 from db import ApiKey, get_session
-from server import get_runtime_mode
 from server.api.session_tokens import (
     ADMIN_CSRF_COOKIE,
     ADMIN_SESSION_COOKIE,
     ADMIN_SESSION_SUBJECT,
     ADMIN_SESSION_TTL_SECONDS,
-    DEMO_SESSION_COOKIE,
-    DEMO_SESSION_SUBJECT,
-    DEMO_SESSION_TTL_SECONDS,
     admin_session_subject,
     verify_session_token,
 )
@@ -147,24 +143,3 @@ async def require_auth(authorization: str = Header(default="")) -> str:
         raise HTTPException(status_code=401, detail="Invalid API key")
     finally:
         session.close()
-
-
-async def require_chat_auth(
-    authorization: str = Header(default=""),
-    pr_demo_session: str | None = Cookie(default=None, alias=DEMO_SESSION_COOKIE),
-) -> str:
-    """Authenticate chat with Bearer credentials or a dev-only demo session."""
-    if authorization:
-        return await require_auth(authorization)
-    if (
-        get_runtime_mode() == "dev"
-        and pr_demo_session is not None
-        and verify_session_token(
-            pr_demo_session,
-            DEMO_SESSION_SUBJECT,
-            DEMO_SESSION_TTL_SECONDS,
-            purpose="demo",
-        )
-    ):
-        return DEMO_SESSION_SUBJECT
-    return await require_auth(authorization)

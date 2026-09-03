@@ -221,37 +221,15 @@ Transformers/PyTorch runtime을 제공합니다. LFM adapter는 model file과 de
 helper를 revision `b8c9cf3d2d6ae52501b35a27ba46f271449c9ce2`에 고정하며,
 `trust_remote_code=True`는 해당 고정 revision에 대해서만 활성화합니다.
 
-## 로컬 HTMX 데모
+## 웹사이트 제거 (2026-09-03)
 
-Svelte `/demo` route는 제거되었습니다. FastAPI가 `GET /demo`에서
-`server/templates/demo.html`을 제공하고, vendored HTMX runtime은
-`/demo-assets/htmx.min.js`에서 제공합니다.
+SvelteKit 사이트(`web/`), HTMX 데모(`server/templates/demo.html`), vendored
+HTMX asset, `/api/demo/*` endpoint, dev demo session cookie 인증은 모두
+제거되었습니다. 브라우저 UI 없이 다음 경로로 검사합니다.
 
-```text
-POST /api/demo/key       → dev 모드 브라우저 key fragment
-POST /api/demo/router    → 인증된 단일 router HTML/JSON result
-POST /api/demo/run-all   → 인증된 8개 로컬 router batch
-GET  /api/demo/run-all/{batch_id} → 인증된 batch 상태 HTML fragment
-```
-
-Demo는 생성한 `pr-*` key를 브라우저 `sessionStorage`에 저장하고, 보호된 두 demo
-endpoint에 bearer header로 전송합니다. `dev`는 기본적으로 `127.0.0.1`에
-bind하며, `privacy-router dev --host 0.0.0.0`을 사용하면 명시적으로 선택한
-개발 보안 상태에서 listener와 dev key 발급 범위를 넓힙니다. 인증된 `serve`
-상태에서는 자동 demo-key 발급을 제공하지 않습니다.
-
-하이라이트된 span과 record block은 안정적인 로컬 식별자를 공유합니다. 양쪽은
-hover 또는 keyboard focus에서 함께 강조되고, 색상만으로 의미를 전달하지 않도록
-텍스트 기반 마스킹 라벨도 표시합니다.
-
-### `Run all` 진행 상태
-
-`Run all`은 동기 응답으로 한 번에 끝내지 않고 batch job으로 실행합니다. 버튼을 누르면 8개 synthetic payload와 `batch_id`를 담은 초기 HTMX fragment를 즉시 반환하고, 브라우저는 0.5초 간격으로 상태 fragment를 조회합니다.
-
-상태 fragment에는 전체 진행률, 현재 실행 중인 case, 각 case의 `대기`·`실행 중`·`완료`·`실패` 상태, `PrivacyRouter.process()`에 전달되는 synthetic payload 미리보기, 완료된 정책·route·record 수를 표시합니다. 한 case의 실패는 나머지 case를 중단하지 않습니다.
-실패한 case는 `Failed: Local router unavailable...` 형태의 안전한 메시지를 카드 안에 명시하고, 원본 exception 문자열은 표시하지 않습니다.
-
-payload 미리보기와 하이라이트용 원문·offset은 HTMX fragment 렌더링에만 사용합니다. JSON 응답과 `redact_extraction_records`는 raw span과 offset을 반환하지 않습니다. batch 상태는 개발 프로세스의 메모리에 짧게 보관하고 만료된 job은 안전한 상태로 표시합니다.
+- API: `POST /v1/chat/completions`, `POST /v1/responses` (Bearer `pr-*` key)
+- 탐지기 비교: `uv run python scripts/detector_bench.py` — detector별
+  인식 결과를 `var/detector-bench/<timestamp>/report.md`와 `results.json`에 남깁니다.
 
 
 ## Middle-Man 아키텍처
@@ -506,9 +484,11 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 
 ## 변경 이력
 
+- 2026-09-03 — SvelteKit 사이트·HTMX 데모·`/api/demo/*`·dev demo session을 제거하고, detector 비교를 `scripts/detector_bench.py` 스크립트와 `var/detector-bench/` 로그로 대체했습니다.
+
 - 2026-09-02 — 실패한 batch case에 명시적인 안전 메시지를 표시하고, `extract.fixed.prompt`의 fenced JSON 예시를 파싱 가능한 형태로 교정했습니다.
 
-- 2026-09-01 — `Run all`을 batch payload 미리보기와 실시간 진행률을 제공하는 상태 polling 방식으로 구현했습니다. case별 실패 격리와 HTMX 전용 원문 경계를 유지합니다.
+- 2026-09-01 — `Run all`을 batch payload 미리보기와 실시간 진행률을 제공하는 상태 polling 방식으로 구현했습니다. case별 실패 격리와 HTMX 전용 원문 경계를 유지했습니다. (2026-09-03 제거)
 
 - 2026-09-01 — 아키텍처 문서 전체를 한국어로 다시 작성했습니다. 기술 식별자와 API 계약은 유지하고, 활성 requiredness·HTMX·응답 보안 설명을 한국어로 통일했습니다.
 

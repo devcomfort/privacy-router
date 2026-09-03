@@ -25,76 +25,26 @@ privacy-router dev
 
 For deployment, set `PRIVACY_ROUTER_MASTER_KEY`, `PRIVACY_ROUTER_ADMIN_PASSWORD`, and provider environment variables in `.env`, then run `docker compose up -d`.
 
-## Docker Compose Profiles
+## Docker Compose Deployment
 
-Compose `profiles` enable optional services:
-
-| Profile | Services | Purpose |
-|---|---|---|
-| _(none)_ | db, api | Core deployment |
-| `hermes` | hermes | Hermes Agent demo |
-
-### Behavior
-
-- Services without a profile always start with `docker compose up`.
-- Services with a profile start only when that profile is enabled.
-- Profiles can be combined when the selected Compose files define them.
-
-### Usage
+The Compose deployment contains only the core `db` and `api` services.
 
 ```bash
-# Core deployment
-docker compose up
-
-# Include Hermes Agent
-COMPOSE_PROFILES=hermes docker compose up -d
-
-# Persist the profile choice
-echo "COMPOSE_PROFILES=hermes" >> .env
-docker compose up
+docker compose up -d
 ```
 
-## Hermes Agent Demo Modes
-
-The Hermes Agent container supports three Privacy Router integration modes via `HERMES_CONFIG`:
-
-| Config | Mode | How it works |
-|--------|------|-------------|
-| `config-api.yaml` | API Proxy | All LLM calls automatically pass through Privacy Router. Transparent — no agent action needed. |
-| `config-mcp.yaml` | MCP Tool | LLM calls go directly to the model. Agent calls `privacy-router.process()` explicitly when needed. |
-| `config-privacy-router.yaml` | Combined | API proxy + MCP tools available simultaneously (default). |
-
-```bash
-# API Proxy mode — automatic protection
-HERMES_CONFIG=api docker compose up -d hermes
-
-# MCP Tool mode — explicit protection
-HERMES_CONFIG=mcp docker compose up -d hermes
-
-# Combined mode (default)
-docker compose up -d hermes
-```
-
-Management APIs and `/admin` exchange `PRIVACY_ROUTER_ADMIN_PASSWORD` for a short-lived secure session. State-changing requests additionally require the session's CSRF token. Provider credentials remain server environment variables and are read-only in the UI.
-
-Docker Compose publishes the API, database, and Hermes ports on `127.0.0.1` by default. It sets `PRIVACY_ROUTER_ALLOW_INSECURE_ADMIN=1` only for this loopback-published HTTP setup so `/admin` works through Docker's bridge. If `PRIVACY_ROUTER_BIND_HOST` is changed from loopback, set the override to `0` and terminate HTTPS before the API.
-
-**API Proxy mode** is best when you want zero-friction privacy protection — every request is automatically classified, masked if needed, and routed. **MCP Tool mode** is best when the agent needs fine-grained control over when and how to apply privacy protection (e.g., classify first, then decide whether to mask).
+Management APIs exchange `PRIVACY_ROUTER_ADMIN_PASSWORD` for a short-lived secure session. State-changing requests additionally require the session's CSRF token. Provider credentials remain server environment variables.
 
 ## Access Points
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Landing | http://localhost:8787/ | Portal (EN/KO) |
-| Demo Chat | http://localhost:8787/demo | Interactive chat with privacy pipeline |
-| Admin | http://localhost:8787/admin | Model, API key, and redacted telemetry management |
-| Product Docs | http://localhost:8787/docs | User and developer documentation |
-| Hermes Dashboard | http://localhost:9119 | Hermes Agent web UI |
+| Runtime | http://localhost:8787/api/runtime | Runtime capabilities (JSON) |
 | API Docs | http://localhost:8787/api/docs | OpenAPI Swagger UI |
 
 ## Create a Client API Key
 
-Open http://localhost:8787/admin, enter the administrator password, and use **Create Key**. The returned `pr-...` key is shown once. For the cookie-and-CSRF API flow, see [API Key Management](api-keys.md).
+Set `PRIVACY_ROUTER_API_KEY` before startup to bootstrap a client key, or use the admin session API: `POST /api/admin/session` then `POST /api/v1/keys`. The returned `pr-...` key is shown once. For the cookie-and-CSRF API flow, see [API Key Management](api-keys.md).
 
 ## Conversation Context
 

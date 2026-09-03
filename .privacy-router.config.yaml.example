@@ -60,7 +60,7 @@ profiles:
       max_tokens: 512
 
   local-demo:
-    description: Local Ollama demo profile for the bundled HTMX surface
+    description: Local Ollama profile for API-level development
     decision:
       model: ollama/qwen3:1.7b
       api_base: http://127.0.0.1:11434

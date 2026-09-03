@@ -31,7 +31,7 @@ from agents.router import SQLiteKVCache
 from db import ExtractionCache, get_session, init_db
 from db import Response as StoredResponse
 from server.adapters import LiteLLMAdapter
-from server.api import app, require_auth, require_chat_auth
+from server.api import app, require_auth
 from server.mcp.tools import (
     apply_decision as mcp_apply_decision,
 )
@@ -48,7 +48,6 @@ async def _mock_auth() -> str:
 
 
 app.dependency_overrides[require_auth] = _mock_auth
-app.dependency_overrides[require_chat_auth] = _mock_auth
 client = TestClient(app)
 
 
@@ -2860,7 +2859,7 @@ def test_chat_session_context_is_isolated_by_api_key():
         patch("server.api.routes.proxy.get_cache", return_value=cache),
     ):
         try:
-            app.dependency_overrides[require_chat_auth] = auth_for_first_key
+            app.dependency_overrides[require_auth] = auth_for_first_key
             first = client.post(
                 "/v1/chat/completions",
                 json={
@@ -2869,7 +2868,7 @@ def test_chat_session_context_is_isolated_by_api_key():
                 },
                 headers=headers,
             )
-            app.dependency_overrides[require_chat_auth] = auth_for_second_key
+            app.dependency_overrides[require_auth] = auth_for_second_key
             second = client.post(
                 "/v1/chat/completions",
                 json={
@@ -2879,7 +2878,7 @@ def test_chat_session_context_is_isolated_by_api_key():
                 headers=headers,
             )
         finally:
-            app.dependency_overrides[require_chat_auth] = _mock_auth
+            app.dependency_overrides[require_auth] = _mock_auth
 
     assert first.status_code == 200
     assert second.status_code == 200

@@ -8,7 +8,6 @@ from collections.abc import Callable
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine, select
@@ -340,7 +339,6 @@ def test_runtime_capabilities_report_secure_serve_mode(runtime_mode, monkeypatch
     assert response.json() == {
         "mode": "serve",
         "default_model": "privacy-router",
-        "demo": {"authentication": "bearer", "session_available": False},
         "model_roles": {
             "decision": "openai/google/gemma-4-26b-local",
             "local": "openai/google/gemma-4-26b-local",
@@ -351,112 +349,6 @@ def test_runtime_capabilities_report_secure_serve_mode(runtime_mode, monkeypatch
             "openrouter/google/gemma-4-26b-a4b-it": 0.06,
         },
     }
-
-
-def test_demo_session_is_not_available_in_serve_mode(runtime_mode) -> None:
-    runtime_mode.set_runtime_mode("serve")
-
-    response = TestClient(app).post("/api/demo/session")
-
-    assert response.status_code == 404
-
-
-def test_demo_session_rejects_non_loopback_peer(runtime_mode) -> None:
-    runtime_mode.set_runtime_mode("dev")
-
-    response = TestClient(
-        app,
-        client=("203.0.113.10", 50000),
-    ).post("/api/demo/session")
-
-    assert response.status_code == 403
-
-
-def test_dev_demo_session_sets_scoped_http_only_cookie(
-    runtime_mode,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    runtime_mode.set_runtime_mode("dev")
-    monkeypatch.setenv(
-        "PRIVACY_ROUTER_MASTER_KEY",
-        "LBc6zy54KvMzZxmdaHns_W2NxmhKlZFPT9jKkzQ91bI=",
-    )
-
-    response = _loopback_client().post("/api/demo/session")
-
-    assert response.status_code == 200
-    assert response.json() == {"expires_in": 900}
-    set_cookie = response.headers["set-cookie"]
-    assert "pr_demo_session=" in set_cookie
-    assert "HttpOnly" in set_cookie
-    assert "SameSite=strict" in set_cookie
-    assert "Path=/v1/chat/completions" in set_cookie
-    assert "Max-Age=900" in set_cookie
-
-
-@pytest.mark.asyncio
-async def test_demo_cookie_authenticates_chat_only_in_dev(
-    runtime_mode,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    runtime_mode.set_runtime_mode("dev")
-    monkeypatch.setenv(
-        "PRIVACY_ROUTER_MASTER_KEY",
-        "LBc6zy54KvMzZxmdaHns_W2NxmhKlZFPT9jKkzQ91bI=",
-    )
-    api = importlib.import_module("server.api")
-    require_chat_auth = getattr(api, "require_chat_auth", None)
-    assert require_chat_auth is not None
-    response = _loopback_client().post("/api/demo/session")
-    token = response.cookies.get("pr_demo_session")
-
-    assert await require_chat_auth("", token) == "local-demo"
-    dependencies = _route_dependencies("/v1/chat/completions", "POST")
-    assert require_chat_auth in dependencies
-    assert require_auth not in dependencies
-
-
-@pytest.mark.asyncio
-async def test_invalid_bearer_never_falls_back_to_valid_demo_cookie(
-    runtime_mode,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    runtime_mode.set_runtime_mode("dev")
-    monkeypatch.setenv(
-        "PRIVACY_ROUTER_MASTER_KEY",
-        "LBc6zy54KvMzZxmdaHns_W2NxmhKlZFPT9jKkzQ91bI=",
-    )
-    response = _loopback_client().post("/api/demo/session")
-    token = response.cookies.get("pr_demo_session")
-    require_chat_auth = getattr(importlib.import_module("server.api"), "require_chat_auth", None)
-    assert require_chat_auth is not None
-
-    with pytest.raises(HTTPException) as rejected:
-        await require_chat_auth("Bearer invalid-explicit-key", token)
-
-    assert rejected.value.status_code == 401
-
-
-@pytest.mark.asyncio
-async def test_demo_cookie_is_rejected_in_serve_mode(
-    runtime_mode,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    runtime_mode.set_runtime_mode("dev")
-    monkeypatch.setenv(
-        "PRIVACY_ROUTER_MASTER_KEY",
-        "LBc6zy54KvMzZxmdaHns_W2NxmhKlZFPT9jKkzQ91bI=",
-    )
-    response = _loopback_client().post("/api/demo/session")
-    token = response.cookies.get("pr_demo_session")
-    runtime_mode.set_runtime_mode("serve")
-    require_chat_auth = getattr(importlib.import_module("server.api"), "require_chat_auth", None)
-    assert require_chat_auth is not None
-
-    with pytest.raises(HTTPException) as rejected:
-        await require_chat_auth("", token)
-
-    assert rejected.value.status_code == 401
 
 
 def test_environment_api_key_bootstrap_is_idempotent_and_redacted(

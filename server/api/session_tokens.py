@@ -18,16 +18,12 @@ ADMIN_SESSION_COOKIE = "pr_admin_session"
 ADMIN_SESSION_SUBJECT = "admin"
 ADMIN_SESSION_TTL_SECONDS = 30 * 60
 
-DEMO_SESSION_COOKIE = "pr_demo_session"
-DEMO_SESSION_SUBJECT = "local-demo"
-DEMO_SESSION_TTL_SECONDS = 15 * 60
-
 
 class SessionTokenConfigurationError(RuntimeError):
     """Raised when browser sessions cannot be signed safely."""
 
 
-SessionPurpose = Literal["demo", "admin"]
+SessionPurpose = Literal["admin"]
 
 
 def _fernet(purpose: SessionPurpose) -> Fernet:

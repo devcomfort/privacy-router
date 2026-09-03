@@ -5,15 +5,12 @@ Barrel pattern: import everything from ``server.api`` instead of submodules.
 Public API
 ----------
 app          — FastAPI application instance
-STATIC_DIR   — Path to SvelteKit build output
 require_auth — Bearer token auth dependency
 create_api_key — API key generation
 adapter_for  — LiteLLM adapter resolver
 """
 
 from __future__ import annotations
-
-from pathlib import Path
 
 from server.api.adapter import adapter_for
 from server.api.auth import (
@@ -22,7 +19,6 @@ from server.api.auth import (
     is_loopback_request,
     require_admin_auth,
     require_auth,
-    require_chat_auth,
 )
 from server.api.masking import (
     ContextSegment,
@@ -45,9 +41,6 @@ from server.api.session_tokens import (
     ADMIN_SESSION_COOKIE,
     ADMIN_SESSION_SUBJECT,
     ADMIN_SESSION_TTL_SECONDS,
-    DEMO_SESSION_COOKIE,
-    DEMO_SESSION_SUBJECT,
-    DEMO_SESSION_TTL_SECONDS,
     SessionTokenConfigurationError,
     admin_session_subject,
     issue_session_token,
@@ -77,9 +70,6 @@ from server.api.tracing import (
     traced_endpoint_names,
 )
 
-# Directory containing demo web UI
-STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "web" / "build"
-
 
 def __getattr__(name: str):
     """Lazy import for ``app`` to break circular import chain.
@@ -96,7 +86,6 @@ def __getattr__(name: str):
 
 
 __all__ = [
-    "STATIC_DIR",
     "RequestTraceMiddleware",
     "ContextSegment",
     "StreamingHydrator",
@@ -136,15 +125,11 @@ __all__ = [
     "without_uninspected_media",
     "require_admin_auth",
     "require_auth",
-    "require_chat_auth",
     "hydrate_tool_call_arguments",
     "ADMIN_CSRF_COOKIE",
     "ADMIN_SESSION_COOKIE",
     "ADMIN_SESSION_SUBJECT",
     "ADMIN_SESSION_TTL_SECONDS",
-    "DEMO_SESSION_COOKIE",
-    "DEMO_SESSION_SUBJECT",
-    "DEMO_SESSION_TTL_SECONDS",
     "SessionTokenConfigurationError",
     "admin_session_subject",
     "issue_session_token",
