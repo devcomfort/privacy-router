@@ -165,6 +165,20 @@ def score(out: dict, expected: list[str]) -> dict:
     }
 
 
+def verdict(score: dict, out: dict) -> str:
+    """Render an explicit pass/fail verdict with failure reasons."""
+    reasons: list[str] = []
+    if out["status"] not in {"complete", "partial"}:
+        reasons.append(f"탐지기 실패: {out['error'] or out['status']}")
+    if score["misses"]:
+        reasons.append("누락: " + ", ".join(score["misses"]))
+    if not score["expected"] and score["unexpected"]:
+        reasons.append("오탐: " + ", ".join(score["unexpected"]))
+    if not reasons:
+        return "합격"
+    return "**실패** — " + "; ".join(reasons)
+
+
 def write_report(path: Path, rows: list[dict], detector_names: list[str], labels: dict[str, str]) -> None:
     display = {name: labels.get(name, name) for name in detector_names}
     lines = ["# PII detector benchmark", ""]
@@ -176,7 +190,7 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str], labels
     lines.append("| detector | cases | hits | misses | total entities | avg latency ms |")
     lines.append("|---|---:|---:|---:|---:|---:|")
     for name in detector_names:
-        hits = sum(row["per_detector"][name]["score"]["hits"].__len__() for row in rows)
+        hits = sum(len(row["per_detector"][name]["score"]["hits"]) for row in rows)
         misses = sum(len(row["per_detector"][name]["score"]["misses"]) for row in rows)
         total_entities = sum(len(row["per_detector"][name]["output"]["entities"]) for row in rows)
         latencies = [row["per_detector"][name]["output"]["latency_ms"] for row in rows]
@@ -190,10 +204,11 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str], labels
         lines.append("")
         lines.append(f"기대 스팬: {', '.join(row['case']['expected']) or '(없음 — 안전 쿼리)'}")
         lines.append("")
-        lines.append("| detector | status | latency ms | entities |")
-        lines.append("|---|---|---:|---|")
+        lines.append("| detector | status | latency ms | entities | 평가 |")
+        lines.append("|---|---|---:|---|---|")
         for name in detector_names:
-            out = row["per_detector"][name]["output"]
+            entry = row["per_detector"][name]
+            out = entry["output"]
             entities = (
                 "; ".join(
                     f"{entity['tag']}=`{entity['span']}`"
@@ -202,8 +217,9 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str], labels
                 )
                 or "-"
             )
-            error = f" ⚠ {out['error']}" if out["error"] else ""
-            lines.append(f"| {display[name]} | {out['status']} | {out['latency_ms']:.0f} | {entities}{error} |")
+            lines.append(
+                f"| {display[name]} | {out['status']} | {out['latency_ms']:.0f} | {entities} | {verdict(entry['score'], out)} |"
+            )
         lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -212,9 +228,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--detectors", default="presidio,lfm,opf,llm-ollama,llm-openrouter")
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--from-results", type=Path, default=None, help="regenerate report.md from an existing results.json"
+    )
     args = parser.parse_args()
 
     names = [name.strip() for name in args.detectors.split(",") if name.strip()]
+    if args.from_results is not None:
+        saved = json.loads(args.from_results.read_text(encoding="utf-8"))
+        report_path = args.from_results.with_name("report.md")
+        write_report(report_path, saved["rows"], saved["detectors"], saved.get("labels", {}))
+        print(f"report:  {report_path}")
+        return
     detectors, labels = build_detectors(names, args.device)
     run_dir = OUTPUT_ROOT / datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir.mkdir(parents=True, exist_ok=True)
