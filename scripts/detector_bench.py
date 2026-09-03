@@ -100,8 +100,9 @@ CASES = [
 ]
 
 
-def build_detectors(names: list[str], device: str) -> dict:
+def build_detectors(names: list[str], device: str) -> tuple[dict, dict[str, str]]:
     detectors: dict = {}
+    labels: dict[str, str] = {}
     if "presidio" in names:
         detectors["presidio"] = PresidioExtractor(language="en")
     if "lfm" in names:
@@ -109,16 +110,14 @@ def build_detectors(names: list[str], device: str) -> dict:
     if "opf" in names:
         detectors["opf"] = OPFExtractor(device=device)
     if "llm-ollama" in names:
-        detectors["llm-ollama"] = LLMExtractor(
-            model="ollama/qwen3:1.7b",
-            api_base="http://127.0.0.1:11434",
-        )
+        model = "ollama/qwen3:1.7b"
+        detectors["llm-ollama"] = LLMExtractor(model=model, api_base="http://127.0.0.1:11434")
+        labels["llm-ollama"] = f"llm-ollama ({model})"
     if "llm-openrouter" in names:
-        detectors["llm-openrouter"] = LLMExtractor(
-            model="openrouter/google/gemma-4-26b-a4b-it",
-            api_base="https://openrouter.ai/api/v1",
-        )
-    return detectors
+        model = "openrouter/google/gemma-4-26b-a4b-it"
+        detectors["llm-openrouter"] = LLMExtractor(model=model, api_base="https://openrouter.ai/api/v1")
+        labels["llm-openrouter"] = f"llm-openrouter ({model})"
+    return detectors, labels
 
 
 def run_one(detector, text: str, *, allow_external: bool = False) -> dict:
@@ -166,10 +165,11 @@ def score(out: dict, expected: list[str]) -> dict:
     }
 
 
-def write_report(path: Path, rows: list[dict], detector_names: list[str]) -> None:
+def write_report(path: Path, rows: list[dict], detector_names: list[str], labels: dict[str, str]) -> None:
+    display = {name: labels.get(name, name) for name in detector_names}
     lines = ["# PII detector benchmark", ""]
     lines.append(f"- generated: {datetime.now().isoformat(timespec='seconds')}")
-    lines.append(f"- detectors: {', '.join(detector_names)}")
+    lines.append(f"- detectors: {', '.join(display[name] for name in detector_names)}")
     lines.append("")
     lines.append("## Summary (expected-span recall)")
     lines.append("")
@@ -181,7 +181,7 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str]) -> Non
         total_entities = sum(len(row["per_detector"][name]["output"]["entities"]) for row in rows)
         latencies = [row["per_detector"][name]["output"]["latency_ms"] for row in rows]
         avg = sum(latencies) / len(latencies) if latencies else 0.0
-        lines.append(f"| {name} | {len(rows)} | {hits} | {misses} | {total_entities} | {avg:.0f} |")
+        lines.append(f"| {display[name]} | {len(rows)} | {hits} | {misses} | {total_entities} | {avg:.0f} |")
     lines.append("")
     for row in rows:
         lines.append(f"## {row['case']['id']} — {row['case']['name']}")
@@ -203,7 +203,7 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str]) -> Non
                 or "-"
             )
             error = f" ⚠ {out['error']}" if out["error"] else ""
-            lines.append(f"| {name} | {out['status']} | {out['latency_ms']:.0f} | {entities}{error} |")
+            lines.append(f"| {display[name]} | {out['status']} | {out['latency_ms']:.0f} | {entities}{error} |")
         lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -215,7 +215,7 @@ def main() -> None:
     args = parser.parse_args()
 
     names = [name.strip() for name in args.detectors.split(",") if name.strip()]
-    detectors = build_detectors(names, args.device)
+    detectors, labels = build_detectors(names, args.device)
     run_dir = OUTPUT_ROOT / datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -228,9 +228,9 @@ def main() -> None:
             row["per_detector"][name] = {"output": out, "score": score(out, case["expected"])}
         rows.append(row)
 
-    payload = {"detectors": names, "rows": rows}
+    payload = {"detectors": names, "labels": labels, "rows": rows}
     (run_dir / "results.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_report(run_dir / "report.md", rows, names)
+    write_report(run_dir / "report.md", rows, names, labels)
     print(f"\nresults: {run_dir / 'results.json'}")
     print(f"report:  {run_dir / 'report.md'}")
 
