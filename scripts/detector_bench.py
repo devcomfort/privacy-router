@@ -117,6 +117,14 @@ def build_detectors(names: list[str], device: str) -> tuple[dict, dict[str, str]
         model = "openrouter/google/gemma-4-26b-a4b-it"
         detectors["llm-openrouter"] = LLMExtractor(model=model, api_base="https://openrouter.ai/api/v1")
         labels["llm-openrouter"] = f"llm-openrouter ({model})"
+    if "llm-gptoss" in names:
+        model = "openrouter/openai/gpt-oss-120b"
+        detectors["llm-gptoss"] = LLMExtractor(model=model, api_base="https://openrouter.ai/api/v1")
+        labels["llm-gptoss"] = f"llm-gptoss ({model})"
+    if "llm-qwen36" in names:
+        model = "openai/QuantTrio/Qwen3.6-35B-A3B-AWQ"
+        detectors["llm-qwen36"] = LLMExtractor(model=model, api_base="http://127.0.0.1:8012/v1")
+        labels["llm-qwen36"] = "llm-qwen36 (QuantTrio/Qwen3.6-35B-A3B-AWQ, local vLLM)"
     return detectors, labels
 
 
@@ -249,7 +257,11 @@ def main() -> None:
         row = {"case": case, "per_detector": {}}
         for name, detector in detectors.items():
             print(f"[{name}] {case['id']} ...", flush=True)
-            out = run_one(detector, case["text"], allow_external=name.startswith("llm-openrouter"))
+            out = run_one(
+                detector,
+                case["text"],
+                allow_external=name.startswith(("llm-openrouter", "llm-gptoss")),
+            )
             row["per_detector"][name] = {"output": out, "score": score(out, case["expected"])}
         rows.append(row)
 
