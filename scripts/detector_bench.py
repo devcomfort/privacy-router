@@ -129,6 +129,10 @@ def build_detectors(names: list[str], device: str) -> tuple[dict, dict[str, str]
         model = "openai/QuantTrio/Qwen3.6-35B-A3B-AWQ"
         detectors["llm-qwen36"] = LLMExtractor(model=model, api_base="http://127.0.0.1:8012/v1")
         labels["llm-qwen36"] = "llm-qwen36 (QuantTrio/Qwen3.6-35B-A3B-AWQ, local vLLM)"
+    if "llm-gemma4" in names:
+        model = "openai/google/gemma-4-26b-local"
+        detectors["llm-gemma4"] = LLMExtractor(model=model, api_base="http://127.0.0.1:8011/v1")
+        labels["llm-gemma4"] = "llm-gemma4 (google/gemma-4-26B-A4B-it, local vLLM)"
     return detectors, labels
 
 

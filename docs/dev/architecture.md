@@ -481,6 +481,7 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 - [Config 파일](config-files.md) — YAML과 DB 설정 구조
 - [Integration 아키텍처](integration-architecture.md) — Hermes Agent, OpenCode, LiteLLM 통합
 - [보안](../user/security.md) — threat model과 암호화
+- [로컬 추론 속도 스파이크](local-inference-speed-spike.md) — GB10에서 vLLM 설정 변형의 속도·정확도 실측
 
 ## 변경 이력
 
