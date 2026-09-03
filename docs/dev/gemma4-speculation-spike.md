@@ -45,6 +45,26 @@ uv run vllm serve google/gemma-4-26B-A4B-it \
 
 **결과**: MTP 전환으로 baseline 대비 decode 약 **2.03배**, 추출 지연 약 **43% 감소**. 품질 벤치는 baseline과 동일한 18/19였습니다. MTP는 target이 native multi-token prediction을 지원하거나 별도 assistant를 제공할 때 사용하는 vLLM 경로입니다.
 
+### 2.1.1 실제 detector 벤치 결과
+
+MTP V2 설정으로 실행한 10개 케이스의 실제 결과입니다. `합격`은 기대 스팬을 모두 적중한 경우이며, `실패`는 누락된 스팬을 함께 표시합니다.
+
+| 케이스 | 상태 | 지연 | 탐지 결과 |
+|---|---|---:|---|
+| `ko-rrn` | 합격 | 5.735 s | `RESIDENT_REGISTRATION_NUMBER=901212-1234567` |
+| `ko-contact` | 합격 | 9.821 s | `NAME=김민수`, `PHONE=010-1234-5678`, `EMAIL=minsu.kim@example.invalid` |
+| `ko-card` | 합격 | 3.870 s | `CARD_NUMBER=1234-5678-9012-3456` |
+| `ko-business` | 합격 | 4.098 s | `BUSINESS_STRATEGY=삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다.` |
+| `ko-research` | **실패 — 누락** | 6.115 s | `NAME=김동현`, `RESEARCH_CONCEPT=contextual distillation`; 누락: `광주과학기술원` |
+| `en-pii` | 합격 | 11.314 s | `EMAIL`, `PHONE`, `NAME`, `ADDRESS` 모두 적중 |
+| `en-secret` | 합격 | 6.258 s | `BUSINESS_STRATEGY=Acme Corp`, `FINANCIAL_TERM=$4.2M` |
+| `en-safe` | 합격 | 0.406 s | 탐지 결과 없음 |
+| `ko-safe` | 합격 | 0.404 s | 탐지 결과 없음 |
+| `ko-address` | 합격 | 6.237 s | `NAME=홍길동`, `ADDRESS=서울특별시 강남구 테헤란로 123` |
+
+**실행 집계**: 10개 중 9개 합격, 1개 실패. 기대 스팬 기준 `18/19`; 실패는 `ko-research`의 기관명 `광주과학기술원` 누락 한 건입니다. 안전 쿼리 2개에서는 오탐이 없었습니다.
+
+
 ### 2.2 Gemma 4 + DFlash
 
 공식 DFlash model card의 vLLM 명령(`num_speculative_tokens=15`, `flash_attn` draft, `triton_attn` target, `max-num-batched-tokens=32768`)을 GB10에서 실행했습니다.
