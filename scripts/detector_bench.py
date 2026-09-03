@@ -108,18 +108,23 @@ def build_detectors(names: list[str], device: str) -> dict:
         detectors["lfm"] = LFMExtractor(device=device)
     if "opf" in names:
         detectors["opf"] = OPFExtractor(device=device)
-    if "llm" in names:
-        detectors["llm"] = LLMExtractor(
+    if "llm-ollama" in names:
+        detectors["llm-ollama"] = LLMExtractor(
             model="ollama/qwen3:1.7b",
             api_base="http://127.0.0.1:11434",
+        )
+    if "llm-openrouter" in names:
+        detectors["llm-openrouter"] = LLMExtractor(
+            model="openrouter/google/gemma-4-26b-a4b-it",
+            api_base="https://openrouter.ai/api/v1",
         )
     return detectors
 
 
-def run_one(detector, text: str) -> dict:
+def run_one(detector, text: str, *, allow_external: bool = False) -> dict:
     started = time.perf_counter()
     try:
-        result = detector.extract(text)
+        result = detector.extract(text) if not allow_external else detector.extract(text, allow_external=True)
     except Exception as exc:  # noqa: BLE001 - benchmark must record any failure
         return {
             "status": "error",
@@ -205,7 +210,7 @@ def write_report(path: Path, rows: list[dict], detector_names: list[str]) -> Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--detectors", default="presidio,lfm,opf,llm")
+    parser.add_argument("--detectors", default="presidio,lfm,opf,llm-ollama,llm-openrouter")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -219,7 +224,7 @@ def main() -> None:
         row = {"case": case, "per_detector": {}}
         for name, detector in detectors.items():
             print(f"[{name}] {case['id']} ...", flush=True)
-            out = run_one(detector, case["text"])
+            out = run_one(detector, case["text"], allow_external=name.startswith("llm-openrouter"))
             row["per_detector"][name] = {"output": out, "score": score(out, case["expected"])}
         rows.append(row)
 
