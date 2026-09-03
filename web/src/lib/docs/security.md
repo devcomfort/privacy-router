@@ -1,6 +1,6 @@
-# Privacy and Security
+# 프라이버시와 보안
 
-## Data Flow
+## 데이터 흐름
 
 ```
 User Prompt → Extractor (on-device) → Judge (on-device) → Router
@@ -13,81 +13,81 @@ User Prompt → Extractor (on-device) → Judge (on-device) → Router
                                    Hydration (on-device)
 ```
 
-**Key invariant:** The Extractor runs entirely on-device. Sensitive data is never sent to an external service for classification.
+**핵심 불변 조건:** Extractor는 완전히 디바이스에서 실행됩니다. 민감한 데이터는 분류를 위해 외부 서비스로 절대 전송되지 않습니다.
 
-## Threat Model
+## 위협 모델
 
-| Threat | Risk | Mitigation |
+| 위협 | 위험 | 완화 |
 |--------|------|-----------|
-| **PII in prompts** | Agent sends user's RRN, phone, email to cloud | Extractor detects and masks before forwarding |
-| **Business secrets** | Internal decisions, strategies leak via prompts | Contextual reasoning detects non-keyword secrets |
-| **Research secrets** | Unpublished ideas, experimental data exposed | Socratic categories classify research-sensitive content |
-| **Credential exposure** | API keys, passwords in prompts | Credential keyword detection with high confidence |
-| **Response leakage** | LLM response contains masked placeholders | Hydration restores original values before user sees response |
-| **Tool-call exfiltration** | A model or prompt injection places sensitive values in executable function arguments | Keep input-derived placeholders and inspect local-model argument output before delivery; mask detected plaintext by default and permit it only with explicit `privacy_router.allow_sensitive_tool_arguments: true` consent |
-| **Database snapshot exposure** | Ciphertext and metadata are copied | Fernet encryption, keyed HMAC fingerprints, and 24-hour raw-data TTL |
-| **Cross-owner resource access** | One client retrieves another client's response or masking contract | Exact API-key-ID ownership checks on stored resources |
-| **Management API exposure** | Unauthorized callers change keys or runtime settings | Exchange a dedicated administrator password for a short-lived signed session; require CSRF tokens on state-changing requests and fail closed when credentials or signing keys are unset |
+| **프롬프트의 PII** | 에이전트가 사용자의 RRN, 전화번호, 이메일을 클라우드로 전송 | Extractor가 외부로 전달하기 전에 탐지하고 마스킹 |
+| **업무 비밀** | 내부 결정, 전략이 프롬프트를 통해 유출 | 맥락 기반 추론이 키워드가 아닌 비밀을 탐지 |
+| **연구 비밀** | 미공개 아이디어, 실험 데이터 노출 | 소크라테스식 카테고리가 연구에 민감한 콘텐츠를 분류 |
+| **자격 증명 노출** | 프롬프트의 API 키, 비밀번호 | 높은 신뢰도의 자격 증명 키워드 탐지 |
+| **응답 유출** | LLM 응답에 마스킹된 플레이스홀더 포함 | Hydration이 사용자가 응답을 보기 전에 원래 값을 복원 |
+| **도구 호출 유출** | 모델 또는 프롬프트 인젝션이 실행 가능한 함수 인자에 민감한 값을 배치 | 입력에서 파생된 플레이스홀더를 유지하고 전달 전에 로컬 모델의 인자 출력을 검사; 기본적으로 탐지된 평문은 마스킹하고 명시적인 `privacy_router.allow_sensitive_tool_arguments: true` 동의 하에서만 허용 |
+| **데이터베이스 스냅샷 노출** | 암호문과 메타데이터가 복사됨 | Fernet 암호화, 키가 있는 HMAC 지문, 24시간 원본 데이터 TTL |
+| **교차 소유자 리소스 접근** | 한 클라이언트가 다른 클라이언트의 응답 또는 마스킹 계약을 검색 | 저장된 리소스에 대한 정확한 API 키 ID 소유권 검사 |
+| **관리 API 노출** | 권한 없는 호출자가 키나 runtime 설정을 변경 | 전용 관리자 비밀번호를 단기 서명된 세션으로 교환; 상태 변경 요청에 CSRF 토큰을 요구하고 자격 증명이나 서명 키가 설정되지 않은 경우 실패 닫힘 |
 
-## Encryption
+## 암호화
 
-- **At rest:** Fernet authenticated encryption (AES-128-CBC + HMAC-SHA256)
-  - Extraction cache: extracted records and labeled conversation context
-  - Masking records: original `span` values
-  - Stored OpenResponses resources: full `output_json`
-  - Master key: `PRIVACY_ROUTER_MASTER_KEY`, then legacy `MASKING_ENCRYPTION_KEY`; only `dev` may create a process-local key
-- **In transit:** TLS for all external API calls
-- **Masking:** a request-scoped random token (`CATEGORY#random8`) identifies each placeholder. A separate keyed HMAC fingerprint supports equality checks without placing a value-derived hash in the token.
+- **저장 시:** Fernet 인증 암호화 (AES-128-CBC + HMAC-SHA256)
+  - 추출 캐시: 추출된 레코드와 레이블이 지정된 대화 컨텍스트
+  - 마스킹 레코드: 원본 `span` 값
+  - 저장된 OpenResponses 리소스: 전체 `output_json`
+  - 마스터 키: `PRIVACY_ROUTER_MASTER_KEY`, 이후 레거시 `MASKING_ENCRYPTION_KEY`; 프로세스 로컬 키 생성은 `dev`만 허용
+- **전송 중:** 모든 외부 API 호출에 TLS 사용
+- **마스킹:** 요청 범위 랜덤 토큰 (`CATEGORY#random8`)이 각 플레이스홀더를 식별합니다. 키가 있는 별도의 HMAC 지문이 토큰에 값에서 파생된 해시를 두지 않고 동등성 검사를 지원합니다.
 
-## Credential Handling
+## 자격 증명 처리
 
-| Credential | Storage | Format | Purpose |
+| 자격 증명 | 저장소 | 형식 | 목적 |
 |---|---|---|---|
-| Client API keys | `api_keys.key_hash` | SHA-256 hash | Authenticate incoming requests |
-| Provider API keys | Server environment variables only | Raw provider secret, never returned | Authenticate outbound LLM calls |
-| Administrator password | `PRIVACY_ROUTER_ADMIN_PASSWORD` environment variable only | Raw deployment secret, never returned | Create management sessions |
-| Management session | `HttpOnly`, `SameSite=Strict`, `/api` cookie | Purpose-derived Fernet token containing `admin:SHA-256(CSRF)`; Fernet timestamp enforces expiry | Authenticate management requests |
+| 클라이언트 API 키 | `api_keys.key_hash` | SHA-256 해시 | 들어오는 요청 인증 |
+| 공급자 API 키 | 서버 환경 변수만 | 원시 공급자 비밀, 절대 반환되지 않음 | 아웃바운드 LLM 호출 인증 |
+| 관리자 비밀번호 | `PRIVACY_ROUTER_ADMIN_PASSWORD` 환경 변수만 | 원본 배포 비밀, 절대 반환되지 않음 | 관리 세션 생성 |
+| 관리 세션 | `HttpOnly`, `SameSite=Strict`, `/api` 쿠키 | `admin:SHA-256(CSRF)`를 포함하는 목적 파생 Fernet 토큰; Fernet 타임스탬프가 만료 강제 | 관리 요청 인증 |
 
-**Client keys** are created through an authenticated management session and shown once. Only the SHA-256 hash is stored.
+**클라이언트 키**는 인증된 관리 세션을 통해 생성되며 한 번만 표시됩니다. SHA-256 해시만 저장됩니다.
 
-**Provider keys** are resolved only from the environment variable named by `provider.api_key_env`. The built-in OpenRouter provider uses `OPENROUTER_API_KEY`. The database and management API retain only that environment variable name and availability state.
+**공급자 키**는 `provider.api_key_env`가 지정한 환경 변수에서만 확인됩니다. 내장 OpenRouter 공급자는 `OPENROUTER_API_KEY`를 사용합니다. 데이터베이스와 관리 API는 해당 환경 변수 이름과 가용성 상태만 보존합니다.
 
-**Administrator sessions** expire after 30 minutes. State-changing management requests must carry the matching `X-Privacy-Router-CSRF-Token`; password exchange and CSRF checks use constant-time comparison.
+**관리자 세션**은 30분 후에 만료됩니다. 상태 변경 관리 요청은 일치하는 `X-Privacy-Router-CSRF-Token`을 전달해야 하며, 비밀번호 교환과 CSRF 검사는 상수 시간 비교를 사용합니다.
 
-## Data Retention
+## 데이터 보존
 
-| Data | Storage | Retention |
+| 데이터 | 저장소 | 보존 기간 |
 |------|---------|-----------|
-| Active request text | Process memory | Request lifetime |
-| Extraction and labeled conversation context | Database (encrypted) | 24 hours after last cache update |
-| Placeholder mappings and original spans | Database (span encrypted) | 24 hours after session creation |
-| Stored OpenResponses resources (`store=true`) | Database (encrypted) | 24 hours after creation |
-| Usage metadata | Database, without prompt/response text or input fingerprints | Until administratively deleted |
+| 활성 요청 텍스트 | 프로세스 메모리 | 요청 수명 |
+| 추출 및 레이블이 지정된 대화 컨텍스트 | 데이터베이스 (암호화됨) | 마지막 캐시 업데이트 후 24시간 |
+| 플레이스홀더 매핑 및 원본 span | 데이터베이스 (span 암호화됨) | 세션 생성 후 24시간 |
+| 저장된 OpenResponses 리소스 (`store=true`) | 데이터베이스 (암호화됨) | 생성 후 24시간 |
+| 사용 메타데이터 | 데이터베이스, 프롬프트/응답 텍스트나 입력 지문 없음 | 관리자가 삭제할 때까지 |
 
-Expired rows become unreadable immediately. Startup cleanup and an hourly retention worker physically delete expired extraction-cache rows, masking sessions and records, and stored responses. Encryption protects database contents, but not a host or master-key compromise.
+만료된 행은 즉시 읽을 수 없게 됩니다. 시작 시 정리와 시간당 보존 작업자가 만료된 추출 캐시 행, 마스킹 세션과 레코드, 저장된 응답을 물리적으로 삭제합니다. 암호화는 데이터베이스 내용을 보호하지만 호스트나 마스터 키 손상은 보호하지 않습니다.
 
-## Authentication and Ownership
+## 인증 및 소유권
 
-- Client API keys start with `pr-`, are shown once, and are stored only as SHA-256 hashes.
-- Management login requires `PRIVACY_ROUTER_ADMIN_PASSWORD` and a persistent master key. Session cookies are `Secure` on HTTPS requests; deployments must terminate TLS before exposing management routes.
-- Every management `POST`, `PATCH`, `PUT`, and `DELETE` request requires the session's CSRF token.
-- `privacy-router dev` may issue a separate loopback-only demo session for browser chat. It cannot select external models and does not authorize management routes.
-- A validated client key's stable database ID is the owner namespace for stored responses and masking sessions.
-- Response retrieval, response chaining, masking metadata, and hydration require an exact owner match.
-- Ownerless MCP masking sessions are a separate namespace and cannot load REST-owned contracts.
-- Provider credential values are environment-only, read-only through the UI, and never included in API responses.
+- 클라이언트 API 키는 `pr-`로 시작하며, 한 번 표시되고, SHA-256 해시로만 저장됩니다.
+- 관리 로그인은 `PRIVACY_ROUTER_ADMIN_PASSWORD`와 영구적인 마스터 키가 필요합니다. 세션 쿠키는 HTTPS 요청에서 `Secure`입니다; 배포는 관리 라우트를 노출하기 전에 TLS를 종료해야 합니다.
+- 모든 관리 `POST`, `PATCH`, `PUT`, `DELETE` 요청은 세션의 CSRF 토큰이 필요합니다.
+- `privacy-router dev`는 브라우저 채팅용 루프백 전용 데모 세션을 별도로 발급할 수 있습니다. 외부 모델을 선택할 수 없으며 관리 라우트를 승인하지 않습니다.
+- 검증된 클라이언트 키의 안정적인 데이터베이스 ID는 저장된 응답과 마스킹 세션의 소유자 네임스페이스입니다.
+- 응답 검색, 응답 체이닝, 마스킹 메타데이터, hydration은 정확한 소유자 일치가 필요합니다.
+- 소유자 없는 MCP 마스킹 세션은 별도의 네임스페이스이며 REST-owned 계약을 로드할 수 없습니다.
+- 공급자 자격 증명 값은 환경 전용이며 UI를 통해서는 읽기 전용이고 API 응답에 절대 포함되지 않습니다.
 
-## Residual Risk and Trust Boundaries
+## 잔여 위험 및 신뢰 경계
 
-- A host-process or master-key compromise can decrypt protected database values.
-- `value_hash` permits equality correlation inside the database for the same master key, although placeholders remain random and unlinkable.
-- If the administrator password is disclosed, rotating `PRIVACY_ROUTER_ADMIN_PASSWORD` and restarting prevents new logins with the old value, but existing sessions remain valid for up to 30 minutes. Immediate global session invalidation requires master-key rotation, which also makes previously encrypted records unreadable.
-- Usage metadata has no automatic TTL; operators must define deletion policy for it.
-- Output-inspection failure logs are metadata-only: request ID, route, attempt count, reason, and retryability. Raw argument JSON, decoded values, and extracted spans are never attached.
-- Sensitive tool-argument release applies to every function call in that response; there is no per-tool allowlist. Enable it only when all callable tools are trusted. Every local tool call is still inspected. Opt-in releases both hydrated input-derived values and sensitive values newly generated by the local model. Without opt-in, sensitive string values are replaced with `SENSITIVE_DATA#<8 hex>` placeholders before either streaming or non-streaming delivery.
+- 호스트 프로세스 또는 마스터 키 손상은 보호된 DB 값을 복호화할 수 있습니다.
+- `value_hash`는 동일한 마스터 키에 대해 데이터베이스 내에서 동등성 상관관계를 허용하지만, 플레이스홀더는 무작위이고 연결할 수 없습니다.
+- 관리자 비밀번호가 노출된 경우, `PRIVACY_ROUTER_ADMIN_PASSWORD`를 교체하고 재시작하면 이전 값으로 새 로그인을 방지할 수 있지만, 기존 세션은 최대 30분 동안 유효합니다. 즉시 전역 세션 무효화는 마스터 키 교체가 필요하며, 이는 이전에 암호화된 레코드도 읽을 수 없게 만듭니다.
+- 사용 메타데이터에는 자동 TTL이 없습니다. 운영자는 삭제 정책을 정의해야 합니다.
+- 출력 검사 실패 로그는 메타데이터 전용입니다: 요청 ID, 라우트, 시도 횟수, 사유, 재시도 가능 여부. 원본 인자 JSON, 디코딩된 값, 추출된 span은 절대 첨부되지 않습니다.
+- 민감한 도구 인자 해제는 해당 응답의 모든 함수 호출에 적용됩니다. 도구별 허용 목록은 없습니다. 호출 가능한 모든 도구가 신뢰될 때만 활성화하세요. 모든 로컬 도구 호출은 여전히 검사됩니다. 옵트인은 하이드레이션된 입력 파생 값과 로컬 모델에서 새로 생성된 민감한 값을 모두 해제합니다. 옵트인이 없으면 민감한 문자열 값은 스트리밍 또는 비스트리밍 전달 전에 `SENSITIVE_DATA#<8 hex>` 플레이스홀더로 대체됩니다.
 
-## Related Documents
+## 관련 문서
 
-- [API Keys](/docs/api-keys) — client and provider key management
-- [Detection](/docs/detection) — how sensitive data is detected
-- [Architecture](/docs/architecture) — system architecture
+- [API 키](/docs/api-keys) — 클라이언트 및 공급자 키 관리
+- [탐지](/docs/detection) — 민감한 데이터 탐지 방법
+- [아키텍처](/docs/architecture) — 시스템 아키텍처

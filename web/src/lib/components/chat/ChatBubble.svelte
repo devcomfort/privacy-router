@@ -20,7 +20,7 @@
 		class:text-slate-300={!isUser}
 		aria-hidden="true"
 	>
-		{isUser ? 'U' : 'A'}
+		{isUser ? '나' : 'AI'}
 	</div>
 	<div class="min-w-0 max-w-[88%] space-y-2 sm:max-w-[80%]">
 		<p class="sr-only">{isUser ? $t('demo.message.you') : $t('demo.message.assistant')}</p>

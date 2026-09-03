@@ -1,8 +1,8 @@
-# Architecture
+# 아키텍처
 
-## Pipeline
+## 파이프라인
 
-Privacy Router is an on-device **Extractor → Judge → Router** pipeline that intercepts every agent-generated prompt before it reaches an external LLM API.
+Privacy Router는 디바이스 위에서 동작하는 **Extractor → Judge → Router** 파이프라인으로, 외부 LLM API에 도달하기 전에 에이전트가 생성한 모든 프롬프트를 가로챕니다.
 
 ```
 Agent Prompt
@@ -34,22 +34,22 @@ Agent Prompt
               Hydration for masked responses
 ```
 
-![Privacy Router consumer protection flow: safe prompts go to an external model as raw text; maskable prompts leave as placeholders and are hydrated locally; essential or no-safe-span prompts stay local.](/diagrams/privacy-router-consumer-flow.svg)
+![Privacy Router 소비자 보호 흐름: 안전한 프롬프트는 원문 그대로 외부 모델로 전달되고, 마스킹 가능한 프롬프트는 플레이스홀더로 나가서 로컬에서 복원되며, 필수적이거나 안전한 스팬이 없는 프롬프트는 로컬에 남습니다.](/diagrams/privacy-router-consumer-flow.svg)
 
-## Runtime Model Bindings
+## 런타임 모델 바인딩
 
-The pipeline has three model-bound roles, not one model per named component:
+파이프라인에는 이름 붙은 컴포넌트마다 하나의 모델이 있는 것이 아니라, 모델에 바인딩된 세 가지 역할이 있습니다.
 
-| Runtime role | Current model | Trust boundary | Used by |
+| 런타임 역할 | 현재 모델 | 신뢰 경계 | 사용처 |
 |---|---|---|---|
-| Decision Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | Local only | ExtractorCore and optional high-precision Critic; returns sensitivity, spans, categories, and `is_essential` |
-| Local Model | Gemma 4 26B (same endpoint) | Local only | Generation for essential-sensitive raw prompts |
-| External Model | OpenRouter Gemma 4 26B (`openrouter/google/gemma-4-26b-a4b-it`) | External | Generation for non-sensitive prompts or validated masked prompts |
+| Decision Model | Gemma 4 26B (`openai/google/gemma-4-26b-local`) | 로컬 전용 | ExtractorCore와 선택적 고정밀 Critic. 민감도, 스팬, 카테고리, `is_essential`을 반환 |
+| Local Model | Gemma 4 26B (동일 엔드포인트) | 로컬 전용 | 필수 민감 원문 프롬프트 생성 |
+| External Model | OpenRouter Gemma 4 26B (`openrouter/google/gemma-4-26b-a4b-it`) | 외부 | 비민감 프롬프트 또는 검증된 마스킹 프롬프트 생성 |
 
-`Judge` is rule-based policy code and `Router` is deterministic execution code. Neither has an LLM binding. Extractor, Critic, and Judge remain useful component names, but they are not independent selectable model roles.
+`Judge`는 규칙 기반 정책 코드이고 `Router`는 결정론적 실행 코드이므로 둘 다 LLM 바인딩이 없습니다. Extractor, Critic, Judge는 유용한 컴포넌트 이름으로 남지만, 독립적으로 선택 가능한 모델 역할은 아닙니다.
 
 
-## Component Architecture
+## 컴포넌트 아키텍처
 
 ```
 Extractor (facade)
@@ -64,9 +64,9 @@ Judge (rule-based) — injected by Router
 Router — policy → execution path mapping
 ```
 
-## Middle-Man Architecture
+## Middle-Man 아키텍처
 
-The Middle-Man Agent orchestrates the pipeline and manages user interaction.
+Middle-Man Agent이 파이프라인을 조율하고 사용자 상호작용을 관리합니다.
 
 ```
 agents/router/
@@ -76,7 +76,7 @@ agents/router/
 └── schemas.py         # Schema definitions
 ```
 
-### Decision Flow
+### 결정 흐름
 
 ```python
 def process_with_middle_man(text, metadata):
@@ -96,21 +96,21 @@ def process_with_middle_man(text, metadata):
         return ask_user(text, extraction)
 ```
 
-### Cache Strategies
+### 캐시 전략
 
-| Strategy | Description | DB Operation |
+| 전략 | 설명 | DB 작업 |
 |----------|-------------|--------------|
-| `auto` | Default. HIT → use, MISS → run & store | SELECT / INSERT |
-| `bypass` | Always re-run, no storage | (none) |
-| `refresh` | Re-run, overwrite cache | UPSERT |
-| `delete` | Delete then re-run, no storage | DELETE |
+| `auto` | 기본값. HIT → 사용, MISS → 실행 후 저장 | SELECT / INSERT |
+| `bypass` | 항상 재실행, 저장 없음 | (none) |
+| `refresh` | 재실행 후 캐시 덮어쓰기 | UPSERT |
+| `delete` | 삭제 후 재실행, 저장 없음 | DELETE |
 
-Cache stores **extraction results only** (not LLM responses).
-Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → combine → rehash).
+캐시는 **추출 결과만** 저장합니다(LLM 응답 아님).
+캐시 키: 입력 텍스트의 청크 단위 MD5 해시(4KB 청크 → 병렬 해시 → 결합 → 재해시).
 
-## Response Formats
+## 응답 형식
 
-### Case 1: Auto-processed (default)
+### 케이스 1: 자동 처리(기본)
 
 ```json
 {
@@ -127,7 +127,7 @@ Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → comb
 }
 ```
 
-### Case 2: User input required
+### 케이스 2: 사용자 입력 필요
 
 ```json
 {
@@ -158,7 +158,7 @@ Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → comb
 }
 ```
 
-### Case 3: User selection → re-request
+### 케이스 3: 사용자 선택 → 재요청
 
 ```json
 {
@@ -177,16 +177,16 @@ Cache key: chunked MD5 hash of input text (4KB chunks → parallel hash → comb
 }
 ```
 
-## API vs MCP
+## API 대 MCP
 
-| Aspect | API (OpenAI Compatible) | MCP Server |
+| 측면 | API(OpenAI 호환) | MCP 서버 |
 |--------|------------------------|------------|
-| Entry point | `server/api/routes/proxy.py` | `server/mcp/tools.py` |
-| Caller | External clients | AI agents |
-| Middle-Man | Pipeline-internal auto-execution | Agent calls `review()` / `decide()` directly |
-| User prompt | `status: needs_input` response → client prompts user | Agent prompts user directly |
-| State | Stateless (client manages context) | Stateless (agent manages context) |
-| Cache | `cache_strategy` metadata | `no_cache` flag |
+| 진입점 | `server/api/routes/proxy.py` | `server/mcp/tools.py` |
+| 호출자 | 외부 클라이언트 | AI 에이전트 |
+| Middle-Man | 파이프라인 내부 자동 실행 | 에이전트가 `review()` / `decide()`를 직접 호출 |
+| 사용자 문의 | `status: needs_input` 응답 → 클라이언트가 사용자에게 질문 | 에이전트가 사용자에게 직접 질문 |
+| 상태 | 무상태(클라이언트가 컨텍스트 관리) | 무상태(에이전트가 컨텍스트 관리) |
+| 캐시 | `cache_strategy` 메타데이터 | `no_cache` 플래그 |
 
 ## API
 
@@ -203,28 +203,28 @@ result = extractor.extract("Please review <personal-id>")
 extractor = Extractor(core=my_core, critic=my_critic)
 ```
 
-## Detection Surfaces
+## 탐지 영역
 
-### Pattern-Based (형태적)
-PII, phone numbers, emails, real names — detectable by pattern.
-- Accuracy: 83.3% (Gemma4 E4B)
+### 패턴 기반(형태적)
+PII, 전화번호, 이메일, 실명 — 패턴으로 탐지 가능.
+- 정확도: 83.3% (Gemma4 E4B)
 
-### Context-Based (맥락적)
-Business secrets, research ideas, strategy, budgets, internal URLs — requires contextual understanding.
-- Accuracy: 62.5% (Gemma4 E4B)
+### 맥락 기반(맥락적)
+기업 비밀, 연구 아이디어, 전략, 예산, 내부 URL — 맥락 이해가 필요.
+- 정확도: 62.5% (Gemma4 E4B)
 
-## Prompts
+## 프롬프트
 
-| File | Location | Purpose |
+| 파일 | 위치 | 용도 |
 |------|----------|---------|
-| `extractor.prompt` | `agents/extractor/extract.prompt` | Default extraction (Socratic, 298 lines) |
-| `extractor.short.prompt` | `agents/extractor/extract.short.prompt` | ≤2B models (24 lines) |
-| `extractor.socratic.prompt` | `agents/extractor/extract.socratic.prompt` | Socratic CoT (131 lines) |
-| `extractor.fixed.prompt` | `agents/extractor/extract.fixed.prompt` | Fixed categories (232 lines) |
-| `critic.prompt` | `agents/extractor/critic.prompt` | 2nd-pass critique (92 lines) |
-| `judge.prompt` | `agents/judge/classify.prompt` | Classification/policy (reference only) |
+| `extractor.prompt` | `agents/extractor/extract.prompt` | 기본 추출(소크라테스식, 298줄) |
+| `extractor.short.prompt` | `agents/extractor/extract.short.prompt` | 2B 이하 모델(24줄) |
+| `extractor.socratic.prompt` | `agents/extractor/extract.socratic.prompt` | 소크라테스식 CoT(131줄) |
+| `extractor.fixed.prompt` | `agents/extractor/extract.fixed.prompt` | 고정 카테고리(232줄) |
+| `critic.prompt` | `agents/extractor/critic.prompt` | 2차 비평(92줄) |
+| `judge.prompt` | `agents/judge/classify.prompt` | 분류/정책(참고 전용) |
 
-## Model Selection
+## 모델 선택
 
 ```
 Model size   → Prompt
@@ -234,60 +234,60 @@ Model size   → Prompt
 > 4B         → extract.prompt or extract.socratic.prompt
 ```
 
-## Components
+## 컴포넌트
 
-| Component | File | Description |
+| 컴포넌트 | 파일 | 설명 |
 |-----------|------|-------------|
-| Extractor | `agents/extractor/extractor.py` | Facade (precision, DI support) |
-| ExtractorCore | `agents/extractor/extractor_core.py` | Socratic extraction logic |
-| Critic | `agents/extractor/critic.py` | Post-review (standalone) |
-| Judge | `agents/judge/judge.py` | Rule-based policy decision |
-| Router | `agents/router/router.py` | Pipeline orchestration |
-| MiddleMan | `agents/router/middle_man.py` | User interaction orchestrator |
-| Masker | `agents/masker/masker.py` | span → placeholder substitution |
-| Cache | `agents/router/cache.py` | chat_id-based state management |
+| Extractor | `agents/extractor/extractor.py` | 파사드(precision, DI 지원) |
+| ExtractorCore | `agents/extractor/extractor_core.py` | 소크라테스식 추출 로직 |
+| Critic | `agents/extractor/critic.py` | 사후 비평(독립 실행) |
+| Judge | `agents/judge/judge.py` | 규칙 기반 정책 결정 |
+| Router | `agents/router/router.py` | 파이프라인 오케스트레이션 |
+| MiddleMan | `agents/router/middle_man.py` | 사용자 상호작용 오케스트레이터 |
+| Masker | `agents/masker/masker.py` | span → 플레이스홀더 치환 |
+| Cache | `agents/router/cache.py` | chat_id 기반 상태 관리 |
 
-## Tech Stack
+## 기술 스택
 
-| Layer | Technology |
+| 계층 | 기술 |
 |-------|-----------|
-| Backend | FastAPI + SQLModel |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| Models | SQLite-backed registry with local and external model entries |
-| Frontend | SvelteKit (SSG) |
-| Encryption | Fernet (AES-128-CBC + HMAC-SHA256) |
-| Integration | OpenAI Compatible API + MCP Server |
+| 백엔드 | FastAPI + SQLModel |
+| 데이터베이스 | SQLite(개발) / PostgreSQL(운영) |
+| 모델 | 로컬·외부 모델 항목을 담은 SQLite 기반 레지스트리 |
+| 프론트엔드 | SvelteKit(SSG) |
+| 암호화 | Fernet(AES-128-CBC + HMAC-SHA256) |
+| 통합 | OpenAI 호환 API + MCP 서버 |
 
-## Testing
+## 테스트
 
-Two test suites:
+두 개의 테스트 스위트:
 
-### Unit Tests (mock-based)
+### 단위 테스트(mock 기반)
 
-- **Location**: `tests/core/`, `tests/sanity/`, `server/tests/`
-- **Purpose**: Code structure and logic verification
-- **Method**: `@patch` to mock LLM calls
-- **Targets**: Pipeline paths, validation logic, masking/hydration, policy decisions, error handling
-- **Run**: `python3 -m pytest tests/core/ tests/sanity/ server/tests/ -v`
-- **Time**: ~30 seconds
+- **위치**: `tests/core/`, `tests/sanity/`, `server/tests/`
+- **목적**: 코드 구조와 로직 검증
+- **방식**: `@patch`로 LLM 호출을 mock
+- **대상**: 파이프라인 경로, 검증 로직, 마스킹/하이드레이션, 정책 결정, 오류 처리
+- **실행**: `python3 -m pytest tests/core/ tests/sanity/ server/tests/ -v`
+- **소요 시간**: 약 30초
 
-### Eval Suite (real LLM calls)
+### 평가 스위트(실제 LLM 호출)
 
-- **Location**: `scripts/eval_runner.py`, `scripts/eval_all.py`
-- **Purpose**: LLM output quality verification
-- **Method**: N≥5 trials with real LLM calls
-- **Targets**: Sensitivity detection rate, policy decision accuracy, pattern/context detection, JSON output
-- **Run**: `python3 scripts/eval_runner.py --model gemma4-e4b-openrouter --trials 5`
-- **Time**: Minutes to tens of minutes
+- **위치**: `scripts/eval_runner.py`, `scripts/eval_all.py`
+- **목적**: LLM 출력 품질 검증
+- **방식**: 실제 LLM 호출로 N≥5 시행
+- **대상**: 민감도 탐지율, 정책 결정 정확도, 패턴/맥락 탐지, JSON 출력
+- **실행**: `python3 scripts/eval_runner.py --model gemma4-e4b-openrouter --trials 5`
+- **소요 시간**: 수 분~수십 분
 
-### Why separate?
+### 왜 분리하는가?
 
-Without mocking, a test failure cannot distinguish "code bug" from "LLM variation".
+mock이 없으면 테스트 실패가 "코드 버그"인지 "LLM 변동"인지 구분할 수 없습니다.
 
-## Related Documents
+## 관련 문서
 
-- [Detection](/docs/detection) — Socratic sensitivity detection framework
-- [Query Aggregation](/docs/query-aggregation) — span evidence, query-level decision variables, and fail-closed routing invariants
-- [Security](/docs/security) — threat model and encryption
-- [Masking & Hydration](/docs/masking) — masking and hydration details
-- [API Keys](/docs/api-keys) — key management
+- [탐지](/docs/detection) — 소크라테스식 민감도 탐지 프레임워크
+- [쿼리 집계](/docs/query-aggregation) — 스팬 증거, 쿼리 단위 결정 변수, fail-closed 라우팅 불변 조건
+- [보안](/docs/security) — threat model과 암호화
+- [마스킹과 하이드레이션](/docs/masking) — 마스킹·하이드레이션 상세
+- [API 키](/docs/api-keys) — 키 관리

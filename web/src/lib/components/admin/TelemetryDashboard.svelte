@@ -122,18 +122,20 @@
 	let maxModelCalls = $derived(Math.max(1, ...models.map((model) => model.calls)));
 	let latencyBuckets = $derived.by(() => {
 		const buckets = [
-			{ key: 'under500', label: '< 500 ms', min: 0, max: 500, count: 0 },
-			{ key: 'under1s', label: '0.5–1 s', min: 500, max: 1000, count: 0 },
-			{ key: 'under3s', label: '1–3 s', min: 1000, max: 3000, count: 0 },
-			{ key: 'under10s', label: '3–10 s', min: 3000, max: 10000, count: 0 },
-			{ key: 'over10s', label: '≥ 10 s', min: 10000, max: Number.POSITIVE_INFINITY, count: 0 }
+			{ key: 'under500', label: '500ms 미만', min: 0, max: 500, count: 0 },
+			{ key: 'under1s', label: '0.5–1초', min: 500, max: 1000, count: 0 },
+			{ key: 'under3s', label: '1–3초', min: 1000, max: 3000, count: 0 },
+			{ key: 'under10s', label: '3–10초', min: 3000, max: 10000, count: 0 },
+			{ key: 'over10s', label: '10초 이상', min: 10000, max: Number.POSITIVE_INFINITY, count: 0 }
 		];
+
 		for (const request of terminalRequests) {
 			const bucket = buckets.find(
 				(candidate) => request.latency_ms >= candidate.min && request.latency_ms < candidate.max
 			);
 			if (bucket) bucket.count += 1;
 		}
+
 		return buckets;
 	});
 	let maxLatencyCount = $derived(Math.max(1, ...latencyBuckets.map((bucket) => bucket.count)));

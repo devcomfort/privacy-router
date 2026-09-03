@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Privacy Router Demo</title>
+    <title>Privacy Router 데모</title>
     <script src="/demo-assets/htmx.min.js" defer></script>
     <style>
       :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2d; --raised:#18233a; --line:#2a3854; --ink:#edf3ff; --muted:#9eacc4; --accent:#79a8ff; --success:#5ee0a0; --warning:#f2bd62; --mask:#e2a743; }
@@ -38,26 +38,26 @@
   <body>
     <main>
       <header>
-        <div><p class="kicker">Privacy Router / Local Demo</p><h1>Inspect the route before it runs.</h1><p class="lede">Use the FastAPI surface to inspect sensitivity, requiredness, and the selected local route. The page does not send demo inputs to a cloud model.</p></div>
-        <p class="status">● local development</p>
+        <div><p class="kicker">Privacy Router / 로컬 데모</p><h1>라우트가 실행되기 전에 그 경로를 직접 살펴보세요.</h1><p class="lede">FastAPI 화면을 통해 민감도, 필수 여부, 선택된 로컬 라우트를 직접 확인할 수 있습니다. 이 페이지는 데모 입력을 클라우드 모델로 보내지 않습니다.</p></div>
+        <p class="status">● 로컬 개발</p>
       </header>
-      <p class="notice">This page is intended for local development. The generated client key is shown in the browser and stored only in this browser session.</p>
+      <p class="notice">이 페이지는 로컬 개발 전용입니다. 발급된 클라이언트 키는 브라우저에 표시되며 이 브라우저 세션에만 저장됩니다.</p>
 
       <section class="panel" aria-labelledby="key-heading">
-        <div class="panel-heading"><div><p class="eyebrow">01 / access</p><h2 id="key-heading">Browser API key</h2></div><button class="secondary" type="button" hx-post="/api/demo/key" hx-target="#key-status" hx-swap="innerHTML">Generate local key</button></div>
-        <div id="key-panel"><div class="key-row"><label for="api-key" style="width:100%">API key</label><input id="api-key" type="text" autocomplete="off" spellcheck="false" placeholder="Generate a dev key or paste an existing pr-* key"></div><p class="help">The key is attached to router demo requests by this page. Key issuance is available in dev mode; serve mode requires an existing key.</p></div>
+        <div class="panel-heading"><div><p class="eyebrow">01 / 접근</p><h2 id="key-heading">브라우저 API 키</h2></div><button class="secondary" type="button" hx-post="/api/demo/key" hx-target="#key-status" hx-swap="innerHTML">로컬 키 발급</button></div>
+        <div id="key-panel"><div class="key-row"><label for="api-key" style="width:100%">API 키</label><input id="api-key" type="text" autocomplete="off" spellcheck="false" placeholder="개발용 키를 새로 발급하거나 기존 pr-* 키를 붙여넣으세요"></div><p class="help">이 키는 이 페이지가 라우터 데모 요청에 자동으로 첨부합니다. 키 발급은 dev 모드에서만 가능하며, serve 모드에서는 기존 키가 필요합니다.</p></div>
         <div id="key-status" aria-live="polite"></div>
       </section>
 
       <section class="panel" aria-labelledby="router-heading">
-        <div class="panel-heading"><div><p class="eyebrow">02 / inspect</p><h2 id="router-heading">Router test</h2></div></div>
-        <form hx-post="/api/demo/router" hx-target="#router-result" hx-swap="innerHTML"><label for="router-text">Text to inspect</label><textarea id="router-text" name="text" required>테스트 주소 synthetic@example.invalid를 포함한 안내문을 작성해줘.</textarea><div class="form-row" style="margin-top:12px"><button type="submit">Inspect route</button><span class="help">POST /api/demo/router</span></div></form>
+        <div class="panel-heading"><div><p class="eyebrow">02 / 검사</p><h2 id="router-heading">라우터 테스트</h2></div></div>
+        <form hx-post="/api/demo/router" hx-target="#router-result" hx-swap="innerHTML"><label for="router-text">검사할 텍스트</label><textarea id="router-text" name="text" required>테스트 주소 synthetic@example.invalid를 포함한 안내문을 작성해줘.</textarea><div class="form-row" style="margin-top:12px"><button type="submit">라우트 검사</button><span class="help">POST /api/demo/router</span></div></form>
         <div id="router-result"></div>
       </section>
 
       <section class="panel" aria-labelledby="all-heading">
-        <div class="panel-heading"><div><p class="eyebrow">03 / batch</p><h2 id="all-heading">Run all local demos</h2></div><button class="secondary" type="button" hx-post="/api/demo/run-all" hx-target="#demo-results" hx-swap="innerHTML" aria-controls="demo-results">Run all</button></div>
-        <p class="help">Runs the built-in router scenarios through one reused PrivacyRouter instance. Payloads and progress stay visible while each case runs.</p><div id="demo-results"></div>
+        <div class="panel-heading"><div><p class="eyebrow">03 / 일괄 실행</p><h2 id="all-heading">로컬 데모 전체 실행</h2></div><button class="secondary" type="button" hx-post="/api/demo/run-all" hx-target="#demo-results" hx-swap="innerHTML" aria-controls="demo-results">전체 실행</button></div>
+        <p class="help">내장된 라우터 시나리오를 단일 PrivacyRouter 인스턴스로 순차 실행합니다. 각 case가 진행되는 동안 페이로드와 진행률이 화면에 그대로 표시됩니다.</p><div id="demo-results"></div>
       </section>
     </main>
     <script>

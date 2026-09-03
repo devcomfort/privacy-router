@@ -10,8 +10,8 @@ test('built landing page uses the Privacy Router title and routing favicon', asy
 
 	const titles = indexHtml.match(/<title>[^<]*<\/title>/g) ?? [];
 	assert.deepEqual(titles, [
-		'<title>Privacy Router — Sensitive Data Protection for AI</title>'
+		'<title>Privacy Router — AI 민감정보 보호</title>'
 	]);
-	assert.match(favicon, /<title[^>]*>Privacy Router routing mark<\/title>/);
+	assert.match(favicon, /<title[^>]*>Privacy Router 라우팅 마크<\/title>/);
 	assert.doesNotMatch(favicon, /svelte-logo/i);
 });

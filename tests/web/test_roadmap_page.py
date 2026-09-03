@@ -52,7 +52,7 @@ def parse_page() -> tuple[str, RoadmapParser]:
 def test_roadmap_is_complete_and_bilingual() -> None:
     source, parser = parse_page()
 
-    assert '<html lang="en"' in source
+    assert '<html lang="ko" data-current-locale="ko">' in source
     assert parser.languages >= {"en", "ko"}
     assert "Target design — runtime implementation pending" in source
     assert "목표 설계 — 런타임 구현 대기" in source

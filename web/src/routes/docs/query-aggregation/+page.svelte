@@ -9,48 +9,48 @@
 			label: '1. Extract',
 			ko: '스팬 증거 추출',
 			artifact: 'ExtractionRecord[]',
-			detail: 'Exact spans, dynamic categories, offsets, confidence, is_essential.',
+		detail: '정확한 스팬, 동적 카테고리, 오프셋, 신뢰도, is_essential.',
 		},
 		{
 			label: '2. Aggregate',
 			ko: '쿼리 수준 요약',
 			artifact: 'QueryDecisionSummary',
-			detail: 'Counts, essentiality, maskability, extraction-failure state.',
+		detail: '카운트, 필수성, 마스킹 가능 여부, 추출 실패 상태.',
 		},
 		{
 			label: '3. Judge',
 			ko: '정책 결정',
 			artifact: 'policy_action',
-			detail: 'Rule-based action: allow, selective_mask, or block.',
+		detail: '규칙 기반 작업: allow, selective_mask, 또는 block.',
 		},
 		{
 			label: '4. Route',
 			ko: '실행 경로 선택',
 			artifact: 'RouteResult',
-			detail: 'External raw, external masked, local model, or user confirmation.',
+		detail: '외부 원문, 외부 마스킹, 로컬 모델, 또는 사용자 확인.',
 		},
 	];
 
 	const componentCards = [
-		{
-			title: 'Route decision component',
-			ko: 'route 결정 컴포넌트',
-			owner: 'QueryAggregator + Judge + Router',
-			input: 'ExtractionResult + extraction status',
-			output: 'policy_action + RouteResult',
-			rule: 'Aggregate records for decisions, then choose the safest endpoint.',
-			color: 'border-blue-500/30 bg-blue-500/5',
-		},
-		{
-			title: 'Mask decision component',
-			ko: 'mask 결정 컴포넌트',
-			owner: 'Masker + MaskingContract + Hydrator',
-			input: 'Original text + ExtractionRecord[]',
-			output: 'masked_text + placeholder_map + hydrated response',
-			rule: 'Use span evidence for action; never derive mask spans from the query summary.',
-			color: 'border-emerald-500/30 bg-emerald-500/5',
-		},
-	];
+	{
+		title: 'Route 결정 컴포넌트',
+		ko: 'route 결정 컴포넌트',
+		owner: 'QueryAggregator + Judge + Router',
+		input: 'ExtractionResult + extraction status',
+		output: 'policy_action + RouteResult',
+		rule: '판단을 위해 레코드를 집계한 뒤 가장 안전한 엔드포인트를 선택합니다.',
+		color: 'border-blue-500/30 bg-blue-500/5',
+	},
+	{
+		title: 'Mask 결정 컴포넌트',
+		ko: 'mask 결정 컴포넌트',
+		owner: 'Masker + MaskingContract + Hydrator',
+		input: 'Original text + ExtractionRecord[]',
+		output: 'masked_text + placeholder_map + hydrated response',
+		rule: '작업에는 스팬 증거를 사용하고, 쿼리 요약에서 마스킹 스팬을 절대 도출하지 않습니다.',
+		color: 'border-emerald-500/30 bg-emerald-500/5',
+	},
+];
 
 	const decisionRows: {
 		condition: string;
@@ -61,35 +61,35 @@
 		variant: BadgeVariant;
 	}[] = [
 		{
-			condition: 'Extraction failed or output invalid',
+		condition: '추출 실패 또는 출력 무효',
 			ko: '추출 실패 또는 구조화 실패',
 			action: 'block',
 			endpoint: 'local_api',
-			exposure: 'No external raw prompt',
+		exposure: '외부 원문 프롬프트 없음',
 			variant: 'danger',
 		},
 		{
-			condition: 'No validated sensitive records',
+		condition: '검증된 민감 레코드 없음',
 			ko: '검증된 민감 스팬 없음',
 			action: 'allow',
 			endpoint: 'external_api',
-			exposure: 'Raw prompt allowed',
+		exposure: '원문 프롬프트 허용',
 			variant: 'success',
 		},
 		{
-			condition: 'All sensitive records are non-essential',
+		condition: '모든 민감 레코드가 비필수',
 			ko: '모든 민감 스팬이 비필수',
 			action: 'selective_mask',
 			endpoint: 'external_api',
-			exposure: 'Masked prompt only',
+		exposure: '마스킹된 프롬프트만 전달',
 			variant: 'info',
 		},
 		{
-			condition: 'At least one sensitive record is essential',
+		condition: '최소 하나의 민감 레코드가 필수',
 			ko: '필수 민감 스팬 하나 이상',
 			action: 'block',
 			endpoint: 'local_api',
-			exposure: 'No external prompt',
+		exposure: '외부 프롬프트 없음',
 			variant: 'warning',
 		},
 	];
@@ -97,13 +97,13 @@
 	const schemas = [
 		{
 			name: 'ExtractionRecord',
-			role: 'Span evidence for masking and audit',
+		role: '마스킹과 감사를 위한 스팬 증거',
 			fields: ['span', 'category', 'start', 'end', 'confidence', 'is_essential'],
-			note: 'Span is the exact sensitive entity only. Category is generated dynamically as SCREAMING_SNAKE_CASE.',
+		note: 'Span은 정확히 민감 엔터티만 포함합니다. Category는 SCREAMING_SNAKE_CASE 형식으로 동적 생성됩니다.',
 		},
 		{
 			name: 'QueryDecisionSummary',
-			role: 'Query-level decision artifact',
+		role: '쿼리 단위 결정 아티팩트',
 			fields: [
 				'extraction_failed',
 				'is_sensitive',
@@ -113,61 +113,61 @@
 				'category_counts',
 				'mask_indices',
 			],
-			note: 'This artifact controls routing only. It is never the source of truth for hydration.',
+		note: '이 아티팩트는 라우팅만을 제어합니다. 하이드레이션의 진실 소스로 사용되지 않습니다.',
 		},
 		{
 			name: 'MaskingContract',
-			role: 'Hydration source of truth',
+		role: '하이드레이션 진실 소스',
 			fields: ['placeholder_map', 'count'],
-			note: 'Runtime placeholders use bare deterministic CATEGORY#hash8 format, for example PERSONAL_IDENTIFIER#7f3a9c2d.',
+		note: '런타임 플레이스홀더는 bare deterministic CATEGORY#hash8 형식(예: PERSONAL_IDENTIFIER#7f3a9c2d)을 사용합니다.',
 		},
 	];
 
 	const examples = [
-		{
-			name: 'Safe request',
-			input: 'Draft a general project status update.',
-			summary: 'record_count=0, is_sensitive=false',
-			action: 'allow',
-			output: 'External model receives the original request.',
-		},
-		{
-			name: 'Maskable request',
-			input: 'Write a message using <personal-id> and <phone-number>.',
-			summary: 'record_count=2, has_essential=false, mask_indices=[0,1]',
-			action: 'selective_mask',
-			output: 'External model receives PERSONAL_IDENTIFIER#7f3a9c2d and MOBILE_PHONE_NUMBER#5f69b7a8 placeholders.',
-		},
-		{
-			name: 'Essential sensitive request',
-			input: 'Explain whether <unpublished-research-concept> is novel.',
-			summary: 'record_count=1, has_essential=true',
-			action: 'block',
-			output: 'External model receives nothing; route stays local or asks the user.',
-		},
-	];
+	{
+		name: '안전한 요청',
+		input: '일반적인 프로젝트 현황 업데이트를 작성해 주세요.',
+		summary: 'record_count=0, is_sensitive=false',
+		action: 'allow',
+		output: '외부 모델이 원문 요청을 받습니다.',
+	},
+	{
+		name: '마스킹 가능한 요청',
+		input: '<personal-id>와 <phone-number>를 사용해 메시지를 작성해 주세요.',
+		summary: 'record_count=2, has_essential=false, mask_indices=[0,1]',
+		action: 'selective_mask',
+		output: '외부 모델은 PERSONAL_IDENTIFIER#7f3a9c2d와 MOBILE_PHONE_NUMBER#5f69b7a8 플레이스홀더를 받습니다.',
+	},
+	{
+		name: '필수 민감 요청',
+		input: '<unpublished-research-concept>가 새로운지 설명해 주세요.',
+		summary: 'record_count=1, has_essential=true',
+		action: 'block',
+		output: '외부 모델은 아무것도 받지 않고, 라우팅은 로컬로 유지되거나 사용자에게 확인을 요청합니다.',
+	},
+];
 
 	const downloads = [
 		{
-			name: 'Sanitized ground-truth dataset',
+		name: '비식별 Ground Truth 데이터셋',
 			ko: '비식별 Ground Truth 데이터셋',
 			href: '/docs/ground_truth.json',
 			type: 'JSON',
-			detail: 'Public copy with sensitive values replaced by placeholders. Use this for demos and page downloads.',
+		detail: '민감 값이 플레이스홀더로 대체된 공개 사본입니다. 데모와 페이지 다운로드에 사용하세요.',
 		},
 		{
-			name: 'Sanitized development report',
+		name: '비식별 개발 리포트',
 			ko: '비식별 개발 리포트',
 			href: '/docs/developments/REPORT.md',
 			type: 'Markdown',
-			detail: 'Dataset research notes and experiment framing with identifier-like examples redacted.',
+		detail: '식별자 형태의 예시가 비식별 처리된 데이터셋 조사 노트와 실험 구성을 정리한 문서입니다.',
 		},
 		{
-			name: 'Sanitized audit report',
+		name: '비식별 감사 리포트',
 			ko: '비식별 감사 리포트',
 			href: '/docs/AUDIT_REPORT.md',
 			type: 'Markdown',
-			detail: 'Public audit summary with API-key-like examples redacted.',
+		detail: 'API 키 형태의 예시가 비식별 처리된 공개 감사 요약입니다.',
 		},
 	];
 </script>
@@ -179,18 +179,17 @@
 <div class="space-y-10">
 	<section class="space-y-4">
 		<div class="flex flex-wrap items-center gap-2">
-			<Badge variant="info">Spec visualization</Badge>
-			<Badge variant="default">HTML page</Badge>
-			<Badge variant="success">Sanitized downloads</Badge>
+			<Badge variant="info">스펙 시각화</Badge>
+			<Badge variant="default">HTML 페이지</Badge>
+			<Badge variant="success">비식별 다운로드</Badge>
 		</div>
 		<div>
-			<h1 class="text-3xl font-bold text-white">Query aggregation and masking workflow</h1>
+			<h1 class="text-3xl font-bold text-white">쿼리 통합과 마스킹 워크플로우</h1>
 			<p class="mt-3 max-w-3xl text-slate-400">
-				Privacy Router has two distinct decisions. The route decision decides where a prompt may go.
-				The mask decision decides which original spans become deterministic placeholders before any
-				external model call. 한국어 요약: route는 전송 경로를 고르고, mask는 어떤 스팬을
-				가릴지 결정한다.
-			</p>
+			Privacy Router는 두 가지 별개의 결정을 내립니다. route 결정은 프롬프트가 어디로 전달될 수 있는지 정하고,
+			mask 결정은 외부 모델 호출 전에 어떤 원문 스팬이 결정적 플레이스홀더로 바뀌는지 정합니다. 한국어 요약:
+			route는 전송 경로를 고르고, mask는 어떤 스팬을 가릴지 결정한다.
+		</p>
 		</div>
 	</section>
 
@@ -199,22 +198,22 @@
 			<Card class={`p-6 ${component.color}`}>
 				<div class="space-y-4">
 					<div>
-						<p class="text-xs uppercase tracking-[0.2em] text-slate-400">Component</p>
+						<p class="text-xs uppercase tracking-[0.2em] text-slate-400">컴포넌트</p>
 						<h2 class="mt-1 text-xl font-semibold text-white">{component.title}</h2>
 						<p class="text-sm text-slate-400">{component.ko}</p>
 					</div>
 					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-4 text-sm">
 						<div class="grid gap-3">
 							<div>
-								<span class="text-slate-400">Owner</span>
+								<span class="text-slate-400">소유자</span>
 								<p class="font-mono text-slate-200">{component.owner}</p>
 							</div>
 							<div>
-								<span class="text-slate-400">Input</span>
+								<span class="text-slate-400">입력</span>
 								<p class="font-mono text-slate-200">{component.input}</p>
 							</div>
 							<div>
-								<span class="text-slate-400">Output</span>
+								<span class="text-slate-400">출력</span>
 								<p class="font-mono text-slate-200">{component.output}</p>
 							</div>
 						</div>
@@ -226,7 +225,7 @@
 	</section>
 
 	<section>
-		<h2 class="mb-4 text-2xl font-semibold text-white">End-to-end flow</h2>
+		<h2 class="mb-4 text-2xl font-semibold text-white">엔드투엔드 흐름</h2>
 		<div class="grid gap-3 md:grid-cols-4">
 			{#each flowSteps as step, index}
 				<div class="relative rounded-xl border border-slate-800 bg-slate-900/60 p-4">
@@ -245,19 +244,19 @@
 	<section class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
 		<Card class="overflow-hidden">
 			<div class="border-b border-slate-800 p-5">
-				<h2 class="text-xl font-semibold text-white">Decision matrix</h2>
+				<h2 class="text-xl font-semibold text-white">결정 매트릭스</h2>
 				<p class="mt-1 text-sm text-slate-400">
-					The canonical labels are the only labels new docs and code should emit.
+					공식 레이블은 새 문서와 코드가 사용해야 할 유일한 레이블입니다.
 				</p>
 			</div>
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-sm">
 					<thead class="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
 						<tr>
-							<th class="px-4 py-3">Condition</th>
-							<th class="px-4 py-3">Action</th>
-							<th class="px-4 py-3">Endpoint</th>
-							<th class="px-4 py-3">External exposure</th>
+							<th class="px-4 py-3">조건</th>
+							<th class="px-4 py-3">조치</th>
+							<th class="px-4 py-3">엔드포인트</th>
+							<th class="px-4 py-3">외부 노출</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-slate-800">
@@ -278,12 +277,11 @@
 		</Card>
 
 		<Card class="p-5">
-			<h2 class="text-xl font-semibold text-white">Runtime placeholder contract</h2>
+			<h2 class="text-xl font-semibold text-white">런타임 플레이스홀더 계약</h2>
 			<p class="mt-3 text-sm leading-relaxed text-slate-400">
-				The runtime Masker emits bare deterministic placeholders such as
-				<code class="rounded bg-slate-800 px-1.5 py-0.5 text-purple-300">CATEGORY#hash8</code>.
-				Bracketed placeholders are tolerated only at compatibility boundaries and are not the model
-				for this page.
+				런타임 Masker는 <code class="rounded bg-slate-800 px-1.5 py-0.5 text-purple-300">CATEGORY#hash8</code>
+				같은 bare deterministic 플레이스홀더를 출력합니다. 대괄호 플레이스홀더는 호환 경계에서만
+				허용되며 이 페이지가 따르는 모델이 아닙니다.
 			</p>
 			<div class="mt-4 rounded-lg border border-slate-800 bg-slate-950 p-4 font-mono text-xs text-slate-300">
 				<p>masked_text: "Use PERSONAL_IDENTIFIER#7f3a9c2d in the draft."</p>
@@ -294,7 +292,7 @@
 	</section>
 
 	<section>
-		<h2 class="mb-4 text-2xl font-semibold text-white">Artifacts and schemas</h2>
+		<h2 class="mb-4 text-2xl font-semibold text-white">아티팩트와 스키마</h2>
 		<div class="grid gap-4 lg:grid-cols-3">
 			{#each schemas as schema}
 				<Card class="p-5">
@@ -312,7 +310,7 @@
 	</section>
 
 	<section>
-		<h2 class="mb-4 text-2xl font-semibold text-white">Scenario walk-through</h2>
+		<h2 class="mb-4 text-2xl font-semibold text-white">시나리오 상세 해설</h2>
 		<div class="space-y-3">
 			{#each examples as example}
 				<Card class="p-5">
@@ -323,15 +321,15 @@
 						</div>
 						<div class="grid gap-2 text-sm">
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-400">summary</span>
+								<span class="text-slate-400">요약</span>
 								<p class="font-mono text-slate-200">{example.summary}</p>
 							</div>
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-400">action</span>
+								<span class="text-slate-400">조치</span>
 								<p class="font-mono text-blue-300">{example.action}</p>
 							</div>
 							<div class="rounded-lg bg-slate-950/70 p-3">
-								<span class="text-slate-400">effect</span>
+								<span class="text-slate-400">효과</span>
 								<p class="text-slate-300">{example.output}</p>
 							</div>
 						</div>
@@ -343,22 +341,22 @@
 
 	<section class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
 		<Card class="p-5">
-			<h2 class="text-xl font-semibold text-white">Dataset research summary</h2>
+			<h2 class="text-xl font-semibold text-white">데이터셋 조사 요약</h2>
 			<p class="mt-3 text-sm leading-relaxed text-slate-400">
-				The evaluation data separates span-level evidence from query-level outcomes. It covers personal
-				information, business secrets, research context, explicit confidentiality cues, and safe prompts.
-				The public artifacts below are sanitized copies for demo and review. The private source dataset
-				remains in the repository and should not be copied into public pages.
+				평가 데이터는 스팬 단위 증거와 쿼리 단위 결과를 분리합니다. 개인 정보, 기업 비밀, 연구 맥락,
+				명시적 기밀 표시, 안전 프롬프트를 모두 포함합니다. 아래 공개 아티팩트는 데모와 검토용
+				비식별 사본입니다. 원본 비공개 데이터셋은 저장소에 유지되며 공개 페이지에 복사하면
+				안 됩니다.
 			</p>
 			<ul class="mt-4 space-y-2 text-sm text-slate-300">
-				<li><span class="text-slate-400">Labels:</span> allow, selective_mask, block.</li>
-				<li><span class="text-slate-400">Checks:</span> sensitivity, essentiality, maskability, policy action.</li>
-				<li><span class="text-slate-400">Privacy rule:</span> examples use placeholders, not raw identifiers.</li>
+				<li><span class="text-slate-400">레이블:</span> allow, selective_mask, block.</li>
+				<li><span class="text-slate-400">검사 항목:</span> sensitivity, essentiality, maskability, policy action.</li>
+				<li><span class="text-slate-400">개인정보 보호 규칙:</span> 예시에는 원본 식별자가 아닌 플레이스홀더를 사용합니다.</li>
 			</ul>
 		</Card>
 
 		<Card class="p-5">
-			<h2 class="text-xl font-semibold text-white">Downloads</h2>
+			<h2 class="text-xl font-semibold text-white">다운로드</h2>
 			<div class="mt-4 space-y-3">
 				{#each downloads as download}
 					<a

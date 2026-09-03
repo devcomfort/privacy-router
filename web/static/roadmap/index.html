@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en" data-current-locale="en">
+<html lang="ko" data-current-locale="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Source-grounded Privacy Router query aggregation implementation roadmap.">
+  <meta name="description" content="소스에 근거한 Privacy Router 쿼리 집계 구현 로드맵.">
   <meta name="theme-color" content="#101827">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Privacy Router — Query Aggregation Roadmap">
-  <meta property="og:description" content="A bilingual, source-grounded implementation roadmap for fail-closed Query Aggregation.">
+  <meta property="og:title" content="Privacy Router — 쿼리 집계 로드맵">
+  <meta property="og:description" content="fail-closed Query Aggregation의 한국어·영문 병행 소스 근거 구현 로드맵.">
   <meta property="og:url" content="https://privacy-router-roadmap.surge.sh/">
   <link rel="canonical" href="https://privacy-router-roadmap.surge.sh/">
-  <title>Privacy Router — Query Aggregation Roadmap</title>
+  <title>Privacy Router — 쿼리 집계 로드맵</title>
   <style>
     :root {
       color-scheme: light;
@@ -385,12 +385,12 @@
   <span id="ko" class="locale-target" aria-hidden="true"></span>
   <div class="site">
     <header class="utility-bar">
-      <a class="brand" href="#status-en" aria-label="Privacy Router roadmap home">
+      <a class="brand" href="#status-en" aria-label="Privacy Router 로드맵 홈">
         <span class="brand-mark" aria-hidden="true">PR</span>
-        <span class="brand-copy">Privacy Router · Implementation Brief</span>
+        <span class="brand-copy">Privacy Router · 구현 개요</span>
       </a>
       <div class="controls">
-        <nav class="language-control" aria-label="Language">
+        <nav class="language-control" aria-label="언어">
           <a class="lang-link" href="#en" lang="en" aria-pressed="true">EN</a>
           <a class="lang-link" href="#ko" lang="ko" aria-pressed="false">한국어</a>
         </nav>
@@ -1026,7 +1026,7 @@
         if (hash === 'en' || hash.endsWith('-en')) return 'en';
         return null;
       };
-      const currentLocale = () => localeFromHash() || root.dataset.currentLocale || 'en';
+      const currentLocale = () => localeFromHash() || root.dataset.currentLocale || 'ko';
       const activeArticle = () => document.querySelector(`.briefing-${currentLocale()}`);
 
       function setLocale(locale, persist = true) {
@@ -1097,7 +1097,7 @@
 
       let initialLocale = localeFromHash();
       if (!initialLocale) {
-        try { initialLocale = localStorage.getItem('privacy-router-roadmap-locale') || 'en'; } catch (_) { initialLocale = 'en'; }
+        try { initialLocale = localStorage.getItem('privacy-router-roadmap-locale') || 'ko'; } catch (_) { initialLocale = 'ko'; }
       }
       setLocale(initialLocale, false);
     })();

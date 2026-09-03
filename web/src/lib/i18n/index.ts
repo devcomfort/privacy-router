@@ -8,8 +8,8 @@ const translations: Record<Locale, Record<string, string>> = { en, ko };
 
 export const locale = writable<Locale>(
 	typeof localStorage !== 'undefined'
-		? (localStorage.getItem('locale') as Locale) ?? 'en'
-		: 'en'
+		? (localStorage.getItem('locale') as Locale) ?? 'ko'
+		: 'ko'
 );
 
 locale.subscribe((val) => {
@@ -18,7 +18,7 @@ locale.subscribe((val) => {
 });
 
 export const t = derived(locale, ($locale) => {
-	return (key: string): string => translations[$locale][key] ?? translations['en'][key] ?? key;
+	return (key: string): string => translations[$locale][key] ?? translations['ko'][key] ?? key;
 });
 
 export function toggleLocale() {

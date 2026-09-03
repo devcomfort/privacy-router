@@ -1,38 +1,38 @@
-# Cost Estimate
+# 비용 추정
 
-Provider cost is configuration-dependent. This page describes the currently active default profile; it is a planning aid, not a bill.
+공급자 비용은 설정에 따라 달라집니다. 이 페이지는 현재 활성 상태인 기본 프로파일을 설명합니다. 청구서가 아닌 계획용 참고 자료입니다.
 
-## Current Runtime Roles
+## 현재 런타임 역할
 
-| Runtime role | Current model | Location | Marginal provider cost |
+| 런타임 역할 | 현재 모델 | 위치 | 한계 공급자 비용 |
 |---|---|---|---:|
-| Decision Model | Gemma 4 26B | Local | $0 |
-| Local Model | Gemma 4 26B (same endpoint) | Local | $0 |
-| External Model | OpenRouter Gemma 4 26B | Cloud | $0.06 / 1M tokens |
-| Judge / Router | Deterministic Python | Local | $0 |
+| 결정 모델 | Gemma 4 26B | 로컬 | $0 |
+| 로컬 모델 | Gemma 4 26B (동일 엔드포인트) | 로컬 | $0 |
+| 외부 모델 | OpenRouter Gemma 4 26B | 클라우드 | $0.06 / 1M tokens |
+| 판단 / 라우터 | 결정론적 Python | 로컬 | $0 |
 
-The local rows have no external provider charge. Hardware, electricity, and operations costs are not included.
+로컬 행은 외부 공급자 비용이 발생하지 않습니다. 하드웨어, 전기, 운영 비용은 포함되지 않습니다.
 
-## Planning Calculation
+## 계획 계산
 
-Only requests routed to the External Model incur the configured provider rate:
+외부 모델로 라우팅되는 요청만 구성된 공급자 요금이 발생합니다:
 
 ```text
 external model cost =
   external billable tokens / 1,000,000 × $0.06
 ```
 
-For a planning workload of 50 requests/day, 500 combined billable tokens/request, 30 days, and every request routed externally, the estimated provider charge is **$0.045/month**.
+하루 50개 요청, 요청당 500개의 결합된 청구 가능 토큰, 30일, 모든 요청을 외부로 라우팅하는 계획 워크로드에서 예상 공급자 비용은 **월 $0.045**입니다.
 
-Actual charges depend on the external-route ratio and the prompt plus response tokens reported by the provider. Essential-sensitive requests use the Local Model; non-sensitive and validated masked requests use the External Model.
+실제 비용은 외부 라우팅 비율과 공급자가 보고하는 프롬프트 및 응답 토큰에 따라 달라집니다. 필수 민감 요청은 로컬 모델을 사용하고, 비민감 요청과 검증된 마스킹된 요청은 외부 모델을 사용합니다.
 
-## Cost Controls
+## 비용 통제
 
-1. **Select the external model deliberately:** Change the active profile only after evaluating privacy detection and generation quality.
-2. **Keep local routing available:** Essential-sensitive prompts avoid an external provider call, while local infrastructure costs remain separate.
-3. **Measure actual token usage:** Reconcile provider billing with the external routes before making cost claims.
-4. **Keep prompts concise:** Fewer billed tokens reduce external-model charges when output requirements stay unchanged.
+1. **외부 모델을 신중하게 선택:** 활성 프로파일을 변경하기 전에 프라이버시 탐지와 생성 품질을 평가하세요.
+2. **로컬 라우팅을 유지:** 필수 민감 프롬프트는 외부 공급자 호출을 피하고, 로컬 인프라 비용은 별도로 유지됩니다.
+3. **실제 토큰 사용량을 측정:** 비용을 주장하기 전에 공급자 청구를 외부 라우팅과 비교하세요.
+4. **프롬프트를 간결하게 유지:** 출력 요건이 동일할 때 청구되는 토큰이 줄어들면 외부 모델 비용이 감소합니다.
 
-## Comparison Scope
+## 비교 범위
 
-Subscription products and request-priced APIs have different billing units and included services. This project does not claim a directly comparable monthly price for other providers.
+구독 제품과 요청 단가 API는 청구 단위와 포함 서비스가 다릅니다. 본 프로젝트는 다른 공급자의 직접 비교 가능한 월간 가격을 주장하지 않습니다.
