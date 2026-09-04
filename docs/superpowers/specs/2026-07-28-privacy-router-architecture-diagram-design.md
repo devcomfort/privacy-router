@@ -13,8 +13,8 @@
 
 - 산출물: `privacy-router-architecture.excalidraw` 한 파일
 - 참고 스타일: 루트의 `architecture.excalidraw`
-- 캔버스: 세 개의 큰 Excalidraw `frame`을 세로로 배치하고 평면 사이를 최소 600px 띄운다.
-- Backend API는 시스템 컴포넌트 평면 안에서 독립된 영역과 구분선으로 분리한다.
+- 캔버스: 세 개의 큰 Excalidraw `frame`을 세로로 분리한다. 1번 frame은 시스템/사용자 컴포넌트를 함께 담고, 2번은 데이터 흐름, 3번은 요청 상태 머신을 담는다.
+- 프레임 간 참조를 피하기 위해 User, Agent/Developer, Admin은 1번 frame 내부에 두고 dashed 구획선으로 시스템 내부 서비스와 분리한다.
 - 데이터는 추상 컴포넌트 수준으로 표현한다. 개발 단계의 세부 필드, Pydantic 스키마, DB 열은 넣지 않는다.
 - 색상 없이도 이해되도록 컴포넌트 수와 화살표 수를 줄이고, 직선 또는 직각 화살표를 우선한다.
 - Extractor, Judge, Router, Masker/Hydrator의 책임과 세 실행 경로가 한눈에 드러나야 한다.
@@ -23,7 +23,7 @@
 
 ## 시각 체계
 
-참고 파일의 러프한 프레임·도형·화살표 문법은 유지하되, 색상 의존성을 제거한다. 구분은 위치, frame, 구분선, shape, 라벨, dashed line만으로 표현한다.
+참고 파일의 러프한 도형·화살표 문법은 유지하되, 색상 의존성을 제거한다. 구분은 위치, 세 개 frame, 1번 frame 내부 dashed 구획선, shape, 라벨만으로 표현한다.
 
 - 선: 2px, roughness 1
 - 제목: 28px
@@ -38,26 +38,38 @@
 
 ## 캔버스 구조
 
-### 평면 1 — 시스템 컴포넌트
+### 프레임 1 — 시스템/사용자 컴포넌트
 
-왼쪽에서 오른쪽으로 네 영역을 배치한다. 각 영역은 하나의 큰 frame 안에서 세로 구분선으로만 분리한다.
+프레임 1의 상단 시스템 섹션에는 내부 서비스를 배치하고, 하단 사용자 섹션에는 User, Agent/Developer, Admin 컴포넌트를 배치한다.
 
-1. **Clients**
-   - Agent, SDK, UI가 OpenAI-compatible, MCP, Admin 요청을 보낸다.
-2. **Backend API Plane**
+1. **Backend API Plane**
    - FastAPI entry가 인증, 요청 추적, API shape 유지를 담당한다.
    - Context Adapter가 chat, responses, tools 입력을 검사 가능한 텍스트로 정규화한다.
-3. **Privacy Core**
+   - Admin APIs가 runtime, masking, telemetry, key 관리 요청을 처리한다.
+2. **Privacy Core**
    - PrivacyRouter Pipeline이 `Extractor → Judge → Router`를 실행한다.
    - Transform/Execution 단계가 masking contract, fixed route execution, hydration/output inspection을 담당한다.
-4. **Models · Data**
+3. **Models / Data**
    - Local Models: Decision Model extraction과 Local Model sensitive generation.
    - External Model: raw safe 또는 masked payload만 수신.
-   - Encrypted Storage + Telemetry: context, contract, response, route metrics.
+   - Encrypted Storage + Telemetry: config, context, contract, response, route metrics.
+
+#### 내부 섹션 — 사용자·에이전트·관리자 컴포넌트
+
+같은 1번 frame 안에서 시스템 섹션 아래에 배치하고 dashed 구획선으로 분리한다. 좌우 흐름은 이 섹션 내부의 짧은 연결로 제한하고, 시스템과의 요청·응답·관리·telemetry 흐름은 위아래 화살표로 연결한다.
+
+1. **User Components**
+   - End User/Operator와 User-facing Surface가 prompt와 보호된 응답을 주고받는다.
+2. **Agent / Developer Components**
+   - Hermes, OpenCode, SDK, client app이 Backend API Plane으로 OpenAI-compatible 또는 MCP 요청을 올린다.
+   - Client Config는 base URL, API key, model/profile 설정을 Agent Runtime에 제공한다.
+3. **Admin Components**
+   - Admin Dashboard는 keys, profiles, models를 관리하고 Client Config 설정을 공급한다.
+   - Telemetry View는 Admin APIs를 통해 raw payload 없이 safe traces, usage, masking metadata를 조회한다.
 
 컴포넌트 간 화살표에는 짧은 행동 또는 전달 데이터만 표시한다. 예: `request`, `normalize`, `inspected context`, `extract locally`, `safe or masked`.
 
-### 평면 2 — 데이터 컴포넌트 흐름
+### 프레임 2 — 데이터 컴포넌트 흐름
 
 시스템 박스가 아니라 데이터 산출물 중심으로 왼쪽에서 오른쪽으로 배치한다.
 
@@ -76,7 +88,7 @@
 
 각 데이터 사이 화살표에 생산 컴포넌트와 행동을 함께 표기한다. 예: `Context Builder / collect`, `Extractor / detect exact spans`, `Judge / derive policy`, `Masker / replace with opaque token`, `Hydrator / restore registered token`.
 
-### 평면 3 — 요청 상태 머신
+### 프레임 3 — 요청 상태 머신
 
 상태는 둥근 사각형, 조건 분기는 다이아몬드, 실패는 dashed rectangle과 명시적 실패 텍스트로 표현한다.
 
@@ -108,6 +120,7 @@
 - 장문 설명은 화살표에 넣지 않는다.
 - 교차 화살표보다 중간 합류 노드를 사용한다.
 - 화살표 라벨이 컴포넌트 박스와 겹치면 라벨을 줄이거나 제거한다.
+- 구분선이 아닌 화살표는 `startBinding`/`endBinding`을 사용해 rectangle 또는 diamond 도형에 실제 연결한다.
 
 ## 사실 기준
 
@@ -123,7 +136,7 @@
 
 ## 생성 및 검증
 
-1. Excalidraw MCP `create_view`로 세 평면을 순차 렌더링한다.
+1. Excalidraw MCP `create_view`로 세 개 frame을 렌더링한다. 1번 frame 내부는 dashed 구획선으로 시스템/사용자 섹션을 나눈다.
 2. MCP `export_to_excalidraw`로 공유 URL을 만든다.
 3. MCP에 전달한 drawable elements를 표준 Excalidraw 문서로 저장한다. `cameraUpdate`는 로컬 파일에서 제외한다.
 4. 렌더된 뷰에서 텍스트 잘림, 도형 겹침, 화살표 교차, 구분선 침범을 확인한다.
@@ -131,7 +144,7 @@
 
 ## 완료 기준
 
-- 한 파일 안에 시스템 컴포넌트, 데이터 컴포넌트, 요청 상태 머신 평면이 모두 존재한다.
+- 한 파일 안에 1) 시스템/사용자 컴포넌트 frame, 2) 데이터 컴포넌트 frame, 3) 요청 상태 머신 frame이 분리되어 존재한다.
 - Backend API가 독립 영역과 구분선으로 식별된다.
 - 각 핵심 화살표에서 조건·행동·데이터 중 필요한 정보가 읽힌다.
 - Extractor가 무엇을 추출하고 Judge와 Router가 무엇을 결정하는지 보인다.

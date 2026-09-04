@@ -33,7 +33,7 @@
 
 ## 결론
 
-프로덕션 decision 모델 기준선은 Gemma4 + 공식 MTP assistant + V2 runner(48.4 tok/s, 5.4 s/call, 18/19). 상세 근거: `docs/dev/gemma4-speculation-spike.md`, 서빙 설정 변형 비교: `docs/dev/local-inference-speed-spike.md`.
+프로덕션 decision 모델 기준선은 Gemma4 + 공식 MTP assistant + V2 runner(48.4 tok/s, 5.4 s/call, 18/19)입니다.
 
 ## 참고한 로그·산출물
 
@@ -43,4 +43,3 @@
 | detector-bench 원시 결과 | `docs/experiments/detector-bench/*.results.json` (동일 timestamp) |
 | vLLM 기동 로그 (가중치/KV/CUDA graph 수치) | `hub` 프로세스 로그: `final-gemma4`(baseline), `gemma4-mtp-v2`(MTP V2) — `Checkpoint size`, `Model loading took`, `GPU KV cache size`, `Graph capturing ... took` 라인 |
 | 벤치 하네스 | `scripts/detector_bench.py` (2026-09-04 제거됨 — 산출물만 아카이브) |
-| 상세 서빙 실험 문서 | `docs/dev/gemma4-speculation-spike.md`, `docs/dev/local-inference-speed-spike.md` |

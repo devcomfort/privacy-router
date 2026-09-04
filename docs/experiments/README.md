@@ -11,6 +11,3 @@
 
 [`detector-bench/`](detector-bench/README.md) — `detector_bench`가 생성한 케이스별 리포트(`<timestamp>.md`)와 원시 결과(`<timestamp>.results.json`). 런 인덱스는 하위 README 참조.
 
-## 관련 개발 문서
-
-- `docs/dev/gemma4-speculation-spike.md`, `docs/dev/local-inference-speed-spike.md` — 서빙 설정·speculative decoding 상세 실측
