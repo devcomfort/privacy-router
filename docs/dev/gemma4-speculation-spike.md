@@ -5,18 +5,30 @@
 **런타임**: vLLM 0.25.1, 단일 GPU, `temperature=0`, 256 output-token 속도 측정  
 **품질 벤치**: `scripts/detector_bench.py`, 10개 케이스·기대 스팬 19개
 
+## 요약 (한눈에 보기)
+
+| 옵션 | decode | 지연/call | 정확도 | GPU 총 적재 | KV 캐시 |
+|---|---:|---:|---:|---:|---:|
+| Gemma4 baseline (bf16) | 23.8 tok/s | 9.5 s | 18/19 | 48.54 GiB | 4.00 GiB · 66,397 tok |
+| Gemma4 + MTP V2 | 48.4 tok/s | 5.4 s | 18/19 | 49.33 GiB | 4.00 GiB · 66,397 tok |
+| Qwen3.6-35B-A3B AWQ + MTP | 60.4 tok/s | 4.5 s | 15/19 | 23.80 GiB | 6.18 GiB · 132,035 tok |
+| Gemma4 + DFlash | 실행 실패 | — | — | 기동 실패 | — |
+
+- **GPU 총 적재 = 본 모델 + MTP/drafter.** Gemma4 MTP는 본 모델 48.07 GiB + assistant 0.78 GiB, Qwen3.6은 native MTP라 추가 적재 0, DFlash drafter는 0.80 GiB이나 기동 실패. 상세는 2.3절.
+- Qwen3.6은 `--max-model-len 8192`에서 측정(나머지는 16384)이라 절대 수치는 조건이 다름. 근거: `docs/dev/local-inference-speed-spike.md`.
+
 ## 1. 시도할 수 있는 Gemma 4 가중치
 
-Google은 Gemma 4 26B A4B에 다음 계열을 제공합니다.
+Google은 Gemma 4 26B A4B에 다음 계열을 제공합니다. 아래 대상은 모두 `google/` org 하위이고, DFlash drafter만 `z-lab/` org입니다.
 
-| 계열 | 대상 | 상태 |
+| 계열 | 대상 (HuggingFace) | 상태 |
 |---|---|---|
-| 원본 | `google/gemma-4-26B-A4B-it` | 로컬 캐시 완료, 약 49 GB |
-| 공식 MTP assistant | `google/gemma-4-26B-A4B-it-assistant` | 다운로드 완료 (디스크 0.78 GiB), MTP 실측 |
-| 공식 QAT GGUF | `google/gemma-4-26B-A4B-it-qat-q4_0-gguf` | 공식 배포 확인, 현재 스파이크에서는 미측정 |
-| 공식 QAT safetensors | `google/gemma-4-26B-A4B-it-qat-q4_0-unquantized` | 공식 배포 확인, 현재 스파이크에서는 미측정 |
-| 공식 QAT MTP assistant | `google/gemma-4-26B-A4B-it-qat-q4_0-unquantized-assistant` | 공식 배포 확인. QAT target과 동일 precision으로 짝지어야 함 |
-| DFlash drafter | `z-lab/gemma-4-26B-A4B-it-DFlash` | 다운로드 완료 (디스크 0.80 GiB), vLLM 실행 실 |
+| 원본 | gemma-4-26B-A4B-it | 캐시 완료 (약 49 GB) |
+| 공식 MTP assistant | gemma-4-26B-A4B-it-assistant | 다운로드 완료 (0.78 GiB), MTP 실측 |
+| 공식 QAT GGUF | gemma-4-26B-A4B-it-qat-q4_0-gguf | 공식 배포 확인, 미측정 |
+| 공식 QAT safetensors | gemma-4-26B-A4B-it-qat-q4_0-unquantized | 공식 배포 확인, 미측정 |
+| 공식 QAT MTP assistant | gemma-4-26B-A4B-it-qat-q4_0-unquantized-assistant | 공식 배포 확인, QAT target과 동일 precision 필요 |
+| DFlash drafter | z-lab/gemma-4-26B-A4B-it-DFlash | 다운로드 완료 (0.80 GiB), vLLM 실행 실패 |
 
 Google의 모델 카드는 QAT target과 speculative decoding assistant의 precision을 일치시켜야 한다고 명시합니다. 따라서 QAT target을 사용할 경우 일반 `gemma-4-26B-A4B-it-assistant`가 아니라 QAT assistant를 사용해야 합니다.
 
@@ -51,16 +63,16 @@ MTP V2 설정으로 실행한 10개 케이스의 실제 결과입니다. `합격
 
 | 케이스 | 상태 | 지연 | 탐지 결과 |
 |---|---|---:|---|
-| `ko-rrn` | 합격 | 5.735 s | `RESIDENT_REGISTRATION_NUMBER=901212-1234567` |
-| `ko-contact` | 합격 | 9.821 s | `NAME=김민수`, `PHONE=010-1234-5678`, `EMAIL=minsu.kim@example.invalid` |
-| `ko-card` | 합격 | 3.870 s | `CARD_NUMBER=1234-5678-9012-3456` |
-| `ko-business` | 합격 | 4.098 s | `BUSINESS_STRATEGY=삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다.` |
-| `ko-research` | **실패 — 누락** | 6.115 s | `NAME=김동현`, `RESEARCH_CONCEPT=contextual distillation`; 누락: `광주과학기술원` |
-| `en-pii` | 합격 | 11.314 s | `EMAIL`, `PHONE`, `NAME`, `ADDRESS` 모두 적중 |
-| `en-secret` | 합격 | 6.258 s | `BUSINESS_STRATEGY=Acme Corp`, `FINANCIAL_TERM=$4.2M` |
-| `en-safe` | 합격 | 0.406 s | 탐지 결과 없음 |
-| `ko-safe` | 합격 | 0.404 s | 탐지 결과 없음 |
-| `ko-address` | 합격 | 6.237 s | `NAME=홍길동`, `ADDRESS=서울특별시 강남구 테헤란로 123` |
+| ko-rrn | 합격 | 5.735 s | `RESIDENT_REGISTRATION_NUMBER` = 901212-1234567 |
+| ko-contact | 합격 | 9.821 s | `NAME` = 김민수, `PHONE` = 010-1234-5678, `EMAIL` = minsu.kim@example.invalid |
+| ko-card | 합격 | 3.870 s | `CARD_NUMBER` = 1234-5678-9012-3456 |
+| ko-business | 합격 | 4.098 s | `BUSINESS_STRATEGY` = 삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다. |
+| ko-research | **실패 — 누락** | 6.115 s | `NAME` = 김동현, `RESEARCH_CONCEPT` = contextual distillation; 누락: 광주과학기술원 |
+| en-pii | 합격 | 11.314 s | `EMAIL`, `PHONE`, `NAME`, `ADDRESS` 모두 적중 |
+| en-secret | 합격 | 6.258 s | `BUSINESS_STRATEGY` = Acme Corp, `FINANCIAL_TERM` = $4.2M |
+| en-safe | 합격 | 0.406 s | 탐지 결과 없음 |
+| ko-safe | 합격 | 0.404 s | 탐지 결과 없음 |
+| ko-address | 합격 | 6.237 s | `NAME` = 홍길동, `ADDRESS` = 서울특별시 강남구 테헤란로 123 |
 
 **실행 집계**: 10개 중 9개 합격, 1개 실패. 기대 스팬 기준 `18/19`; 실패는 `ko-research`의 기관명 `광주과학기술원` 누락 한 건입니다. 안전 쿼리 2개에서는 오탐이 없었습니다.
 
@@ -83,8 +95,6 @@ MTP V2 설정으로 실행한 10개 케이스의 실제 결과입니다. `합격
 | 평균 | — | 5.426 s | 9.534 s | 43% | 양쪽 모두 18/19 |
 
 MTP V2는 baseline 대비 **평균 43% 빠른 추출 지연**을 보였고, 정확도는 같은 18/19(10개 중 9개 합격, 안전 쿼리 2개에서 오탐 없음)를 유지했습니다. `ko-research` 실패는 MTP 도입과 무관하게 양쪽 모두 동일하게 발생하는 사전 한계입니다. `en-secret` 한 건은 스팬 적중은 같고 카테고리 라벨(`FINANCIAL_TERM` vs `FINANCIAL_DATA`)만 다르므로 합격으로 봅니다.
-
-
 
 ### 2.2 Gemma 4 + DFlash
 
