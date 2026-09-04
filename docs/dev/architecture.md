@@ -228,7 +228,7 @@ HTMX asset, `/api/demo/*` endpoint, dev demo session cookie 인증은 모두
 제거되었습니다. 브라우저 UI 없이 다음 경로로 검사합니다.
 
 - API: `POST /v1/chat/completions`, `POST /v1/responses` (Bearer `pr-*` key)
-- 탐지기 비교: `detector_bench` 리포트는 `docs/experiments/detector-bench/`에 보존 (원본은 gitignored인 `var/detector-bench/<timestamp>/`)
+- 탐지기 비교: `detector_bench` 리포트는 gitignored인 `var/detector-bench/`에서 이동해 `docs/experiments/detector-bench/`에 보존
 
 
 ## Middle-Man 아키텍처

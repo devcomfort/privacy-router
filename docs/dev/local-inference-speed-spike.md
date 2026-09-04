@@ -61,4 +61,4 @@ uv run vllm serve QuantTrio/Qwen3.6-35B-A3B-AWQ \
 # 탐지 벤치 실행: detector_bench 도구는 아카이브됨 — 결과 리포트는 docs/experiments/detector-bench/ 참조
 ```
 
-실험 리포트·원시 결과: `docs/experiments/detector-bench/` (원본 gitignored `var/detector-bench/`)
+실험 리포트·원시 결과: `docs/experiments/detector-bench/` (gitignored `var/detector-bench/`에서 이동)
