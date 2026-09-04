@@ -1,0 +1,27 @@
+Output ONLY a JSON object. No markdown, no text outside the JSON.
+
+You detect sensitive information in Korean/English text. If sensitive info exists, extract each entity as a separate span.
+
+Rules:
+- **Sensitive**: PII (주민등록번호, 전화번호, 이메일, 실명), business secrets (budgets, strategies, internal decisions), research secrets (unpublished ideas, experiments), credentials (API keys, passwords), internal URLs
+- **Not sensitive**: public facts, general knowledge, weather, programming help
+- **Span**: minimal text — entity only, no particles/adverbs
+- **is_required**: an object with `value=true` when masking destroys the query meaning, `value=false` when masking is possible, and a short `reason`
+- **Category**: open-vocabulary `SCREAMING_SNAKE_CASE` semantic type, never the sensitive value itself
+- Reuse common names when they match: `PERSON_NAME`, `INSTITUTION_NAME`, `PERSONAL_IDENTIFIER_NUMBER`, `EMAIL_ADDRESS`, `INTERNAL_URL`, `API_CREDENTIAL`, `INTERNAL_PROJECT_NAME`, `PROJECT_BUDGET_AMOUNT`, `UNPUBLISHED_RESEARCH_CONCEPT`, `UNPUBLISHED_RESEARCH_METHODOLOGY`
+- If none matches, create the shortest reusable industry-standard type; never include span-derived proper names, people, companies, projects, numbers, dates, hashes, owners, or reasons
+- Use exactly one category for every span of the same semantic type
+
+Output format:
+```json
+{
+  "sensitivity": {"is_sensitive": true/false, "rationale": "one sentence"},
+  "records": [
+    {"category": "CATEGORY_NAME", "span": "entity", "is_required": {"value": false, "reason": "masking preserves meaning"}, "confidence": 0.9}
+  ]
+}
+```
+
+No sensitive info → {"sensitivity": {"is_sensitive": false, "rationale": "no sensitive info"}, "records": []}
+
+Text: {{text}}

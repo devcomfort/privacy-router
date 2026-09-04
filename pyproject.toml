@@ -1,13 +1,11 @@
 [project]
 name = "privacy-router"
 version = "0.1.0"
-description = "Privacy Router — AI agent privacy proxy layer"
+description = "Privacy Router — Core AI agent privacy layer"
 authors = [
     { name = "devcomfort", email = "im@devcomfort.me" }
 ]
 dependencies = [
-    "fastapi>=0.136.1",
-    "uvicorn[standard]>=0.47.0",
     "litellm>=1.85.0",
     "openai>=2.37.0",
     "httpx>=0.28.1",
@@ -17,10 +15,8 @@ dependencies = [
     "platformdirs>=4.0",
     "mcp>=1.0",
     "dotpromptz>=0.1.5",
-    "sqlmodel>=0.0.38",
-    "asyncpg>=0.31.0",
-    "psycopg2-binary>=2.9.9",
     "cryptography>=44.0.0",
+    "pydantic>=2.0.0",
 ]
 requires-python = ">= 3.13"
 
@@ -32,24 +28,10 @@ local-inference = [
     "vllm>=0.23.0",
     "ninja>=1.13.0",
 ]
-experiments = [
-    "optuna>=4.9.0",
-    "streamlit>=1.57.0",
-]
-reports = [
-    "python-pptx>=1.0.2",
-    "opencv-python-headless>=4.13.0.92",
-    "pymupdf>=1.27.2.3",
-]
-
 privacy-detectors = [
     "presidio-analyzer>=2.2.358",
     "opf @ git+https://github.com/openai/privacy-filter.git@f7f00ca7fb869683eb732c010299d901457f19c3",
 ]
-
-
-[project.scripts]
-privacy-router = "server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -69,22 +51,17 @@ dev-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["agents", "server", "db", "config", "telemetry", "web"]
+packages = ["src/agents", "src/masker", "src/shared", "src/contracts", "src/config"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "agents/tests", "agents/extractor/tests", "agents/masker/tests", "agents/judge/tests", "agents/router/tests", "server/tests"]
+testpaths = ["src/agents/tests", "src/agents/extractor/tests", "src/masker/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 filterwarnings = [
-    '''ignore:Field name "schema" in "Prompt(Input|Output)Config" shadows an attribute in parent "BaseModel":UserWarning:dotpromptz\.typing''',
+    '''ignore:Field name "schema" in "Prompt(Input|OutputConfig)" shadows an attribute in parent "BaseModel":UserWarning:dotpromptz\.typing''',
     '''ignore:There is no current event loop:DeprecationWarning:litellm\._service_logger''',
-]
-markers = [
-    "core: unit tests (no external dependencies)",
-    "scenario: integration tests (requires running server)",
-    "slow: tests that take >10s",
 ]
 
 [tool.ruff]
@@ -96,10 +73,4 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["agents", "server", "db", "config", "telemetry"]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.per-file-ignores]
-"experiments/**/*.py" = ["D"]  # Skip docstring lint for experiment scripts
+known-first-party = ["agents", "config"]
