@@ -179,7 +179,7 @@ Privacy Router의 공식 웹 문서를 설계합니다. SvelteKit SSG + Tailwind
 | `/documentation/architecture` | `docs/dev/architecture.md` | 마크다운 렌더링 |
 | `/documentation/security` | `docs/user/security.md` | 마크다운 렌더링 |
 | `/documentation/cost` | `docs/user/cost.md` | 마크다운 렌더링 |
-| `/documentation/experiments` | `docs/experiments/legacy-eval/eval-report.md` | 마크다운 렌더링 |
+| `/documentation/experiments` | `docs/experiments/README.md` | 마크다운 렌더링 |
 
 ## 마크다운 렌더링
 

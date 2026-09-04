@@ -31,3 +31,13 @@
 ## 결론
 
 Gemma4 대비 **메모리 약 절반(23.8 vs 49.3 GiB)**, **KV 캐시 2배(132k vs 66k tok)**, **decode 소폭 우위(60.4 vs 48.4 tok/s)**. 다만 탐지 정확도가 낮다(기준 MTP2 15/19 vs Gemma4 18/19) — 안전 쿼리 오탐과 기관명·맥락 스팬 누락이 많아 decision 모델 교체는 추가 검증이 필요합니다. 상세 근거: `docs/dev/local-inference-speed-spike.md`.
+
+## 참고한 로그·산출물
+
+| 항목 | 경로 |
+|---|---|
+| detector-bench 리포트 (케이스별 지연·탐지) | `docs/experiments/detector-bench/20260903-*.md` — 기준 런: `-184905`(baseline), `-192315`(MTP2), `-193032`(MTP3); 무효 런 `-184756`, 설정 미기록 `-203221` |
+| detector-bench 원시 결과 | `docs/experiments/detector-bench/*.results.json` (동일 timestamp) |
+| vLLM 기동 로그 (가중치/KV 수치) | `hub` 프로세스 로그: `final-qwen36` — `Checkpoint size`, `Model loading took`, `GPU KV cache size`, `Graph capturing ... took` 라인 |
+| 벤치 하네스 | `scripts/detector_bench.py` (2026-09-04 제거됨 — 산출물만 아카이브) |
+| 상세 서빙 실험 문서 | `docs/dev/local-inference-speed-spike.md` |

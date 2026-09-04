@@ -53,7 +53,7 @@ agents/extractor/
 └── critic.prompt          ← 2단계 비판 프롬프트
 
 var/evaluations/            ← Raw evaluation payloads and reports (Git-ignored)
-docs/experiments/legacy-eval/results/   ← Sanitized aggregate summaries for public documentation
+var/experiments/   ← Sanitized aggregate summaries (local, gitignored)
 ```
 
 ## 평가 지표

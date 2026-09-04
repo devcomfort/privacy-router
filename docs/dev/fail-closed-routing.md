@@ -107,7 +107,7 @@ Streaming uses the same selected route and prepared payload.
 ```bash
 python eval/scripts/placeholder_repair_eval.py \
   --trials 5 \
-  --output docs/experiments/legacy-eval/results/placeholder-repair-gemma4-26b-20260712.json
+  --output var/experiments/placeholder-repair-gemma4-26b-20260712.json
 ```
 
 The 2026-07-12 Gemma 4 26B run produced 50/50 exact decisions: 100% registered-placeholder mapping accuracy and 100% ambiguous-`null` accuracy. Mean, median, and nearest-rank p95 latency were 1.71 s, 0.63 s, and 8.08 s respectively. The checked-in result contains masked placeholders only.
