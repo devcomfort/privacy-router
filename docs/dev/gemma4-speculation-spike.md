@@ -3,7 +3,7 @@
 **실험일**: 2026-09-04  
 **호스트**: NVIDIA GB10, 121.6 GiB unified memory, aarch64  
 **런타임**: vLLM 0.25.1, 단일 GPU, `temperature=0`, 256 output-token 속도 측정  
-**품질 벤치**: `scripts/detector_bench.py`, 10개 케이스·기대 스팬 19개
+**품질 벤치**: 10개 케이스·기대 스팬 19개 (리포트 아카이브: `docs/experiments/detector-bench/`)
 
 ## 요약 (한눈에 보기)
 
@@ -78,7 +78,7 @@ MTP V2 설정으로 실행한 10개 케이스의 실제 결과입니다. `합격
 
 ### 2.1.2 MTP V2 vs baseline 케이스별 비교
 
-동일 입력 10개 케이스를 MTP V2(`var/detector-bench/20260904-000126/report.md`)와 baseline(`var/detector-bench/20260903-202620/report.md`)으로 각각 실행한 결과입니다.
+동일 입력 10개 케이스를 MTP V2(`docs/experiments/detector-bench/20260904-000126.md`)와 baseline(`docs/experiments/detector-bench/20260903-202620.md`)으로 각각 실행한 결과입니다.
 
 | 케이스 | 평가 | MTP V2 지연 | baseline 지연 | 단축 | 비고 |
 |---|---|---:|---:|---:|---|
@@ -148,7 +148,7 @@ MTP V2는 baseline 대비 **평균 43% 빠른 추출 지연**을 보였고, 정�
 
 ## 5. 실험 산출물
 
-- Gemma4 baseline: `var/detector-bench/20260903-202620/report.md`
-- Gemma4 MTP V2: `var/detector-bench/20260904-000126/report.md`
+- Gemma4 baseline: `docs/experiments/detector-bench/20260903-202620.md`
+- Gemma4 MTP V2: `docs/experiments/detector-bench/20260904-000126.md`
 - 이전 Gemma4/Qwen 로컬 설정 비교: `docs/dev/local-inference-speed-spike.md`
 - 메모리 수치 출처: 각 vLLM 기동 로그의 `Checkpoint size`, `Model loading took`, `GPU KV cache size`, `Graph capturing ... took` 라인 (`hub` 프로세스 `gemma4-mtp-v2`, `final-gemma4`, `final-qwen36`).

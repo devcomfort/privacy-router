@@ -1,0 +1,495 @@
+{
+  "detectors": [
+    "llm-qwen36"
+  ],
+  "labels": {
+    "llm-qwen36": "llm-qwen36 (QuantTrio/Qwen3.6-35B-A3B-AWQ, local vLLM)"
+  },
+  "rows": [
+    {
+      "case": {
+        "id": "ko-rrn",
+        "name": "주민등록번호",
+        "lang": "ko",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected": [
+          "901212-1234567"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 5320.1,
+            "error": null,
+            "entities": [
+              {
+                "tag": "RESIDENT_REGISTRATION_NUMBER",
+                "span": "901212-1234567",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "EMAIL_KEYWORD",
+                "span": "이메일",
+                "kind": "contextual",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [
+              "901212-1234567"
+            ],
+            "misses": [],
+            "unexpected": [
+              "이메일"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-contact",
+        "name": "이름+전화+이메일",
+        "lang": "ko",
+        "text": "김민수(010-1234-5678, minsu.kim@example.invalid)에게 회의 일정을 보내줘.",
+        "expected": [
+          "김민수",
+          "010-1234-5678",
+          "minsu.kim@example.invalid"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 5149.1,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NAME",
+                "span": "김민수",
+                "kind": "structural",
+                "confidence": 0.98
+              },
+              {
+                "tag": "PHONE",
+                "span": "010-1234-5678",
+                "kind": "structural",
+                "confidence": 0.99
+              },
+              {
+                "tag": "EMAIL",
+                "span": "minsu.kim@example.invalid",
+                "kind": "structural",
+                "confidence": 0.95
+              },
+              {
+                "tag": "MEETING_SCHEDULE",
+                "span": "회의 일정",
+                "kind": "contextual",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "misses": [],
+            "unexpected": [
+              "회의 일정"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-card",
+        "name": "카드번호",
+        "lang": "ko",
+        "text": "카드번호 1234-5678-9012-3456으로 결제해줘.",
+        "expected": [
+          "1234-5678-9012-3456"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3006.0,
+            "error": null,
+            "entities": [
+              {
+                "tag": "CARD_NUMBER",
+                "span": "1234-5678-9012-3456",
+                "kind": "structural",
+                "confidence": 0.98
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-business",
+        "name": "사업비밀(맥락)",
+        "lang": "ko",
+        "text": "삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다.",
+        "expected": [
+          "삼성전자 차세대 AP 개발",
+          "TSMC 3nm 공정을 채택하기로",
+          "내부적으로 결정"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 6124.1,
+            "error": null,
+            "entities": [
+              {
+                "tag": "RESEARCH_CONCEPT",
+                "span": "삼성전자 차세대 AP 개발 건",
+                "kind": "contextual",
+                "confidence": 0.9
+              },
+              {
+                "tag": "TECHNICAL_SPEC",
+                "span": "TSMC 3nm 공정",
+                "kind": "structural",
+                "confidence": 0.95
+              },
+              {
+                "tag": "INTERNAL_DECISION",
+                "span": "내부적으로 결정",
+                "kind": "contextual",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "misses": [],
+            "unexpected": [
+              "TSMC 3nm 공정",
+              "삼성전자 차세대 AP 개발 건"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-research",
+        "name": "연구비밀(맥락)",
+        "lang": "ko",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected": [
+          "김동현",
+          "광주과학기술원",
+          "contextual distillation"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 4568.9,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NAME",
+                "span": "김동현",
+                "kind": "structural",
+                "confidence": 0.99
+              },
+              {
+                "tag": "RESEARCH_CONCEPT",
+                "span": "contextual distillation",
+                "kind": "contextual",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [
+              "김동현",
+              "contextual distillation"
+            ],
+            "misses": [
+              "광주과학기술원"
+            ],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-pii",
+        "name": "EN email/phone/address",
+        "lang": "en",
+        "text": "Email john.doe@example.com, phone +1-415-555-2671, and visit John Doe at 123 Main St, Springfield.",
+        "expected": [
+          "john.doe@example.com",
+          "+1-415-555-2671",
+          "John Doe",
+          "123 Main St, Springfield"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 7841.7,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "john.doe@example.com",
+                "kind": "structural",
+                "confidence": 0.99
+              },
+              {
+                "tag": "PHONE",
+                "span": "+1-415-555-2671",
+                "kind": "structural",
+                "confidence": 0.99
+              },
+              {
+                "tag": "PERSON",
+                "span": "John Doe",
+                "kind": "structural",
+                "confidence": 0.98
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "123 Main St, Springfield",
+                "kind": "structural",
+                "confidence": 0.97
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-secret",
+        "name": "EN business secret (contextual)",
+        "lang": "en",
+        "text": "Our Q3 acquisition target is Acme Corp; keep the LOI price of $4.2M confidential from the board deck.",
+        "expected": [
+          "Acme Corp",
+          "$4.2M"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 4246.9,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "Acme Corp",
+                "kind": "structural",
+                "confidence": 0.95
+              },
+              {
+                "tag": "API_KEY",
+                "span": "LOI price of $4.2M",
+                "kind": "contextual",
+                "confidence": 0.92
+              },
+              {
+                "tag": "RESEARCH_CONCEPT",
+                "span": "board deck",
+                "kind": "contextual",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "misses": [],
+            "unexpected": [
+              "LOI price of $4.2M",
+              "board deck"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-safe",
+        "name": "EN safe query",
+        "lang": "en",
+        "text": "Summarize the plot of a classic novel about a detective in London.",
+        "expected": []
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3746.0,
+            "error": null,
+            "entities": [
+              {
+                "tag": "RESEARCH_CONCEPT",
+                "span": "classic novel about a detective in London",
+                "kind": "contextual",
+                "confidence": 0.9
+              }
+            ]
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": [
+              "classic novel about a detective in London"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-safe",
+        "name": "안전 쿼리",
+        "lang": "ko",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected": []
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 12515.5,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-address",
+        "name": "이름+주소",
+        "lang": "ko",
+        "text": "홍길동에게 서울특별시 강남구 테헤란로 123으로 우편을 보내줘.",
+        "expected": [
+          "홍길동",
+          "서울특별시 강남구 테헤란로 123"
+        ]
+      },
+      "per_detector": {
+        "llm-qwen36": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3258.5,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NAME",
+                "span": "홍길동",
+                "kind": "structural",
+                "confidence": 0.95
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "서울특별시 강남구 테헤란로 123",
+                "kind": "structural",
+                "confidence": 0.95
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    }
+  ]
+}

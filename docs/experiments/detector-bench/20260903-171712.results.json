@@ -1,0 +1,1505 @@
+{
+  "detectors": [
+    "presidio",
+    "lfm",
+    "opf",
+    "llm-ollama",
+    "llm-openrouter"
+  ],
+  "rows": [
+    {
+      "case": {
+        "id": "ko-rrn",
+        "name": "주민등록번호",
+        "lang": "ko",
+        "text": "주민등록번호 901212-1234567을 포함한 이메일을 작성해줘.",
+        "expected": [
+          "901212-1234567"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3981.1,
+            "error": null,
+            "entities": [
+              {
+                "tag": "DATE",
+                "span": "901212-1234567을",
+                "kind": "structural",
+                "confidence": 0.85
+              },
+              {
+                "tag": "DRIVERS_LICENSE",
+                "span": "901212",
+                "kind": "structural",
+                "confidence": 0.01
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [
+              "901212-1234567"
+            ],
+            "misses": [],
+            "unexpected": [
+              "901212",
+              "901212-1234567을"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 8581.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NATIONAL_ID",
+                "span": "901212-1234567",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [
+              "901212-1234567"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 1401.2,
+            "error": null,
+            "entities": [
+              {
+                "tag": "ACCOUNT_NUMBER",
+                "span": "901212-1234567",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [
+              "901212-1234567"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 333.2,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [],
+            "misses": [
+              "901212-1234567"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 6507.9,
+            "error": null,
+            "entities": [
+              {
+                "tag": "RESIDENT_ID",
+                "span": "901212-1234567",
+                "kind": "structural",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "901212-1234567"
+            ],
+            "hits": [
+              "901212-1234567"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-contact",
+        "name": "이름+전화+이메일",
+        "lang": "ko",
+        "text": "김민수(010-1234-5678, minsu.kim@example.invalid)에게 회의 일정을 보내줘.",
+        "expected": [
+          "김민수",
+          "010-1234-5678",
+          "minsu.kim@example.invalid"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 45.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "URL",
+                "span": "minsu.ki",
+                "kind": "structural",
+                "confidence": 0.5
+              },
+              {
+                "tag": "URL",
+                "span": "example.in",
+                "kind": "structural",
+                "confidence": 0.5
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [
+              "minsu.kim@example.invalid"
+            ],
+            "misses": [
+              "김민수",
+              "010-1234-5678"
+            ],
+            "unexpected": [
+              "example.in",
+              "minsu.ki"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 23.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "김민수",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "PHONE",
+                "span": "010-1234-5678",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "EMAIL",
+                "span": "minsu.kim@example.invalid",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 20.3,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "김민수",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "PHONE",
+                "span": "010-1234-5678",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "EMAIL",
+                "span": "minsu.kim@example.invalid",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 82.5,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [],
+            "misses": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 8590.6,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NAME",
+                "span": "김민수",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "PHONE",
+                "span": "010-1234-5678",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "EMAIL",
+                "span": "minsu.kim@example.invalid",
+                "kind": "structural",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "hits": [
+              "김민수",
+              "010-1234-5678",
+              "minsu.kim@example.invalid"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-card",
+        "name": "카드번호",
+        "lang": "ko",
+        "text": "카드번호 1234-5678-9012-3456으로 결제해줘.",
+        "expected": [
+          "1234-5678-9012-3456"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 8.5,
+            "error": null,
+            "entities": [
+              {
+                "tag": "DATE",
+                "span": "1234-5678-9012",
+                "kind": "structural",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": [
+              "1234-5678-9012"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 26.2,
+            "error": null,
+            "entities": [
+              {
+                "tag": "BANK_ACCOUNT",
+                "span": "1234",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": [
+              "1234"
+            ]
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 32.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "카드번호",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "ACCOUNT_NUMBER",
+                "span": "1234-5678-9012-3456",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": [
+              "카드번호"
+            ]
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 953.3,
+            "error": null,
+            "entities": [
+              {
+                "tag": "CARDNUMBER",
+                "span": "1234-5678-9012-3456",
+                "kind": "structural",
+                "confidence": 0.95
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 4752.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "CARD_NUMBER",
+                "span": "1234-5678-9012-3456",
+                "kind": "structural",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "1234-5678-9012-3456"
+            ],
+            "hits": [
+              "1234-5678-9012-3456"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-business",
+        "name": "사업비밀(맥락)",
+        "lang": "ko",
+        "text": "삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다.",
+        "expected": [
+          "삼성전자 차세대 AP 개발",
+          "TSMC 3nm 공정을 채택하기로",
+          "내부적으로 결정"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 8.7,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [],
+            "misses": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "unexpected": []
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 25.1,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [],
+            "misses": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 39.6,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [],
+            "misses": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 84.4,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [],
+            "misses": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3091.2,
+            "error": null,
+            "entities": [
+              {
+                "tag": "BUSINESS_STRATEGY",
+                "span": "TSMC 3nm 공정을 채택하기로 내부적으로 결정했다",
+                "kind": "contextual",
+                "confidence": 0.9
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "삼성전자 차세대 AP 개발",
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "hits": [
+              "TSMC 3nm 공정을 채택하기로",
+              "내부적으로 결정"
+            ],
+            "misses": [
+              "삼성전자 차세대 AP 개발"
+            ],
+            "unexpected": [
+              "TSMC 3nm 공정을 채택하기로 내부적으로 결정했다"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-research",
+        "name": "연구비밀(맥락)",
+        "lang": "ko",
+        "text": "광주과학기술원에 재학 중인 김동현인데, contextual distillation이라는 연구를 하려고 해.",
+        "expected": [
+          "김동현",
+          "광주과학기술원",
+          "contextual distillation"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 4.6,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [],
+            "misses": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "unexpected": []
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 15.5,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "김동현",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [
+              "김동현"
+            ],
+            "misses": [
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 19.9,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [],
+            "misses": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 81.7,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [],
+            "misses": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 6936.2,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "김동현",
+                "kind": "structural",
+                "confidence": 0.95
+              },
+              {
+                "tag": "RESEARCH_CONCEPT",
+                "span": "contextual distillation",
+                "kind": "contextual",
+                "confidence": 0.8
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "김동현",
+              "광주과학기술원",
+              "contextual distillation"
+            ],
+            "hits": [
+              "김동현",
+              "contextual distillation"
+            ],
+            "misses": [
+              "광주과학기술원"
+            ],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-pii",
+        "name": "EN email/phone/address",
+        "lang": "en",
+        "text": "Email john.doe@example.com, phone +1-415-555-2671, and visit John Doe at 123 Main St, Springfield.",
+        "expected": [
+          "john.doe@example.com",
+          "+1-415-555-2671",
+          "John Doe",
+          "123 Main St, Springfield"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 6.9,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "john.doe@example.com",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "UK_NHS",
+                "span": "415-555-2671",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "PERSON",
+                "span": "Email",
+                "kind": "structural",
+                "confidence": 0.85
+              },
+              {
+                "tag": "PERSON",
+                "span": "John Doe",
+                "kind": "structural",
+                "confidence": 0.85
+              },
+              {
+                "tag": "LOCATION",
+                "span": "Main St",
+                "kind": "structural",
+                "confidence": 0.85
+              },
+              {
+                "tag": "LOCATION",
+                "span": "Springfield",
+                "kind": "structural",
+                "confidence": 0.85
+              },
+              {
+                "tag": "PHONE",
+                "span": "+1-415-555-2671",
+                "kind": "structural",
+                "confidence": 0.75
+              },
+              {
+                "tag": "URL",
+                "span": "john.do",
+                "kind": "structural",
+                "confidence": 0.5
+              },
+              {
+                "tag": "URL",
+                "span": "example.com",
+                "kind": "structural",
+                "confidence": 0.5
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "misses": [],
+            "unexpected": [
+              "415-555-2671",
+              "Email",
+              "Main St",
+              "Springfield",
+              "example.com",
+              "john.do"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 15.4,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "john.doe@example.com",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "PHONE",
+                "span": "+1-415-555-2671",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [
+              "john.doe@example.com",
+              "+1-415-555-2671"
+            ],
+            "misses": [
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 21.2,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "john.doe@example.com",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "PHONE",
+                "span": "+1-415-555-2671",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "PERSON",
+                "span": "John Doe",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "123 Main St, Springfield.",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "misses": [],
+            "unexpected": [
+              "123 Main St, Springfield."
+            ]
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 98.1,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [],
+            "misses": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 9555.0,
+            "error": null,
+            "entities": [
+              {
+                "tag": "EMAIL",
+                "span": "john.doe@example.com",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "PHONE",
+                "span": "+1-415-555-2671",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "PERSON",
+                "span": "John Doe",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "123 Main St, Springfield",
+                "kind": "structural",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "hits": [
+              "john.doe@example.com",
+              "+1-415-555-2671",
+              "John Doe",
+              "123 Main St, Springfield"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-secret",
+        "name": "EN business secret (contextual)",
+        "lang": "en",
+        "text": "Our Q3 acquisition target is Acme Corp; keep the LOI price of $4.2M confidential from the board deck.",
+        "expected": [
+          "Acme Corp",
+          "$4.2M"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 9.9,
+            "error": null,
+            "entities": [
+              {
+                "tag": "DRIVERS_LICENSE",
+                "span": "Q3",
+                "kind": "structural",
+                "confidence": 0.3
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [],
+            "misses": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "unexpected": [
+              "Q3"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 25.8,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [],
+            "misses": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 40.6,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [],
+            "misses": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 141.1,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [],
+            "misses": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 10417.6,
+            "error": null,
+            "entities": [
+              {
+                "tag": "ACQUISITION_TARGET",
+                "span": "Acme Corp",
+                "kind": "contextual",
+                "confidence": 0.95
+              },
+              {
+                "tag": "CONFIDENTIAL_FINANCIAL_DATA",
+                "span": "LOI price of $4.2M",
+                "kind": "contextual",
+                "confidence": 0.98
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "hits": [
+              "Acme Corp",
+              "$4.2M"
+            ],
+            "misses": [],
+            "unexpected": [
+              "LOI price of $4.2M"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "en-safe",
+        "name": "EN safe query",
+        "lang": "en",
+        "text": "Summarize the plot of a classic novel about a detective in London.",
+        "expected": []
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 9.7,
+            "error": null,
+            "entities": [
+              {
+                "tag": "LOCATION",
+                "span": "London",
+                "kind": "structural",
+                "confidence": 0.85
+              }
+            ]
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": [
+              "London"
+            ]
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 28.0,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 29.4,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 77.2,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 1466.7,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-safe",
+        "name": "안전 쿼리",
+        "lang": "ko",
+        "text": "오늘 서울 날씨는 맑고 기온은 25도입니다.",
+        "expected": []
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 3.5,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 14.7,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 14.3,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 80.3,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 2116.8,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [],
+            "hits": [],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "ko-address",
+        "name": "이름+주소",
+        "lang": "ko",
+        "text": "홍길동에게 서울특별시 강남구 테헤란로 123으로 우편을 보내줘.",
+        "expected": [
+          "홍길동",
+          "서울특별시 강남구 테헤란로 123"
+        ]
+      },
+      "per_detector": {
+        "presidio": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 4.4,
+            "error": null,
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [],
+            "misses": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "unexpected": []
+          }
+        },
+        "lfm": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 15.0,
+            "error": null,
+            "entities": [
+              {
+                "tag": "PERSON",
+                "span": "홍길",
+                "kind": "structural",
+                "confidence": null
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "서울특별시 강남구 테헤란로 123",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "misses": [],
+            "unexpected": [
+              "홍길"
+            ]
+          }
+        },
+        "opf": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 20.5,
+            "error": null,
+            "entities": [
+              {
+                "tag": "ADDRESS",
+                "span": "서울특별시 강남구 테헤란로 123",
+                "kind": "structural",
+                "confidence": null
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "misses": [
+              "홍길동"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-ollama": {
+          "output": {
+            "status": "failed",
+            "latency_ms": 1276.8,
+            "error": "EXTRACTOR_BACKEND_ERROR: Could not reconcile span with source text: 'exact substring'",
+            "entities": []
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [],
+            "misses": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "unexpected": []
+          }
+        },
+        "llm-openrouter": {
+          "output": {
+            "status": "complete",
+            "latency_ms": 5286.1,
+            "error": null,
+            "entities": [
+              {
+                "tag": "NAME",
+                "span": "홍길동",
+                "kind": "structural",
+                "confidence": 1.0
+              },
+              {
+                "tag": "ADDRESS",
+                "span": "서울특별시 강남구 테헤란로 123",
+                "kind": "structural",
+                "confidence": 1.0
+              }
+            ]
+          },
+          "score": {
+            "expected": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "hits": [
+              "홍길동",
+              "서울특별시 강남구 테헤란로 123"
+            ],
+            "misses": [],
+            "unexpected": []
+          }
+        }
+      }
+    }
+  ]
+}

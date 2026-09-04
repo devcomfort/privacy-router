@@ -228,8 +228,7 @@ HTMX asset, `/api/demo/*` endpoint, dev demo session cookie 인증은 모두
 제거되었습니다. 브라우저 UI 없이 다음 경로로 검사합니다.
 
 - API: `POST /v1/chat/completions`, `POST /v1/responses` (Bearer `pr-*` key)
-- 탐지기 비교: `uv run python scripts/detector_bench.py` — detector별
-  인식 결과를 `var/detector-bench/<timestamp>/report.md`와 `results.json`에 남깁니다.
+- 탐지기 비교: `detector_bench` 리포트는 `docs/experiments/detector-bench/`에 보존 (원본은 gitignored인 `var/detector-bench/<timestamp>/`)
 
 
 ## Middle-Man 아키텍처
@@ -460,11 +459,11 @@ contextual entity는 일반적으로 LLM 또는 다른 문맥 인식 탐지기�
 
 ### 평가 suite(실제 LLM 호출)
 
-- **위치**: `scripts/eval_runner.py`, `scripts/eval_all.py`
+- **위치**: 제거됨 — 과거 `scripts/eval_runner.py`, `scripts/eval_all.py`; 집계 산출물은 `docs/experiments/`에 보존
 - **목적**: LLM 출력 품질 검증
 - **방법**: 실제 LLM 호출을 N≥5회 반복
 - **대상**: 민감도 탐지율, 정책 결정 정확도, 형태·맥락 탐지, JSON 출력
-- **실행**: `python3 scripts/eval_runner.py --model gemma4-e4b-openrouter --trials 5`
+- **실행**: 스크립트 제거로 미제공 — 과거 리포트는 `docs/experiments/` 참조
 - **소요 시간**: 수 분에서 수십 분
 
 ### 분리하는 이유
@@ -483,8 +482,11 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 - [보안](../user/security.md) — threat model과 암호화
 - [로컬 추론 속도 스파이크](local-inference-speed-spike.md) — GB10에서 vLLM 설정 변형의 속도·정확도 실측
 - [Gemma4 가중치·Speculative Decoding 스파이크](gemma4-speculation-spike.md) — 공식 MTP·DFlash·QAT 경로와 GB10 실측
+- [Detector benchmark 아카이브](../experiments/detector-bench/README.md) — detector 비교 리포트·원시 결과 보존
 
 ## 변경 이력
+
+- 2026-09-04 — `scripts/`, `refine-logs/`, `hermes-agent/`, `paper/course-assignment`, `paper/research-package`를 제거했습니다. detector·eval 벤치 리포트는 Git 추적 영역인 `docs/experiments/detector-bench/`로 보존했습니다.
 
 - 2026-09-03 — SvelteKit 사이트·HTMX 데모·`/api/demo/*`·dev demo session을 제거하고, detector 비교를 `scripts/detector_bench.py` 스크립트와 `var/detector-bench/` 로그로 대체했습니다.
 

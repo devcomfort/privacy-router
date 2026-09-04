@@ -2,7 +2,7 @@
 
 GB10(DGX Spark, 121 GB 통합 메모리)에서 vLLM 0.25.1로 decision 모델 후보를 서빙하고,
 양자화 가중치와 서빙 설정 변형이 속도와 탐지 정확도에 미치는 영향을 실측한 기록입니다.
-정확도는 `scripts/detector_bench.py`의 10케이스 기대 스팬 재현율(19개 스팬)로 측정했습니다.
+정확도는 detector_bench의 10케이스 기대 스팬 재현율(19개 스팬)로 측정했으며, 리포트는 `docs/experiments/detector-bench/`에 보존했습니다.
 
 ## 실험 설정
 
@@ -41,7 +41,7 @@ warm 상태 3회 평균. GPU 가용 메모리 약 91 GB(ollama 상주 모델 evi
 
 - 속도 레버는 모델별로 다르다: Qwen3.6 AWQ는 **MTP 스펙 디코딩(1.7×)**, Gemma4는 **CUDA graph(1.08×)**가 유효.
 - 탐지 정확도는 gemma-4-26b-a4b 계열이 명확히 우위(18/19). Qwen3.6 AWQ는 안전 쿼리 오탐과 누락이 많아 decision 모델 교체는 추가 검증 필요.
-- OpenRouter gpt-oss-120b(Cerebras 고정 포함)는 reasoning 토큰 때문에 이 워크로드에서 지연·비용 모두 불리(`var/detector-bench/20260903-185856/report.md` 참조).
+- OpenRouter gpt-oss-120b(Cerebras 고정 포함)는 reasoning 토큰 때문에 이 워크로드에서 지연·비용 모두 불리(`docs/experiments/detector-bench/20260903-185856.md` 참조).
 
 ## 재현
 
@@ -52,13 +52,13 @@ uv run vllm serve google/gemma-4-26B-A4B-it \
   --port 8011 --dtype bfloat16 --kv-cache-memory-bytes 4G \
   --gpu-memory-utilization 0.7 --max-model-len 16384 --trust-remote-code \
   --limit-mm-per-prompt '{"image":0,"audio":0}'
-uv run python scripts/detector_bench.py --detectors llm-gemma4
+# 탐지 벤치 실행: detector_bench 도구는 아카이브됨 — 결과 리포트는 docs/experiments/detector-bench/ 참조
 
 # Qwen3.6 MTP2 설정
 uv run vllm serve QuantTrio/Qwen3.6-35B-A3B-AWQ \
   --port 8012 --max-model-len 8192 --gpu-memory-utilization 0.35 \
   --speculative-config '{"method":"mtp","num_speculative_tokens":2}'
-uv run python scripts/detector_bench.py --detectors llm-qwen36
+# 탐지 벤치 실행: detector_bench 도구는 아카이브됨 — 결과 리포트는 docs/experiments/detector-bench/ 참조
 ```
 
-생 원시 데이터: `var/detector-bench/20260903-18*/`, `var/detector-bench/20260903-19*/`, `var/detector-bench/20260903-20*/`
+실험 리포트·원시 결과: `docs/experiments/detector-bench/` (원본 gitignored `var/detector-bench/`)
