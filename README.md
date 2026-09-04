@@ -251,7 +251,7 @@ ExtractorCore and the optional high-precision Critic both execute with the Decis
 - **Sensitive + essential** → Local Model; raw content stays on-device
 - **Blocked or unresolved failures** → no model call
 
-Only External Model tokens incur provider charges. The total depends on the external-route ratio, prompt and response length, and the configured OpenRouter price. See [`docs/user/cost.md`](docs/user/cost.md) for the calculation and [`docs/experiments/eval-report.md`](docs/experiments/eval-report.md) for historical model evaluations.
+Only External Model tokens incur provider charges. The total depends on the external-route ratio, prompt and response length, and the configured OpenRouter price. See [`docs/user/cost.md`](docs/user/cost.md) for the calculation and [`docs/experiments/legacy-eval/eval-report.md`](docs/experiments/legacy-eval/eval-report.md) for historical model evaluations.
 
 
 ---
@@ -302,7 +302,7 @@ High-precision mode adds a second review pass with the same local Decision Model
 - **Phase 2 (Critic):** an optional second pass reviews missed spans and `is_essential` classification.
 - **Merge:** hallucination filtering keeps only spans that occur verbatim in the original text.
 
-Measured model and prompt comparisons remain in [`docs/experiments/eval-report.md`](docs/experiments/eval-report.md); this product overview does not generalize those experiment-specific results.
+Measured model and prompt comparisons remain in [`docs/experiments/legacy-eval/eval-report.md`](docs/experiments/legacy-eval/eval-report.md); this product overview does not generalize those experiment-specific results.
 
 
 
@@ -349,7 +349,7 @@ The runtime schema validates the model registry against these boundaries: Decisi
 | [`docs/user/detection.md`](docs/user/detection.md) | Socratic sensitivity detection and exact-span examples |
 | [`docs/user/security.md`](docs/user/security.md) | Threat model, encryption, and data retention |
 | [`docs/user/cost.md`](docs/user/cost.md) | Cost calculation and optimization |
-| [`docs/experiments/eval-report.md`](docs/experiments/eval-report.md) | Historical model evaluation |
+| [`docs/experiments/legacy-eval/eval-report.md`](docs/experiments/legacy-eval/eval-report.md) | Historical model evaluation |
 
 ---
 

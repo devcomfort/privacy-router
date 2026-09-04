@@ -105,4 +105,4 @@ Multi-turn is significantly harder than single-turn (44% vs 76.5%). Adversarial 
 - `agents/extractor/extract.short.prompt` — Compressed prompt for ≤2B models
 - `test_data/` — 15 multi-turn test conversations
 - `var/evaluations/runner/` — Raw per-model evaluation payloads, ignored by Git
-- `docs/experiments/results/` — Sanitized aggregate summaries suitable for public documentation
+- `docs/experiments/legacy-eval/results/` — Sanitized aggregate summaries suitable for public documentation

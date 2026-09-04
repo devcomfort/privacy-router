@@ -18,7 +18,7 @@ Privacy Router의 Extractor→Judge 파이프라인 평가를 위한 합성 테�
 
 | 데이터셋 | 경로 | 케이스 수 | 용도 |
 |---|---|---|---|
-| ground-truth v1.1.0 | `docs/experiments/ground-truth.json` | 27 | Optuna 파라미터 튜닝 (fewshot_v2 프롬프트) |
+| ground-truth v1.1.0 | `docs/experiments/legacy-eval/ground-truth.json` | 27 | Optuna 파라미터 튜닝 (fewshot_v2 프롬프트) |
 | local_benchmark CASES | `experiments/local_benchmark.py` | 25 | 로컬 모델 벤치마크 (Extractor→Judge) |
 | **benchmark_v2** | `experiments/datasets/benchmark_v2.json` | **120** | 종합 평가 (전 매트릭스 커버) |
 

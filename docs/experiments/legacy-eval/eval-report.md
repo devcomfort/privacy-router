@@ -71,9 +71,9 @@ User Prompt → Extractor → Sensitivity + Records → Judge → Meaningfulness
 
 ### 4.1 평가 데이터셋 / Test Dataset
 
-최종 단일-turn 평가는 `docs/experiments/ground-truth.json`을 canonical source로 사용한다. 런타임 사본은 `eval/dataset/ground_truth.json`이며, 웹 다운로드 사본은 민감 예시 값을 placeholder로 비식별화한 `web/static/docs/ground_truth.json`이다.
+최종 단일-turn 평가는 `docs/experiments/legacy-eval/ground-truth.json`을 canonical source로 사용한다. 런타임 사본은 `eval/dataset/ground_truth.json`이며, 웹 다운로드 사본은 민감 예시 값을 placeholder로 비식별화한 `web/static/docs/ground_truth.json`이다.
 
-The final single-turn evaluation uses `docs/experiments/ground-truth.json` as the canonical source. `eval/dataset/ground_truth.json` is the byte-equivalent runtime copy; `web/static/docs/ground_truth.json` preserves labels while replacing sensitive example values with placeholders.
+The final single-turn evaluation uses `docs/experiments/legacy-eval/ground-truth.json` as the canonical source. `eval/dataset/ground_truth.json` is the byte-equivalent runtime copy; `web/static/docs/ground_truth.json` preserves labels while replacing sensitive example values with placeholders.
 
 | 항목 / Item | 현재 값 / Current value |
 |---|---:|
@@ -116,9 +116,9 @@ Version 1.2.0 is a **provisional single-policy audit**. A coding agent checked p
 
 #### Mechanical validation
 
-`python eval/dataset/validation.py docs/experiments/ground-truth.json`은 다음을 fail-closed로 검사한다.
+`python eval/dataset/validation.py docs/experiments/legacy-eval/ground-truth.json`은 다음을 fail-closed로 검사한다.
 
-`python eval/dataset/validation.py docs/experiments/ground-truth.json` fails on any violation of:
+`python eval/dataset/validation.py docs/experiments/legacy-eval/ground-truth.json` fails on any violation of:
 
 - `is_sensitive`와 record 존재 여부 일치 / sensitivity agrees with record presence
 - `expected_action`과 essentiality 기반 정책 일치 / action follows the essentiality invariant
