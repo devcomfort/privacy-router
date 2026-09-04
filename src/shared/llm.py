@@ -15,10 +15,10 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+import frontmatter
 import instructor  # noqa: E402  -- must follow warnings / env setup
 import litellm
 from dotenv import load_dotenv
-from dotpromptz import Dotprompt
 from pydantic import BaseModel
 
 from config import is_trusted_local_api_base, resolve_model_api_key
@@ -39,16 +39,12 @@ def _build_metadata(component: str | None) -> dict[str, str] | None:
 
 
 def load_prompt(prompt_path: str) -> dict[str, Any]:
-    """`.prompt` 파일을 읽어 모델, 호출 설정, 템플릿으로 분해합니다."""
-    d = Dotprompt()
-    with open(prompt_path) as f:
-        content = f.read()
-    parsed = d.parse(content)
-
+    """`.prompt` 파일의 YAML front matter와 본문 템플릿을 읽습니다."""
+    post = frontmatter.load(prompt_path)
     return {
-        "model": parsed.raw.get("model", DEFAULT_EXTERNAL_MODEL),
-        "config": parsed.raw.get("config", {}),
-        "template": parsed.template,
+        "model": post.metadata.get("model", DEFAULT_EXTERNAL_MODEL),
+        "config": post.metadata.get("config", {}),
+        "template": post.content,
     }
 
 

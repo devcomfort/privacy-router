@@ -517,3 +517,18 @@ class TestCallLlmStructured:
         )
 
         assert result.items == ["a", "b", "c"]
+
+
+def test_import_does_not_emit_dotpromptz_warning() -> None:
+    """shared.llm import must not load dotpromptz or emit its schema warning."""
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-W", "always", "-c", "import shared.llm"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert "dotpromptz" not in result.stderr.lower()

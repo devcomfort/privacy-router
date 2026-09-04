@@ -14,7 +14,7 @@ dependencies = [
     "pyyaml>=6.0",
     "platformdirs>=4.0",
     "mcp>=1.0",
-    "dotpromptz>=0.1.5",
+    "python-frontmatter>=1.1.0",
     "cryptography>=44.0.0",
     "pydantic>=2.0.0",
 ]
@@ -60,7 +60,6 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 filterwarnings = [
-    '''ignore:Field name "schema" in "Prompt(Input|OutputConfig)" shadows an attribute in parent "BaseModel":UserWarning:dotpromptz\.typing''',
     '''ignore:There is no current event loop:DeprecationWarning:litellm\._service_logger''',
 ]
 
