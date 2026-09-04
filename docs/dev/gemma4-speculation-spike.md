@@ -12,11 +12,11 @@ Google은 Gemma 4 26B A4B에 다음 계열을 제공합니다.
 | 계열 | 대상 | 상태 |
 |---|---|---|
 | 원본 | `google/gemma-4-26B-A4B-it` | 로컬 캐시 완료, 약 49 GB |
-| 공식 MTP assistant | `google/gemma-4-26B-A4B-it-assistant` | 다운로드 완료, MTP 시도 |
+| 공식 MTP assistant | `google/gemma-4-26B-A4B-it-assistant` | 다운로드 완료 (디스크 0.78 GiB), MTP 실측 |
 | 공식 QAT GGUF | `google/gemma-4-26B-A4B-it-qat-q4_0-gguf` | 공식 배포 확인, 현재 스파이크에서는 미측정 |
 | 공식 QAT safetensors | `google/gemma-4-26B-A4B-it-qat-q4_0-unquantized` | 공식 배포 확인, 현재 스파이크에서는 미측정 |
 | 공식 QAT MTP assistant | `google/gemma-4-26B-A4B-it-qat-q4_0-unquantized-assistant` | 공식 배포 확인. QAT target과 동일 precision으로 짝지어야 함 |
-| DFlash drafter | `z-lab/gemma-4-26B-A4B-it-DFlash` | 다운로드 완료, vLLM에서 시도 |
+| DFlash drafter | `z-lab/gemma-4-26B-A4B-it-DFlash` | 다운로드 완료 (디스크 0.80 GiB), vLLM 실행 실 |
 
 Google의 모델 카드는 QAT target과 speculative decoding assistant의 precision을 일치시켜야 한다고 명시합니다. 따라서 QAT target을 사용할 경우 일반 `gemma-4-26B-A4B-it-assistant`가 아니라 QAT assistant를 사용해야 합니다.
 
@@ -100,6 +100,23 @@ MTP V2는 baseline 대비 **평균 43% 빠른 추출 지연**을 보였고, 정�
 
 따라서 이번 환경에서 DFlash의 속도 우위(아래 출처의 B200 실험)는 재현하지 못했습니다. 이는 DFlash 아이디어의 정확도나 속도가 나쁘다는 결론이 아니라, 현재 설치된 vLLM 0.25.1의 Gemma 4 mixed sliding/full attention 지원 부족에 따른 **실행 불가**입니다. DFlash를 재현하려면 vLLM의 관련 SWA/Gemma4 패치가 포함된 최신 개발 버전 또는 해당 패치 브랜치가 필요합니다.
 
+### 2.3 옵션별 메모리 소모 (본 모델 / MTP / KV 캐시)
+
+아래 수치는 각 vLLM 기동 로그에서 직접 추출했습니다. `Checkpoint size`는 디스크 가중치, `Model loading took`은 target+draft 합산 GPU 상주량, `Available/reserved KV`는 KV 캐시, `Graph capturing ... took`은 CUDA graph 실측 상주량입니다.
+
+| 옵션 | 본 모델 가중치 | MTP / drafter | KV 캐시 | CUDA graph | GPU 총 적재 |
+|---|---:|---:|---:|---:|---:|
+| Gemma4 baseline (bf16) | 48.07 GiB | — | 4.00 GiB (66,397 tok) | 0.90 GiB | 48.54 GiB |
+| Gemma4 + MTP V2 | 48.07 GiB | 0.78 GiB | 4.00 GiB (66,397 tok) | 1.27 GiB | 49.33 GiB |
+| Qwen3.6-35B-A3B AWQ + MTP | 23.71 GiB | 내장 (추가 0) | 6.18 GiB (132,035 tok) | 1.60 GiB | 23.80 GiB |
+| Gemma4 + DFlash | 48.07 GiB | 0.80 GiB | 미측정 | 미측정 | 기동 실패 |
+
+**관찰**:
+- **Gemma4 MTP**는 별도 assistant(0.78 GiB)를 GPU에 추가 적재해 총 적재가 48.54 → 49.33 GiB(+0.79 GiB)로 늘고, CUDA graph도 0.90 → 1.27 GiB로 증가합니다. KV 캐시는 `--kv-cache-memory-bytes 4G`로 수동 고정해 baseline과 동일합니다.
+- **Qwen3.6 MTP**는 native MTP head가 체크포인트에 내장되어 있어 **추가 가중치 다운로드·적재가 0**입니다. AWQ 4-bit라 본 모델이 23.71 GiB로 Gemma4(bf16)의 절반 이하이고, `--gpu-memory-utilization 0.35` 자동 프로파일링이라 남는 메모리로 KV 캐시 6.18 GiB(132,035 tok)를 확보합니다.
+- **DFlash** drafter는 0.80 GiB로 용량은 작지만, 위 2.2의 `NotImplementedError`로 target과 함께 GPU에 올려 KV를 배분하기 전 단계에서 실패해 측정 불가입니다.
+- GB10 통합 메모리 121.6 GiB 기준, 세 실행 옵션 모두 단일 GPU에서 여유 있게 동작합니다(초기 free memory 98.9~101.7 GiB 관측).
+
 ## 3. 결론
 
 1. **현재 GB10에서 바로 쓸 수 있는 최선**: 원본 Gemma 4 + 공식 MTP assistant + `VLLM_USE_V2_MODEL_RUNNER=1`.
@@ -107,6 +124,7 @@ MTP V2는 baseline 대비 **평균 43% 빠른 추출 지연**을 보였고, 정�
 3. **QAT**: 메모리를 줄일 수 있는 공식 선택지입니다. 다만 QAT target과 QAT assistant를 같은 precision으로 맞춰야 하며, 이 스파이크에서는 QAT 26B target을 새로 서빙하지 않았습니다.
 4. **DFlash**: model card와 vLLM에 경로는 존재하지만, 현재 vLLM에서 Gemma4의 mixed attention 때문에 시작조차 되지 않았습니다. 패치 브랜치 확보 전에는 속도 수치를 주장할 수 없습니다.
 5. **정확도 해석**: 10개 케이스는 방향성 확인용 소표본입니다. MTP는 greedy verification 경로이므로 MTP 자체가 detector 품질을 낮춘다고 볼 근거는 없지만, 실제 교체 전 더 큰 corpus와 반복 측정이 필요합니다.
+6. **메모리**: Gemma4는 bf16 본 모델 48.07 GiB에 MTP assistant 0.78 GiB가 더해져 GPU 총 적재 49.33 GiB입니다. Qwen3.6 AWQ는 4-bit라 본 모델 23.71 GiB에 native MTP라 추가 적재가 0이라, Gemma4 대비 약 절반의 메모리로 더 큰 KV 캐시(132,035 vs 66,397 tok)를 확보합니다. 단 Qwen3.6의 탐지 정확도는 15/19로 Gemma4(18/19)보다 낮습니다(상세: `docs/dev/local-inference-speed-spike.md`).
 
 ## 4. 출처
 
@@ -123,3 +141,4 @@ MTP V2는 baseline 대비 **평균 43% 빠른 추출 지연**을 보였고, 정�
 - Gemma4 baseline: `var/detector-bench/20260903-202620/report.md`
 - Gemma4 MTP V2: `var/detector-bench/20260904-000126/report.md`
 - 이전 Gemma4/Qwen 로컬 설정 비교: `docs/dev/local-inference-speed-spike.md`
+- 메모리 수치 출처: 각 vLLM 기동 로그의 `Checkpoint size`, `Model loading took`, `GPU KV cache size`, `Graph capturing ... took` 라인 (`hub` 프로세스 `gemma4-mtp-v2`, `final-gemma4`, `final-qwen36`).
