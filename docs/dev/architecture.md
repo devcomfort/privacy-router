@@ -177,8 +177,7 @@ Middle-Man, Masker, 영속화 계층, API metadata의 필드명을 기존 이름
 `is_required`로 바꿉니다. canonical 형태는
 `Requiredness(value: bool | null, reason: str)`입니다. `value=true`는 정확한 값이
 답변 또는 처리에 필요해 로컬에 남겨야 함을 뜻하고, `value=false`는 값을 마스킹한
-뒤 외부 처리할 수 있음을 뜻합니다. `archive/` 아래 historical evaluation
-artifact는 원래 schema를 유지하며 migration하지 않습니다.
+뒤 외부 처리할 수 있음을 뜻합니다.
 
 원문과 offset은 HTMX fragment 렌더링 경로에만 전달합니다. 공개 JSON payload와
 `redact_extraction_records`는 raw span과 offset을 계속 제외합니다. 브라우저는

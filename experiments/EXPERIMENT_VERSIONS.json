@@ -2,8 +2,7 @@
   "experiment_versions": [
     {
       "version": "v1-old-pipeline",
-      "status": "archived",
-      "archive_dir": "archive/experiments-v1-old-pipeline/",
+      "status": "removed",
       "description": "Direct action extraction (Extractor outputs action directly)",
       "test_cases": 25,
       "dataset": "original_25",
@@ -13,8 +12,7 @@
     },
     {
       "version": "v1-contaminated",
-      "status": "archived",
-      "archive_dir": "archive/experiments-v1-contaminated/",
+      "status": "removed",
       "description": "Empty tree_search stubs + threeharm-prompt multi_model_comparison",
       "issue": "Uses removed threeharm prompt, empty/incomplete data"
     },

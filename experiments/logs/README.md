@@ -10,7 +10,7 @@
 
 ## 아카이브된 로그
 
-이전 실행 로그 39개는 `archive/experiments-v1-logs/`로 이동됨:
+이전 실행 로그 39개는 아카이브 정리로 제거됨:
 - `vllm_*.log` (23개) — 종료된 vLLM 서버 로그
 - `param_tuning*.log` (5개) — Optuna 튜닝 (results JSON으로 대체)
 - `tree_search*.log` (2개) — 프롬프트 탐색
