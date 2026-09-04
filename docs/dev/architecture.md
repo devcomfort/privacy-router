@@ -476,6 +476,7 @@ mock 없이 실행한 테스트의 실패는 코드 오류와 LLM 출력 변동�
 - [데이터 흐름](data-flow.md) — 데이터 형식, 정책 action, masking/hydration 경계
 - [Fail-closed routing](fail-closed-routing.md) — 고정 실행 경로, retry, 안전한 오류, streaming 중단
 - [Database ERD](database-erd.md) — SQLite schema
+- [Storage](storage.md) — 저장소 경계와 암호화 정책
 - [Config 파일](config-files.md) — YAML과 DB 설정 구조
 - [Integration 아키텍처](integration-architecture.md) — Hermes Agent, OpenCode, LiteLLM 통합
 - [보안](../user/security.md) — threat model과 암호화

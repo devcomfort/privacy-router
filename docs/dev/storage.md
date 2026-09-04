@@ -10,7 +10,6 @@ Privacy Router가 파일, 데이터베이스, 프로세스 메모리에 저장�
 | SQLite/PostgreSQL | 설정, 인증, 메타데이터, 암호화된 임시 데이터 | Fernet 암호문으로만 허용 |
 | `.privacy-router.config.yaml` | DB 초기 시드와 YAML 폴백 | 비밀 저장 금지 |
 | 환경변수/외부 비밀 저장소 | 마스터 키와 provider credential의 유일한 원본 | 가능; DB 밖에서 관리 |
-| `web/build/` | SvelteKit 정적 출력 | 민감 런타임 데이터 없음 |
 
 개발 기본 DB는 `privacy_router.db`입니다. `DATABASE_URL`을 설정하면 같은 SQLModel 스키마를 PostgreSQL에서 사용합니다.
 
