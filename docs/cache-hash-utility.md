@@ -48,6 +48,20 @@ SDK native history
 
 Anthropic의 `system`처럼 메시지 배열 밖에 있는 context-bearing 필드는 adapter가 정규화된 히스토리 항목으로 승격해야 합니다. OpenAI의 `tools`, `tool_choice`처럼 요청 전체에 속하지만 Detector가 해석하는 필드도 동일하게 처리합니다. 승격된 항목에는 출처를 나타내는 예약 필드를 넣되, 원본 값과 배열 순서는 보존합니다.
 
+### 정규화 히스토리 항목
+
+메시지 배열 밖의 context나 compaction 결과도 해시해야 하므로, adapter는 모든 처리 단위를 `HistoryItem`으로 표현합니다.
+
+| 필드 | 타입 | 설명 | 예시 |
+|---|---|---|---|
+| `kind` | `Literal["message", "compaction"]` | 처리 단위의 종류 | `"message"` |
+| `source` | `str` | 원본 SDK 필드 또는 adapter 출처 | `"anthropic.system"` |
+| `payload` | `JsonObject` | 원본 값과 구조를 보존한 JSON 객체 | `{"role": "system", "content": "..."}` |
+| `message_hash` | `str` | 항목 payload의 hash | `"message-hash-1"` |
+| `history_hash` | `str` | 해당 항목까지의 prefix hash | `"history-hash-1"` |
+| `parent_history_hash` | `str \| None` | 직전 prefix 또는 checkpoint hash | `"history-hash-0"` |
+| `covered_history_hash` | `str \| None` | compaction이 대체한 이전 prefix | `"history-hash-20"` |
+
 | 필드 | 타입 | 설명 | 예시 |
 |---|---|---|---|
 | `format` | `Literal["openai-chat", "anthropic-messages", "litellm", "langchain"]` | 히스토리를 생성한 native 포맷 | `"openai-chat"` |
@@ -134,6 +148,21 @@ history_hash_n = SHA256(
 
 유틸리티는 내부 상태, 캐시, 세션, 데이터베이스를 보유하지 않습니다.
 
+### 함수의 역할
+
+`parse_history()`는 LLM 의미를 해석하지 않습니다. JSON 문자열·bytes를 Python JSON 값으로 읽고, 최상위 구조가 히스토리로 사용할 수 있는지 검사합니다.
+
+`normalize_history()`도 서로 다른 SDK의 의미를 추론하지 않습니다. OpenAI·Anthropic·LangChain 객체처럼 JSON으로 바로 표현되지 않는 입력을 해당 SDK의 규칙에 맞는 JSON-safe `HistoryItem[]`으로 변환합니다. 이미 JSON 객체인 입력은 검증 후 그대로 사용합니다.
+
+| 함수 | 입력 타입 | 반환 타입 | 실패 조건 | 예시 |
+|---|---|---|---|---|
+| `parse_history` | `str \\| bytes \\| JsonValue` | `HistorySpec` | 잘못된 JSON, duplicate key, 비JSON 값 | `parse_history(b'{\"messages\": []}')` |
+| `normalize_history` | `NativeHistory` | `HistorySpec` | 지원하지 않는 SDK 객체, 포맷 불일치 | `normalize_history(langchain_messages, format=\"langchain\")` |
+| `hash_message` | `JsonObject` 또는 `HistoryItem` | `str` | JSON-safe가 아님 | `hash_message(message)` |
+| `hash_history` | `HistorySpec` | `tuple[HistoryItem, ...]` | 포맷·버전·항목 검증 실패 | `hash_history(history)` |
+
+일반 텍스트는 `role`, tool call, content part, metadata를 보존하지 못하므로 `parse_history()`의 정식 입력으로 취급하지 않습니다. 텍스트 한 건을 사용하려면 호출자가 먼저 선택한 SDK 포맷의 메시지 객체로 감싸야 합니다.
+
 ## 7. 세션 namespace
 
 | 필드 | 타입 | 설명 | 예시 |
@@ -197,6 +226,27 @@ low-level 유틸리티는 계약 payload를 턴 단위로 암호화할 수 있�
 
 DB에는 평문 계약을 저장하지 않으며, 실제 암호화 키 회전·보관·삭제는 상위 계층의 책임입니다.
 
+### 암호화 알고리즘 선택 이유
+
+세 알고리즘은 블록체인을 따르기 위해 고른 것이 아닙니다. 블록체인은 무결성·합의 구조이고, 여기서는 복원 계약의 기밀성과 변조 감지가 목적입니다.
+
+| 알고리즘 | 특징 | 용도 |
+|---|---|---|
+| `aes-256-gcm` | AEAD, 널리 지원되고 AES 하드웨어 가속을 활용할 수 있음 | 기본값 후보 |
+| `chacha20-poly1305` | AEAD, AES 가속이 없는 CPU·모바일 환경에서 안정적인 성능 | 자원 제한 환경 후보 |
+| `fernet` | AES-CBC와 HMAC을 묶은 고수준 호환 규격 | 기존 Fernet 시스템과의 호환 |
+
+### Hash와 암호화의 차이
+
+| 항목 | Hash | 암호화 |
+|---|---|---|
+| 목적 | 같은 입력인지 식별 | 원문을 숨긴 채 저장하고 나중에 복원 |
+| 결과 | 같은 입력이면 같은 결정론적 값 | nonce 때문에 같은 입력도 암호문이 달라질 수 있음 |
+| 복원 | 불가능 | 올바른 키로 가능 |
+| 이 명세의 사용 | `message_hash`, `history_hash` | `TurnContract.entries` |
+
+따라서 `history_hash`로 계약을 찾은 뒤, 별도의 키로 `encrypted_contract`를 복호화합니다. hash가 계약을 복호화하는 것이 아니며, 암호문을 hash로 대체할 수도 없습니다.
+
 ### Masker 계약 재사용 주의
 
 현재 Masker의 placeholder는 요청마다 새로 생성될 수 있으므로 `message_hash`가 같다고 기존 계약을 그대로 붙이면 안 됩니다.
@@ -207,6 +257,49 @@ DB에는 평문 계약을 저장하지 않으며, 실제 암호화 키 회전·�
 | 같은 placeholder를 재사용 | 외부 모델에 보내는 텍스트가 저장된 계약의 key와 일치할 때만 허용 |
 | 새 placeholder 생성 | 새 계약을 생성하고 저장된 계약과 섞지 않음 |
 | 계약 key 불일치 | hydration 전에 cache miss 또는 fail-fast |
+
+### 계약 사례
+
+#### 사례 1: 민감 정보가 없는 턴
+
+```text
+메시지: "오늘 서울 날씨를 알려줘"
+Detector records: []
+TurnContract.entries: []
+```
+
+이 경우 복원할 값이 없으므로 계약 payload는 빈 배열입니다. 메시지와 prefix hash는 생성되지만 Masker 조회 결과는 비어 있습니다.
+
+#### 사례 2: 이름과 전화번호가 포함된 턴
+
+```text
+메시지: "홍길동에게 010-0000-0000으로 연락해줘"
+Detector records:
+  - PERSON_NAME: "홍길동"
+  - PHONE_NUMBER: "010-0000-0000"
+TurnContract.entries:
+  - key: "SENSITIVE_DATA#..."
+    value: "홍길동"
+  - key: "SENSITIVE_DATA#..."
+    value: "010-0000-0000"
+```
+
+외부 모델에는 두 원문 대신 두 placeholder만 전달됩니다. 응답에 placeholder가 그대로 돌아오면 계약으로 원문을 복원합니다.
+
+#### 사례 3: 같은 메시지, 다른 이전 맥락
+
+```text
+메시지: "이 내용을 요약해줘"
+message_hash: 동일
+
+이전 맥락 A: 공개 문서
+history_hash: history-A
+
+이전 맥락 B: 내부 프로젝트 설명
+history_hash: history-B
+```
+
+메시지 자체는 같으므로 `message_hash`는 같지만, Detector가 판단할 민감성·필수성·복원 계약은 맥락에 따라 달라질 수 있습니다. 따라서 context-dependent 결과는 `history_hash`까지 일치할 때만 재사용합니다.
 
 hash 유틸리티는 계약을 저장하지 않습니다. 상위 Masker 계층이 캐시된 계약을 사용할지, 새 계약을 만들지 결정해야 합니다.
 
@@ -258,7 +351,27 @@ Compaction으로 앞부분이 summary 메시지로 대체되면 실제 모델 �
 
 Blockchain의 hash chain, checkpoint, Merkle proof는 포함 관계와 무결성 검증에 참고할 수 있습니다. 그러나 semantic equivalence를 보장하지는 않으므로, compaction 결과의 의미 판단을 hash만으로 생략해서는 안 됩니다.
 
-## 12. 스파이크 검증 계획
+## 13. 외부 라이브러리 compaction 처리 스파이크
+
+| 라이브러리/프로젝트 | compaction 표현 | 확인한 처리 방식 | 우리 설계에 주는 시사점 |
+|---|---|---|---|
+| Anthropic Messages | assistant 응답 안의 `compaction` content block | 다음 요청에 전체 assistant content를 다시 넣으면 compaction block 이전 내용은 서버가 무시 | provider-native `kind="compaction"`과 `covered_history_hash`를 보존해야 함 |
+| OpenAI Responses | `type="compaction"`인 opaque output item | compaction item을 해석·수정하지 않고 다음 요청 input에 그대로 전달 | opaque payload는 hash만 계산하고 내부 의미를 추측하지 않아야 함 |
+| LangChain | `SummarizationMiddleware`, `RemoveMessage` | 오래된 메시지를 summary로 교체하거나 삭제하며 checkpointer가 thread state를 저장 | summary 교체는 새 context이며 원본 lineage를 별도 보존해야 함 |
+| Semantic Kernel | `ChatHistoryReducer` | 오래된 메시지 절삭 또는 요약, 함수 호출 쌍·system 메시지 보존 옵션 | tool call 경계를 끊지 않는 reducer 규칙이 필요함 |
+| LiteLLM | 범용 compaction history block 없음 | OpenAI-compatible messages와 응답 캐시를 제공하지만 summary lineage는 호출자 책임 | 우리 유틸리티가 포맷·lineage 계약을 제공해야 함 |
+
+외부 시스템마다 compaction 표현이 다르므로 임의 텍스트를 보고 compaction이라고 추측하면 안 됩니다. adapter가 provider-native 표식 또는 호출자가 명시한 compaction metadata를 확인한 경우에만 `kind="compaction"`으로 승격합니다. 표식이 없는 summary는 일반 `kind="message"`로 취급합니다.
+
+이 스파이크에서 확인한 기본 원칙은 다음과 같습니다.
+
+1. 원본 transcript와 prompt-time compacted history를 구분합니다.
+2. compaction 결과는 새 history context를 만들고, 대체 범위를 `covered_history_hash`로 기록합니다.
+3. 이전 메시지의 message-level Detector/Masker 계약은 재사용할 수 있습니다.
+4. compaction 이후의 context-dependent Detector 결과는 새 prefix history hash로 검증합니다.
+5. tool call과 tool result의 짝을 중간에서 끊지 않습니다.
+
+## 14. 스파이크 검증 계획
 
 최소 3턴의 동일한 일반 대화를 다음 native 형식으로 준비합니다.
 
