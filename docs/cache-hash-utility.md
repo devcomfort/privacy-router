@@ -1,406 +1,395 @@
-# 캐시 해시 유틸리티 명세
+# 메시지·히스토리 해시 유틸리티 명세
 
 **상태:** 설계 초안 — 사용자 검토 필요
 
-## 1. 목적
+## 1. 이 유틸리티가 해결하는 문제
 
-Long-horizon task에서는 이전 턴을 모두 받아야 프라이버시 맥락을 정확히 해석할 수 있습니다. 그러나 매 요청마다 모든 메시지를 Detector와 Masker로 다시 처리하면 비용과 지연이 커집니다.
+Long-horizon task에서는 이전 대화 전체를 받아야 Detector가 현재 메시지의 민감성을 올바르게 판단할 수 있습니다. 하지만 매 턴마다 이미 처리한 메시지를 다시 Detector와 Masker에 보내면 비용과 지연이 커집니다.
 
-이 유틸리티의 목적은 메시지 단위와 히스토리 prefix 단위의 안정적인 식별자를 계산하고, 나중에 상위 계층이 Detector·Masker 복원 계약을 재사용할 수 있도록 하는 것입니다.
+이 유틸리티는 다음 두 값을 계산합니다.
 
-이 패키지는 캐시 저장소나 데이터베이스를 구현하지 않습니다. SQLModel, Redis 등 저장 계층은 최종 사용자가 별도로 구성합니다.
+1. **메시지 hash**: 메시지 하나가 같은지 확인하는 값
+2. **누적 히스토리 hash**: 현재 메시지까지의 이전 대화 순서가 같은지 확인하는 값
 
-## 2. 처리 범위
+이 값으로 상위 계층은 이미 Detector가 처리한 메시지를 다시 처리하지 않고, 저장해 둔 탐지 결과의 참조를 찾을 수 있습니다.
 
-```text
-SDK native history
-  → JSON-safe Message[]
-  → Message[] 검증·분해
-  → 메시지별 message_hash
-  → 메시지별 prefix history_hash
-  → 상위 계층의 Detector/Masker 계약 조회
-```
+이 유틸리티는 데이터베이스, 캐시 서버, Detector, Masker, 사용자 세션을 구현하지 않습니다.
 
-### 포함
+## 2. 용어를 쉽게 정의하면
 
-- OpenAI Chat Completions 메시지 형식
-- Anthropic Messages 메시지 형식
-- LiteLLM OpenAI-compatible 메시지 형식
-- LangChain `BaseMessage` 형식의 선택적 어댑터
-- JSON 문자열·UTF-8 bytes·이미 파싱된 JSON 객체 처리
-- 메시지 hash와 prefix history hash 계산
-- 중복 키·바이너리·비JSON 타입의 fail-fast 검증
-- 턴별 복원 계약을 암호화할 수 있는 low-level 인터페이스
-- compaction checkpoint와 lineage 검증을 위한 데이터 구조
-
-### 제외
-
-- Detector 실행
-- Masker 실행
-- 캐시 저장·조회·삭제
-- SQLModel 또는 Redis 구현
-- 세션 생성·만료·권한 관리
-- 평문 credential의 영속 저장
-
-## 3. 포맷 경계
-
-각 히스토리는 생성 시 하나의 native 포맷과 스키마 버전을 고정합니다. 한 히스토리 안에서 OpenAI 객체, Anthropic 객체, LangChain 객체를 자동으로 섞지 않습니다.
-
-Anthropic의 `system`처럼 메시지 배열 밖에 있는 context-bearing 필드는 adapter가 정규화된 히스토리 항목으로 승격해야 합니다. OpenAI의 `tools`, `tool_choice`처럼 요청 전체에 속하지만 Detector가 해석하는 필드도 동일하게 처리합니다. 승격된 항목에는 출처를 나타내는 예약 필드를 넣되, 원본 값과 배열 순서는 보존합니다.
-
-### 정규화 히스토리 항목
-
-메시지 배열 밖의 context나 compaction 결과도 해시해야 하므로, adapter는 모든 처리 단위를 `HistoryItem`으로 표현합니다.
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `kind` | `Literal["message", "compaction"]` | 처리 단위의 종류 | `"message"` |
-| `source` | `str` | 원본 SDK 필드 또는 adapter 출처 | `"anthropic.system"` |
-| `payload` | `JsonObject` | 원본 값과 구조를 보존한 JSON 객체 | `{"role": "system", "content": "..."}` |
-| `message_hash` | `str` | 항목 payload의 hash | `"message-hash-1"` |
-| `history_hash` | `str` | 해당 항목까지의 prefix hash | `"history-hash-1"` |
-| `parent_history_hash` | `str \| None` | 직전 prefix 또는 checkpoint hash | `"history-hash-0"` |
-| `covered_history_hash` | `str \| None` | compaction이 대체한 이전 prefix | `"history-hash-20"` |
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `format` | `Literal["openai-chat", "anthropic-messages", "litellm", "langchain"]` | 히스토리를 생성한 native 포맷 | `"openai-chat"` |
-| `schema_version` | `str` | 해당 포맷의 유틸리티 해석 버전 | `"v1"` |
-| `messages` | `list[JsonObject]` | JSON-safe 메시지 배열 | `[ {"role": "user", "content": "..."} ]` |
-| `session_id` | `str \| None` | 선택적 캐시 namespace 입력 | `"session-123"` |
-
-`session_id`는 메시지 hash와 history hash의 내용에 포함하지 않고 캐시 namespace로만 사용합니다. 따라서 첫 prefix에서 다음 불변식을 유지합니다.
-
-```text
-history_hash_1 == message_hash_1
-```
-
-## 4. JSON 검증과 정규화
-
-정규화된 JSON의 canonicalization에는 RFC 8785를 사용합니다.
-
-| 입력 | 처리 규칙 |
+| 용어 | 의미 |
 |---|---|
-| 객체 키 순서 | RFC 8785 규칙으로 정렬 |
-| 배열 순서 | 원래 순서 유지 |
-| 메시지 순서 | 원래 순서 유지 |
-| `metadata`, `additional_kwargs` | JSON 객체라면 재귀적으로 보존·정규화 |
-| 중복 키 | JSON 파싱 단계에서 예외 발생 |
-| `bytes`, 파일 객체, SDK 미지원 객체 | 예외 발생 |
-| `NaN`, `Infinity` | 예외 발생 |
-| 필드 누락과 `null` | 서로 다른 입력으로 취급 |
-| 알 수 없는 JSON 필드 | 제거하지 않고 보존 |
+| 메시지 | `role`, `content` 등을 가진 JSON 객체 하나 |
+| 히스토리 | 순서가 있는 메시지 배열 |
+| 메시지 hash | 메시지 하나를 정해진 방법으로 해싱한 문자열 |
+| 누적 히스토리 hash | 첫 메시지부터 현재 메시지까지의 순서를 반영한 문자열 |
+| namespace | 서로 다른 사용자·세션의 캐시를 나누는 이름 |
+| 복원 참조 | 원문을 직접 저장하지 않고, 상위 저장소에서 값을 찾기 위한 key와 hash |
 
-키를 정렬하는 것은 필드의 순서만 바꾸며 데이터를 삭제하지 않습니다. 단, 표준 JSON 파서가 이미 중복 키를 덮어쓴 뒤에는 원래 입력을 복원할 수 없으므로 중복 키 검출을 파싱 단계에서 수행해야 합니다.
+## 3. 한 히스토리의 메시지 구조
 
-## 5. 해시 스키마
+한 히스토리는 생성할 때 `format`을 선택합니다. `format`은 OpenAI와 Anthropic 메시지를 한 배열에 섞지 않기 위한 구분값입니다.
 
-기본 알고리즘은 SHA-256이며 출력은 lowercase hexadecimal 문자열입니다.
+그러나 같은 `format` 안에서 모든 메시지의 필드가 똑같을 필요는 없습니다. OpenAI Chat Completions에서도 `system`, `user`, `assistant`, `tool`은 서로 다른 선택 필드를 가집니다. A, B, C 메시지의 필드 구성이 일부 달라도 각 메시지가 선택한 format의 유효한 메시지라면 **모든 필드를 보존한 채** 해싱합니다.
+
+정리하면:
+
+- 키 순서가 다른 JSON 객체는 같은 메시지로 봅니다.
+- 필드가 추가되거나 값이 달라지면 다른 메시지로 봅니다.
+- 배열 순서와 메시지 순서는 보존합니다.
+- 알 수 없는 JSON 필드는 삭제하지 않습니다.
+- 서로 다른 프로토콜의 메시지를 자동으로 섞어 해석하지 않습니다.
+- 유효하지 않은 구조, 중복 키, JSON으로 표현할 수 없는 값은 즉시 거부합니다.
 
 | 필드 | 타입 | 설명 | 예시 |
 |---|---|---|---|
-| `algorithm` | `Literal["sha256"]` | 메시지·히스토리 hash 알고리즘 | `"sha256"` |
-| `canonicalization` | `Literal["rfc8785"]` | hash 입력 직렬화 규격 | `"rfc8785"` |
-| `message_hash` | `str` | 단일 정규 메시지의 hash | `"a1b2...9f"` |
-| `history_hash` | `str` | 해당 메시지까지의 prefix hash | `"c3d4...8e"` |
+| `format` | `Literal["openai-chat", "anthropic-messages", "litellm", "langchain"]` | 히스토리의 입력 규격 | `"openai-chat"` |
+| `schema_version` | `str` | 이 유틸리티가 해석하는 규격 버전 | `"v1"` |
+| `messages` | `list[JsonObject]` | 순서를 유지한 JSON 메시지 배열 | `[ {"role": "user", "content": "..."} ]` |
+| `namespace` | `str` | 캐시를 나눌 이름. 없으면 `"default"` | `"customer-123"` |
 
-### 메시지 hash
+## 4. JSON 읽기와 SDK 자료 변환
+
+이름이 비슷하지만 두 함수의 책임은 다릅니다.
+
+### `read_json_messages()`
+
+**문자열 또는 bytes로 들어온 JSON을 읽는 함수**입니다. LLM의 의미를 해석하지 않고, JSON 문법과 자료 형태만 검사합니다.
 
 ```text
-message_hash_n = SHA256(RFC8785(message_n))
+JSON 문자열 또는 UTF-8 bytes
+  → JSON 값
+  → 메시지 객체 배열인지 검사
 ```
 
-### Prefix history hash
+| 항목 | 내용 |
+|---|---|
+| 입력 | `str` 또는 `bytes` 또는 JSON 값 |
+| 출력 | `tuple[JsonObject, ...]` |
+| 하는 일 | JSON 파싱, 최상위 배열 확인, 각 항목이 객체인지 확인 |
+| 거부하는 것 | 잘못된 JSON, duplicate key, 바이너리, `NaN`, `Infinity`, 객체가 아닌 메시지 |
+| 하지 않는 일 | 역할 추론, 요약, 필드 삭제, Detector 실행 |
 
-```text
-history_hash_1 = message_hash_1
-history_hash_n = SHA256(
-    RFC8785({
-        "schema": "history-prefix-v1",
-        "parent_history_hash": history_hash_(n-1),
-        "message_hash": message_hash_n
-    })
+예시:
+
+```python
+read_json_messages(
+    '[{"role":"user","content":"안녕하세요"}]'
 )
+# ({"role": "user", "content": "안녕하세요"},)
 ```
 
-`history_hash_n`은 n번째 메시지까지의 맥락을 나타냅니다. 새 메시지가 추가되면 이전 prefix hash와 새 메시지 hash만으로 다음 hash를 계산할 수 있습니다.
+### `convert_sdk_messages()`
 
-## 6. 해시 결과
+**이미 만들어진 SDK 객체를 JSON-safe 객체로 바꾸는 함수**입니다.
 
-`hash_history()`는 전체 히스토리를 한 번 처리하고 모든 턴의 hash 쌍을 반환합니다.
-
-### `MessageHash`
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `message_index` | `int` | 히스토리 내 0-based 위치 | `2` |
-| `message_hash` | `str` | 현재 메시지 hash | `"message-hash-3"` |
-| `history_hash` | `str` | 현재 메시지까지의 prefix hash | `"history-hash-3"` |
-
-### 공개 함수
-
-| 함수 | 입력 | 반환 | 역할 |
-|---|---|---|---|
-| `parse_history()` | JSON 문자열, UTF-8 bytes, JSON 객체 | `HistorySpec` | 입력 파싱·중복 키·타입 검증 |
-| `normalize_history()` | native SDK 형식 | `HistorySpec` | 포맷별 JSON-safe 구조 생성 |
-| `hash_message()` | `JsonObject` | `str` | 메시지 하나의 hash 계산 |
-| `hash_history()` | `HistorySpec` | `tuple[MessageHash, ...]` | 모든 메시지·prefix history hash 반환 |
-
-유틸리티는 내부 상태, 캐시, 세션, 데이터베이스를 보유하지 않습니다.
-
-### 함수의 역할
-
-`parse_history()`는 LLM 의미를 해석하지 않습니다. JSON 문자열·bytes를 Python JSON 값으로 읽고, 최상위 구조가 히스토리로 사용할 수 있는지 검사합니다.
-
-`normalize_history()`도 서로 다른 SDK의 의미를 추론하지 않습니다. OpenAI·Anthropic·LangChain 객체처럼 JSON으로 바로 표현되지 않는 입력을 해당 SDK의 규칙에 맞는 JSON-safe `HistoryItem[]`으로 변환합니다. 이미 JSON 객체인 입력은 검증 후 그대로 사용합니다.
-
-| 함수 | 입력 타입 | 반환 타입 | 실패 조건 | 예시 |
-|---|---|---|---|---|
-| `parse_history` | `str \\| bytes \\| JsonValue` | `HistorySpec` | 잘못된 JSON, duplicate key, 비JSON 값 | `parse_history(b'{\"messages\": []}')` |
-| `normalize_history` | `NativeHistory` | `HistorySpec` | 지원하지 않는 SDK 객체, 포맷 불일치 | `normalize_history(langchain_messages, format=\"langchain\")` |
-| `hash_message` | `JsonObject` 또는 `HistoryItem` | `str` | JSON-safe가 아님 | `hash_message(message)` |
-| `hash_history` | `HistorySpec` | `tuple[HistoryItem, ...]` | 포맷·버전·항목 검증 실패 | `hash_history(history)` |
-
-일반 텍스트는 `role`, tool call, content part, metadata를 보존하지 못하므로 `parse_history()`의 정식 입력으로 취급하지 않습니다. 텍스트 한 건을 사용하려면 호출자가 먼저 선택한 SDK 포맷의 메시지 객체로 감싸야 합니다.
-
-## 7. 세션 namespace
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `scope` | `Literal["global", "session"]` | 캐시 범위 | `"session"` |
-| `namespace_hash` | `str \| None` | session ID를 별도로 해싱한 namespace | `"7f8a...12"` |
-| `session_id` | `str \| None` | 호출 시에만 사용되는 원문 식별자 | `"session-123"` |
-
-최종 저장 계층은 다음 형태로 namespace를 적용할 수 있습니다.
-
-```text
-(global, history_hash)
-(session_namespace_hash, history_hash)
-```
-
-메시지 hash는 세션과 무관하므로, 세션이 달라도 메시지 단위 Detector 결과를 재사용할 수 있습니다. 반면 history 기반 결과는 namespace까지 확인해야 합니다.
-
-## 8. Detector·Masker 계약 캐시
-
-캐시 대상은 LLM 응답이 아니라 Detector가 민감 스팬을 탐지하고 Masker가 생성한 복원 계약입니다.
-
-### `RestorationEntry`
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `key` | `str` | Masker placeholder | `"SENSITIVE_DATA#a1b2c3d4"` |
-| `value` | `str` | 복원해야 하는 원문 span | `"<person-name>"` |
-
-### `TurnContract`
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `message_hash` | `str` | 계약이 생성된 메시지 식별자 | `"message-hash-2"` |
-| `history_hash` | `str` | 계약이 생성된 prefix 식별자 | `"history-hash-2"` |
-| `entries` | `list[RestorationEntry]` | placeholder와 원문 span 목록 | `[ {"key": "...", "value": "..."} ]` |
-| `detector_fingerprint` | `str` | Detector 모델·프롬프트·규칙 식별자 | `"detector-v1"` |
-| `masker_fingerprint` | `str` | Masker 계약 규칙 식별자 | `"masker-v1"` |
-
-상위 저장 계층의 개념적 매핑은 다음과 같습니다.
-
-```text
-cache namespace + history_hash
-  → encrypted TurnContract
-```
-
-## 9. 턴별 암호화
-
-low-level 유틸리티는 계약 payload를 턴 단위로 암호화할 수 있어야 합니다. 키와 키 수명은 호출자가 관리하며, 유틸리티가 키를 저장하거나 session ID에서 자동 파생하지 않습니다.
-
-### `EncryptedTurnContract`
-
-| 필드 | 타입 | 설명 | 예시 |
-|---|---|---|---|
-| `algorithm` | `Literal["aes-256-gcm", "chacha20-poly1305", "fernet"]` | 사용한 암호화 방식 | `"aes-256-gcm"` |
-| `key_id` | `str` | 호출자 키 저장소의 키 식별자 | `"key-2026-01"` |
-| `nonce` | `bytes` 또는 base64 `str` | 턴별 nonce | `"base64..."` |
-| `ciphertext` | `bytes` 또는 base64 `str` | 암호화된 계약 | `"base64..."` |
-| `associated_data` | `bytes` 또는 base64 `str` | hash·버전 인증 데이터 | `"base64..."` |
-
-암호화 대상은 `RestorationEntry[]`입니다. `message_hash`, `history_hash`, 포맷, 버전, Detector fingerprint는 associated data로 묶어 계약과 함께 검증합니다.
-
-DB에는 평문 계약을 저장하지 않으며, 실제 암호화 키 회전·보관·삭제는 상위 계층의 책임입니다.
-
-### 암호화 알고리즘 선택 이유
-
-세 알고리즘은 블록체인을 따르기 위해 고른 것이 아닙니다. 블록체인은 무결성·합의 구조이고, 여기서는 복원 계약의 기밀성과 변조 감지가 목적입니다.
-
-| 알고리즘 | 특징 | 용도 |
-|---|---|---|
-| `aes-256-gcm` | AEAD, 널리 지원되고 AES 하드웨어 가속을 활용할 수 있음 | 기본값 후보 |
-| `chacha20-poly1305` | AEAD, AES 가속이 없는 CPU·모바일 환경에서 안정적인 성능 | 자원 제한 환경 후보 |
-| `fernet` | AES-CBC와 HMAC을 묶은 고수준 호환 규격 | 기존 Fernet 시스템과의 호환 |
-
-### Hash와 암호화의 차이
-
-| 항목 | Hash | 암호화 |
-|---|---|---|
-| 목적 | 같은 입력인지 식별 | 원문을 숨긴 채 저장하고 나중에 복원 |
-| 결과 | 같은 입력이면 같은 결정론적 값 | nonce 때문에 같은 입력도 암호문이 달라질 수 있음 |
-| 복원 | 불가능 | 올바른 키로 가능 |
-| 이 명세의 사용 | `message_hash`, `history_hash` | `TurnContract.entries` |
-
-따라서 `history_hash`로 계약을 찾은 뒤, 별도의 키로 `encrypted_contract`를 복호화합니다. hash가 계약을 복호화하는 것이 아니며, 암호문을 hash로 대체할 수도 없습니다.
-
-### Masker 계약 재사용 주의
-
-현재 Masker의 placeholder는 요청마다 새로 생성될 수 있으므로 `message_hash`가 같다고 기존 계약을 그대로 붙이면 안 됩니다.
-
-| 상황 | 처리 |
+| 입력 자료 | 변환 방법 |
 |---|---|
-| 기존 계약 조회 | 저장된 placeholder와 원문 span 매핑을 함께 복호화 |
-| 같은 placeholder를 재사용 | 외부 모델에 보내는 텍스트가 저장된 계약의 key와 일치할 때만 허용 |
-| 새 placeholder 생성 | 새 계약을 생성하고 저장된 계약과 섞지 않음 |
-| 계약 key 불일치 | hydration 전에 cache miss 또는 fail-fast |
+| OpenAI 입력 메시지 | 런타임에서 이미 dict인 경우 그대로 검증 |
+| Anthropic 입력 메시지 | 런타임에서 이미 dict인 경우 그대로 검증 |
+| LiteLLM 응답 메시지 | `model_dump()` 또는 `to_dict()` 사용 |
+| LangChain 메시지 | `messages_to_dict()` 사용 후 결과 검증 |
+| 알 수 없는 객체 | 변환 방법이 없으면 거부 |
 
-### 계약 사례
+이 함수는 서로 다른 SDK의 메시지를 하나의 프로토콜로 바꾸지 않습니다. 선택한 `format`의 JSON 표현을 만들 뿐입니다. 이미 JSON 객체 배열로 들어온 값은 불필요하게 다시 바꾸지 않습니다.
 
-#### 사례 1: 민감 정보가 없는 턴
+## 5. 메시지 단위 hash
 
-```text
-메시지: "오늘 서울 날씨를 알려줘"
-Detector records: []
-TurnContract.entries: []
-```
-
-이 경우 복원할 값이 없으므로 계약 payload는 빈 배열입니다. 메시지와 prefix hash는 생성되지만 Masker 조회 결과는 비어 있습니다.
-
-#### 사례 2: 이름과 전화번호가 포함된 턴
+메시지 하나의 정규 JSON bytes를 SHA-256으로 해싱합니다.
 
 ```text
-메시지: "홍길동에게 010-0000-0000으로 연락해줘"
-Detector records:
-  - PERSON_NAME: "홍길동"
-  - PHONE_NUMBER: "010-0000-0000"
-TurnContract.entries:
-  - key: "SENSITIVE_DATA#..."
-    value: "홍길동"
-  - key: "SENSITIVE_DATA#..."
-    value: "010-0000-0000"
+message_hash = SHA256(RFC8785(message))
 ```
 
-외부 모델에는 두 원문 대신 두 placeholder만 전달됩니다. 응답에 placeholder가 그대로 돌아오면 계약으로 원문을 복원합니다.
+| 필드 | 타입 | 설명 | 예시 |
+|---|---|---|---|
+| `algorithm` | `Literal["sha256"]` | 사용할 hash 알고리즘 | `"sha256"` |
+| `canonicalization` | `Literal["rfc8785"]` | JSON을 bytes로 바꾸는 규격 | `"rfc8785"` |
+| `message_hash` | `str` | lowercase hexadecimal hash | `"a1b2...9f"` |
 
-#### 사례 3: 같은 메시지, 다른 이전 맥락
+다음 두 객체는 키 순서만 다르므로 같은 hash가 나옵니다.
+
+```json
+{"role":"user","content":"안녕","metadata":{"a":1,"b":2}}
+{"metadata":{"b":2,"a":1},"content":"안녕","role":"user"}
+```
+
+반대로 다음은 다른 hash입니다.
+
+```json
+{"role":"user","content":"안녕"}
+{"role":"user","content":"안녕","metadata":{"tag":"important"}}
+```
+
+## 6. 메시지별 누적 히스토리 hash
+
+각 메시지는 자기 `message_hash`와 그 메시지까지의 `history_hash`를 함께 가집니다.
+
+```text
+message_1 → message_hash_1
+          → history_hash_1 = message_hash_1
+
+message_2 → message_hash_2
+          → history_hash_2 = H(history_hash_1, message_hash_2)
+
+message_3 → message_hash_3
+          → history_hash_3 = H(history_hash_2, message_hash_3)
+```
+
+두 번째 메시지부터는 다음 JSON을 RFC 8785로 정규화한 뒤 SHA-256으로 해싱합니다.
+
+```json
+{
+  "schema": "history-prefix-v1",
+  "parent_history_hash": "history_hash_1",
+  "message_hash": "message_hash_2"
+}
+```
+
+### `HistoryItemHash`
+
+| 필드 | 타입 | 설명 | 예시 |
+|---|---|---|---|
+| `index` | `int` | 히스토리 안의 0부터 시작하는 위치 | `1` |
+| `kind` | `Literal["message", "compaction"]` | 일반 메시지인지 compaction 항목인지 | `"message"` |
+| `message_hash` | `str` | 현재 항목 하나의 hash | `"message-hash-2"` |
+| `history_hash` | `str` | 현재 항목까지의 누적 hash | `"history-hash-2"` |
+| `parent_history_hash` | `str \| None` | 직전 항목의 누적 hash | `"history-hash-1"` |
+
+### `hash_history()`
+
+| 항목 | 내용 |
+|---|---|
+| 입력 | `HistorySpec` |
+| 출력 | `tuple[HistoryItemHash, ...]` |
+| 동작 | 전체 입력을 한 번 순서대로 읽고 모든 메시지 hash와 누적 history hash를 생성 |
+| 상태 | 내부 캐시·DB·세션을 만들지 않음 |
+
+## 7. namespace와 session ID
+
+OpenAI Chat, Anthropic Messages, LiteLLM의 일반 메시지 배열에는 모두가 공통으로 사용하는 session ID 필드가 없습니다. LangChain 계열에서는 `thread_id`가 checkpointer 설정에 들어갈 수 있지만, 메시지 자체의 공통 필드는 아닙니다.
+
+따라서 session ID를 메시지에 억지로 추가하거나 history hash 안에 섞지 않습니다. 호출자가 별도의 `namespace` 또는 `session_id` 인자로 전달합니다.
+
+| 상황 | namespace |
+|---|---|
+| session ID를 전달하지 않음 | `"default"` |
+| session ID를 전달함 | 호출자가 정한 세션 namespace |
+| 히스토리 JSON 안에 session 정보가 있음 | 명시적으로 adapter가 읽도록 설정한 경우에만 사용 |
+| 세션 namespace 변경 | 같은 hash라도 다른 캐시 영역으로 처리 |
+
+최종 저장 계층에서 사용할 주소는 다음과 같습니다.
+
+```text
+(namespace, history_hash_n)
+```
+
+`message_hash`와 `history_hash`는 메시지 내용과 순서만으로 계산합니다. namespace를 별도로 두므로 첫 번째 항목의 `history_hash_1 == message_hash_1`을 항상 유지할 수 있습니다.
+
+namespace는 암호화 키가 아닙니다. 캐시 영역을 나누는 이름일 뿐입니다.
+
+## 8. Detector 결과와 복원 참조
+
+이 유틸리티가 재사용하려는 것은 LLM 응답이 아닙니다. Detector가 특정 메시지에서 발견한 민감 값과 Masker가 그 값을 다룰 수 있도록 만든 **참조 정보**입니다.
+
+최신 방향에서는 원문 값을 이 유틸리티나 캐시에 저장하지 않습니다. 상위 애플리케이션이 별도의 안전한 key-value 저장소에서 값을 관리하고, 이 유틸리티는 그 값을 찾기 위한 key와 hash만 다룹니다.
+
+### `DetectedValueReference`
+
+| 필드 | 타입 | 설명 | 예시 |
+|---|---|---|---|
+| `key` | `str` | 상위 key-value 저장소에서 사용할 논리적 key | `"user.phone"` |
+| `value_hash` | `str` | Detector가 찾은 값의 SHA-256 hash | `"9a8b...21"` |
+| `category` | `str` | Detector가 붙인 민감 정보 종류 | `"PHONE_NUMBER"` |
+| `start` | `int` | 원문 안에서 시작하는 위치 | `10` |
+| `end` | `int` | 원문 안에서 끝나는 위치 | `23` |
+| `message_hash` | `str` | 이 참조가 나온 메시지 hash | `"message-hash-2"` |
+| `detection_scope` | `Literal["message", "history"]` | 메시지만 보는지 이전 맥락도 보는지 | `"history"` |
+
+`value_hash`는 원문 값을 복원하지 않습니다. 상위 계층은 필요할 때 `key`로 값을 조회하고, 조회한 값이 `value_hash`와 일치하는지 확인한 뒤 Masker에 전달합니다.
+
+### 사례 1: 민감 값 하나
+
+```text
+입력 메시지: "홍길동에게 <phone-number>로 연락해줘"
+Detector 결과: PHONE_NUMBER = <phone-number>
+message_hash: message-A
+history_hash: history-A
+```
+
+참조 정보:
+
+```json
+{
+  "key": "user.phone",
+  "value_hash": "hash(<phone-number>)",
+  "category": "PHONE_NUMBER",
+  "start": 6,
+  "end": 20,
+  "message_hash": "message-A",
+  "detection_scope": "message"
+}
+```
+
+캐시에는 `<phone-number>` 원문을 저장하지 않습니다. 상위 key-value 저장소에서 `user.phone`을 조회합니다.
+
+### 사례 2: 한 메시지에 민감 값 두 개
+
+```text
+입력 메시지: "홍길동에게 <phone-number>로 연락하고 <email-address>로 안내해줘"
+```
+
+참조 목록:
+
+```json
+[
+  {
+    "key": "user.phone",
+    "value_hash": "hash(<phone-number>)",
+    "category": "PHONE_NUMBER",
+    "start": 6,
+    "end": 20,
+    "message_hash": "message-B",
+    "detection_scope": "message"
+  },
+  {
+    "key": "user.email",
+    "value_hash": "hash(<email-address>)",
+    "category": "EMAIL_ADDRESS",
+    "start": 27,
+    "end": 42,
+    "message_hash": "message-B",
+    "detection_scope": "message"
+  }
+]
+```
+
+메시지 하나에 여러 참조가 있을 수 있으므로 `entries` 같은 불명확한 이름 대신 `references` 또는 `detected_values`처럼 실제 의미가 드러나는 이름을 사용합니다.
+
+### 사례 3: 같은 메시지, 다른 이전 맥락
 
 ```text
 메시지: "이 내용을 요약해줘"
 message_hash: 동일
 
-이전 맥락 A: 공개 문서
+이전 대화 A: 공개 문서 설명
 history_hash: history-A
 
-이전 맥락 B: 내부 프로젝트 설명
+이전 대화 B: 내부 프로젝트 설명
 history_hash: history-B
 ```
 
-메시지 자체는 같으므로 `message_hash`는 같지만, Detector가 판단할 민감성·필수성·복원 계약은 맥락에 따라 달라질 수 있습니다. 따라서 context-dependent 결과는 `history_hash`까지 일치할 때만 재사용합니다.
+메시지 hash는 같지만 Detector의 결과가 항상 같다고 보장할 수는 없습니다.
 
-hash 유틸리티는 계약을 저장하지 않습니다. 상위 Masker 계층이 캐시된 계약을 사용할지, 새 계약을 만들지 결정해야 합니다.
+- `detection_scope="message"`인 형식·패턴 탐지 결과는 `message_hash`로 재사용할 수 있습니다.
+- `detection_scope="history"`인 문맥 탐지 결과와 필수성 판정은 `history_hash`까지 일치할 때만 재사용합니다.
 
-## 10. 캐시 검증 정책 후보
+### 사례 4: 반복되는 동일 값
 
-### A. hash + version + fingerprint
+같은 메시지 또는 여러 메시지에 동일한 값이 반복되면 상위 key-value 저장소의 같은 key를 참조할 수 있습니다. 다만 placeholder 문자열의 생성 규칙과 재사용은 Masker 계층이 책임집니다. hash 유틸리티가 임의의 placeholder를 만들거나 계약을 저장하지 않습니다.
 
-가장 안전한 기본 후보입니다. 메시지와 맥락뿐 아니라 처리 규칙이 동일한지 검증합니다.
+## 9. 암호화가 아닌 hash를 사용하는 이유
 
-| 검증 항목 | 목적 |
-|---|---|
-| `message_hash` | 메시지 동일성 |
-| `history_hash` | prefix 맥락 동일성 |
-| `format` | native 메시지 규격 동일성 |
-| `schema_version` | 유틸리티 규격 동일성 |
-| `detector_fingerprint` | 모델·프롬프트·탐지 규칙 동일성 |
-| `masker_fingerprint` | placeholder·계약 규칙 동일성 |
-| `key_id` | 복호화 키 회전 상태 확인 |
+이 유틸리티의 목표는 저장된 값을 다시 복호화하는 것이 아닙니다.
 
-### B. 두 hash만
+| 구분 | hash | 암호화 |
+|---|---|---|
+| 결과 | 같은 값인지 확인하는 식별자 | 키로 다시 읽을 수 있는 암호문 |
+| 원문 복원 | 불가능 | 가능 |
+| 현재 용도 | 메시지·히스토리·탐지 값 식별 | 사용하지 않음 |
+| 원문 값 보관 | 하지 않음 | 상위 key-value 저장소 책임 |
 
-구현은 단순하지만 Detector 모델·프롬프트·Masker 규칙이 바뀌어도 이전 계약을 재사용할 수 있습니다. low-level identity primitive로는 가능하지만 안전한 기본값으로는 부족합니다.
+따라서 `EncryptedTurnContract`, `nonce`, `ciphertext`, `associated_data` 같은 암호화 계약은 이 low-level 유틸리티에 포함하지 않습니다. 상위 저장소가 별도의 보안 저장 방식을 선택할 수 있지만, 그것은 이 유틸리티의 계약이 아닙니다.
 
-### C. 호출자 검증
+주의할 점도 있습니다. 전화번호나 이름처럼 후보가 적은 값에 일반 SHA-256만 적용하면 사전 대입으로 추측할 수 있습니다. hash가 외부에 노출될 수 있는 상위 시스템이라면 HMAC-SHA-256처럼 비밀 키를 사용하는 식별 방식을 별도로 검토해야 합니다. 이는 복호화가 아니라 hash 위조·추측을 어렵게 하는 보호 방식입니다.
 
-유틸리티는 hash만 반환하고 상위 애플리케이션이 모든 fingerprint와 버전을 검증합니다. 가장 유연하지만 호출자가 검증을 빠뜨릴 수 있습니다.
+## 10. Compaction 처리
 
-## 11. Compaction과 Longer-horizon
+외부 서비스에서 compaction을 표현하는 방법은 서로 다릅니다.
 
-Compaction으로 앞부분이 summary 메시지로 대체되면 실제 모델 입력이 달라집니다. 따라서 summary를 자동으로 원문과 의미적으로 동일하다고 간주하지 않습니다.
+| 시스템 | compaction 표현 | 우리 유틸리티의 처리 |
+|---|---|---|
+| Anthropic Messages | assistant 응답의 `compaction` content block | 전체 block을 보존하고 `kind="compaction"`으로 표시 |
+| OpenAI Responses | `type="compaction"`인 opaque output item | 내용을 해석하지 않고 원본 JSON을 그대로 hash |
+| LangChain | summary middleware가 오래된 메시지를 summary로 교체 | 명시된 summary 항목을 새 메시지로 처리 |
+| Semantic Kernel | history reducer가 절삭·요약 결과를 생성 | reducer가 반환한 항목을 입력으로 처리 |
+| LiteLLM | 공통 compaction 항목 없음 | 호출자가 명시한 항목만 compaction으로 표시 |
 
-### `CompactionCheckpoint`
+### `CompactionItem`
 
 | 필드 | 타입 | 설명 | 예시 |
 |---|---|---|---|
-| `format` | `str` | 히스토리 native 포맷 | `"openai-chat"` |
-| `schema_version` | `str` | checkpoint 규격 버전 | `"v1"` |
-| `covered_history_hash` | `str` | summary가 대체한 마지막 prefix | `"history-hash-20"` |
-| `summary_message_hash` | `str` | 새 summary 메시지 hash | `"summary-hash-1"` |
-| `source_message_count` | `int` | 대체된 원본 메시지 수 | `20` |
-| `lineage_mode` | `Literal["new-context", "anchored"]` | compaction 처리 방식 | `"new-context"` |
+| `kind` | `Literal["compaction"]` | compaction 항목임을 나타냄 | `"compaction"` |
+| `source` | `str` | 어느 SDK의 항목인지 | `"anthropic.content_block"` |
+| `payload` | `JsonObject` | 원본 compaction JSON | `{"type":"compaction", ...}` |
+| `covered_history_hash` | `str` | 대체된 마지막 누적 hash | `"history-hash-20"` |
+| `message_hash` | `str` | compaction 항목 자체의 hash | `"summary-hash-1"` |
+| `history_hash` | `str` | compaction 이후 새 누적 hash | `"history-hash-21"` |
 
-기본 동작은 다음과 같습니다.
+compaction 항목을 텍스트 내용만 보고 추측하지 않습니다. provider 표식이나 호출자의 명시적 표시가 없으면 일반 `kind="message"`로 처리합니다.
 
-- 이전 메시지의 `message_hash` 기반 Detector/Masker 계약은 재사용 가능
-- summary 이후의 context-dependent 판단은 새 `history_hash`로 검증
-- `covered_history_hash`는 이전 계약의 출처와 포함 범위를 검증하는 checkpoint
-- summary와 원문이 의미적으로 동등하다는 보장이 없으면 기존 history cache를 재사용하지 않음
+Compaction 이후에는 다음을 구분합니다.
 
-Blockchain의 hash chain, checkpoint, Merkle proof는 포함 관계와 무결성 검증에 참고할 수 있습니다. 그러나 semantic equivalence를 보장하지는 않으므로, compaction 결과의 의미 판단을 hash만으로 생략해서는 안 됩니다.
+- 이전 메시지의 `message_hash`로 Detector 탐지 참조를 재사용할 수 있음
+- compaction 이후의 문맥 판단은 새 `history_hash`로 확인함
+- `covered_history_hash`는 summary가 어떤 이전 범위를 대신하는지 나타냄
+- summary가 원문과 의미적으로 같다고 자동으로 가정하지 않음
 
-## 13. 외부 라이브러리 compaction 처리 스파이크
+## 11. 캐시 검증 선택지
 
-| 라이브러리/프로젝트 | compaction 표현 | 확인한 처리 방식 | 우리 설계에 주는 시사점 |
-|---|---|---|---|
-| Anthropic Messages | assistant 응답 안의 `compaction` content block | 다음 요청에 전체 assistant content를 다시 넣으면 compaction block 이전 내용은 서버가 무시 | provider-native `kind="compaction"`과 `covered_history_hash`를 보존해야 함 |
-| OpenAI Responses | `type="compaction"`인 opaque output item | compaction item을 해석·수정하지 않고 다음 요청 input에 그대로 전달 | opaque payload는 hash만 계산하고 내부 의미를 추측하지 않아야 함 |
-| LangChain | `SummarizationMiddleware`, `RemoveMessage` | 오래된 메시지를 summary로 교체하거나 삭제하며 checkpointer가 thread state를 저장 | summary 교체는 새 context이며 원본 lineage를 별도 보존해야 함 |
-| Semantic Kernel | `ChatHistoryReducer` | 오래된 메시지 절삭 또는 요약, 함수 호출 쌍·system 메시지 보존 옵션 | tool call 경계를 끊지 않는 reducer 규칙이 필요함 |
-| LiteLLM | 범용 compaction history block 없음 | OpenAI-compatible messages와 응답 캐시를 제공하지만 summary lineage는 호출자 책임 | 우리 유틸리티가 포맷·lineage 계약을 제공해야 함 |
+### 선택지 A: hash와 처리 규칙을 함께 확인
 
-외부 시스템마다 compaction 표현이 다르므로 임의 텍스트를 보고 compaction이라고 추측하면 안 됩니다. adapter가 provider-native 표식 또는 호출자가 명시한 compaction metadata를 확인한 경우에만 `kind="compaction"`으로 승격합니다. 표식이 없는 summary는 일반 `kind="message"`로 취급합니다.
-
-이 스파이크에서 확인한 기본 원칙은 다음과 같습니다.
-
-1. 원본 transcript와 prompt-time compacted history를 구분합니다.
-2. compaction 결과는 새 history context를 만들고, 대체 범위를 `covered_history_hash`로 기록합니다.
-3. 이전 메시지의 message-level Detector/Masker 계약은 재사용할 수 있습니다.
-4. compaction 이후의 context-dependent Detector 결과는 새 prefix history hash로 검증합니다.
-5. tool call과 tool result의 짝을 중간에서 끊지 않습니다.
-
-## 14. 스파이크 검증 계획
-
-최소 3턴의 동일한 일반 대화를 다음 native 형식으로 준비합니다.
-
-| Fixture | 검증 대상 |
+| 확인값 | 의미 |
 |---|---|
-| OpenAI Chat Completions | role, content, tool call, metadata 경계 |
-| Anthropic Messages | system 분리, content block, tool 결과 |
-| LiteLLM | OpenAI-compatible request와 response `model_dump()` |
-| LangChain Core | `BaseMessage` 변형, `messages_to_dict()` 왕복, `additional_kwargs` |
+| `message_hash` | 메시지 내용이 같은지 |
+| `history_hash` | 이전 대화 순서가 같은지 |
+| `format` | 같은 SDK 메시지 규격인지 |
+| `schema_version` | 같은 데이터 규격인지 |
+| `detector_fingerprint` | 같은 모델·prompt·탐지 규칙인지 |
+| `masker_fingerprint` | 같은 참조·placeholder 규칙인지 |
 
-각 fixture에서 다음을 확인합니다.
+가장 안전하지만 저장할 정보가 많습니다.
 
-1. JSON 문자열·bytes·객체 파싱
-2. 메시지 단위 분해
-3. 객체 키 순서 변경 시 동일 message hash
-4. 메시지 순서·content-part 순서 변경 시 다른 history hash
-5. 각 prefix의 `(message_hash, history_hash)` 생성
-6. metadata·tag·tool call 보존 여부
-7. 중복 키·바이너리·비정상 숫자의 fail-fast
-8. Detector/Masker 계약 조회에 사용할 수 있는 hash 연결
-9. compaction 전후 hash 단절과 checkpoint 검증
-10. 정적 interactive hashing demo에서 중간 결과 확인
+### 선택지 B: 두 hash만 확인
+
+`message_hash`와 `history_hash`만 비교합니다. 구현은 단순하지만 Detector 모델·prompt·Masker 규칙이 바뀐 뒤 이전 결과를 잘못 사용할 수 있습니다.
+
+### 선택지 C: 호출자가 처리 규칙 확인
+
+low-level 유틸리티는 hash만 제공하고, 상위 애플리케이션이 모델·prompt·규칙 버전을 확인합니다. 유연하지만 호출자 실수에 취약합니다.
+
+현재 초안의 권장 방향은 **선택지 A를 상위 캐시 계층의 기본 검증으로 사용하고, hash 함수 자체는 규칙 fingerprint를 알지 않는 것**입니다. hash 유틸리티는 stateless primitive로 남기고, 상위 Detector/Masker 저장 계층이 처리 규칙을 함께 검증합니다.
+
+## 12. 확인된 스파이크와 후속 검증
+
+확인한 native 입력:
+
+| 입력 | 확인 결과 |
+|---|---|
+| OpenAI SDK | 입력 MessageParam은 JSON dict 형태로 사용 가능 |
+| Anthropic SDK | 입력 MessageParam은 dict, 응답은 `model_dump()` 가능 |
+| LiteLLM | OpenAI-compatible dict와 `Message.model_dump()` 확인 |
+| LangChain Core | `messages_to_dict()`와 `messages_from_dict()` 왕복 확인 |
+
+후속 스파이크에서 확인할 것:
+
+1. 각 포맷별 3턴 fixture에서 JSON 읽기
+2. system, tool call, tool result, content part 보존
+3. 객체 키 순서만 바꾼 경우 같은 message hash
+4. 메시지 순서를 바꾼 경우 이후 history hash 변경
+5. duplicate key·바이너리·비정상 숫자의 fail-fast
+6. 메시지별 Detector 참조와 `message_hash` 연결
+7. 동일 메시지·다른 맥락에서 `message_hash`와 `history_hash` 분리
+8. provider-native compaction 항목의 `kind` 판별
+9. compaction 전후 `covered_history_hash` 검증
+10. 정적 interactive hash demo에서 각 중간 결과 표시
 
 ## Impact Surface
 
-- Code: 신규 low-level hash/parser/encryption 유틸리티의 설계 기준. 아직 구현하지 않음.
+- Code: 아직 구현하지 않은 stateless JSON 검증·메시지 hash·누적 history hash 유틸리티의 기준.
 - Skills: 변경 없음.
-- Docs: 캐시 hash 유틸리티의 현재 설계 문서.
-- Decisions: native 포맷별 독립 처리, RFC 8785, SHA-256, 선택적 session namespace, stateless 처리, per-turn 계약 암호화.
-- Archive/versioning: 사용자 검토 전 설계 초안이므로 별도 버전 보관 없음.
-- Verification: OpenAI·Anthropic·LiteLLM·LangChain 3턴 fixture 및 compaction 스파이크 계획을 명시함.
-- No-update rationale: SQLModel과 DB 저장 구조는 low-level 목표에서 제외함.
+- Docs: 이전의 모호한 `TurnContract`·암호화 계약 설명을 제거하고, hash와 Detector 복원 참조를 분리해 전면 재작성.
+- Decisions: native 포맷별 독립 처리, JSON 필드 보존, RFC 8785, SHA-256, 선택적 namespace, prefix hash, 원문 미저장.
+- Archive/versioning: 현재 문서가 설계 초안이므로 별도 버전 파일을 만들지 않음.
+- Verification: OpenAI·Anthropic·LiteLLM·LangChain 실제 메시지 변환 및 compaction 동작을 문서화함.
+- No-update rationale: SQLModel·Redis·암호화 저장소와 실제 Detector/Masker 연계 구현은 사용자 검토 이후 별도 구현 계획에서 다룸.
