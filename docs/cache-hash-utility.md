@@ -46,7 +46,7 @@ SDK native history
 
 각 히스토리는 생성 시 하나의 native 포맷과 스키마 버전을 고정합니다. 한 히스토리 안에서 OpenAI 객체, Anthropic 객체, LangChain 객체를 자동으로 섞지 않습니다.
 
-다만 하나의 포맷 안에서 여러 메시지 타입은 허용합니다. 예를 들어 OpenAI Chat Completions 히스토리는 `system`, `user`, `assistant`, `tool` 메시지를 함께 가질 수 있습니다.
+Anthropic의 `system`처럼 메시지 배열 밖에 있는 context-bearing 필드는 adapter가 정규화된 히스토리 항목으로 승격해야 합니다. OpenAI의 `tools`, `tool_choice`처럼 요청 전체에 속하지만 Detector가 해석하는 필드도 동일하게 처리합니다. 승격된 항목에는 출처를 나타내는 예약 필드를 넣되, 원본 값과 배열 순서는 보존합니다.
 
 | 필드 | 타입 | 설명 | 예시 |
 |---|---|---|---|
