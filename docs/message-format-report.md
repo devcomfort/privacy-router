@@ -4,6 +4,28 @@
 
 **조사 기준 버전:** `openai 2.54.0`, `anthropic 1.4.0`, `langchain-core 1.6.2`, 저장소의 `litellm 1.99.0`.
 
+## 버전과 식별 방식
+
+각 라이브러리의 메시지 타입에는 별도의 `schema_version` 필드가 없습니다. 따라서 캐시 유틸리티에서 라이브러리 버전을 곧바로 메시지 스키마 버전으로 사용하면 안 됩니다.
+
+| 라이브러리 | 조사한 패키지 버전 | 외부 API/내부 식별 방식 | 메시지 스키마 버전 필드 |
+|---|---:|---|---|
+| OpenAI Python SDK | `2.54.0` | OpenAPI 생성 `TypedDict` union과 Chat Completions endpoint | 없음 |
+| Anthropic Python SDK | `1.4.0` | `anthropic-version: 2023-06-01` API header와 generated `TypedDict` | 없음 |
+| LiteLLM | `1.99.0` | OpenAI-compatible message dict와 provider별 변환 | 없음 |
+| LangChain Core | `1.6.2` | `BaseMessage`의 `type` discriminator와 package serialization | 없음 |
+
+캐시 유틸리티는 다음을 별도로 기록해야 합니다.
+
+| 필드 | 타입 | 역할 | 예시 |
+|---|---|---|---|
+| `format` | `str` | native 입력 형식 | `"openai-chat"` |
+| `adapter_version` | `str` | 우리 adapter가 해석하는 형식 버전 | `"openai-adapter-v1"` |
+| `source_library_version` | `str \| None` | 진단·재현용 SDK 버전 | `"openai-2.54.0"` |
+| `api_version` | `str \| None` | 공급자 API 버전 | `"anthropic-2023-06-01"` |
+
+`adapter_version`이 hash 검증 기준입니다. SDK patch 버전이 바뀔 때마다 캐시를 무효화할 필요는 없고, 메시지 해석 결과가 바뀌는 adapter 변경 때만 올려야 합니다.
+
 ## 1. 핵심 결론
 
 1. 네 생태계 모두 JSON-safe 자료로 바꾸는 방법은 있다.
