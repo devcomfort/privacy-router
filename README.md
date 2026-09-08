@@ -150,6 +150,7 @@ uv run pytest -q
 - [`docs/user/masking-hydration.md`](docs/user/masking-hydration.md): 플레이스홀더 계약과 복원 규칙
 - [`docs/user/references.md`](docs/user/references.md): 프로젝트 참고 문헌
 - [`docs/experiments/README.md`](docs/experiments/README.md): 모델 평가·벤치 결과 색인
+- [`docs/message-format-report.md`](docs/message-format-report.md): 주요 채팅 SDK의 메시지 스키마와 export/import 코드 조사
 
 ## 라이선스 및 문의
 
