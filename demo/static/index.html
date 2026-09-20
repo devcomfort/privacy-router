@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <title>Privacy Router · 로컬 검사 도구</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 이동</a>
+  <div class="app-shell">
+    <header class="app-header">
+      <div><h1>Privacy Router <span>로컬 검사 도구</span></h1><p class="header-caption">정보 항목별 기밀성과 작업 필수성을 확인하고, 마스킹 전후를 비교합니다.</p></div>
+      <p class="model-status" id="model-status">모델 연결 정보 불러오는 중</p>
+    </header>
+    <div class="privacy-note">입력은 로컬 서버와 연결된 피어 모델에서 처리됩니다. 외부 서비스로 전송하거나 브라우저 저장소에 보관하지 않습니다. 라우터는 처리 단계와 권장 행동을 제공하며, 이 데모는 답변 생성이나 이메일·문자 발송을 하지 않습니다.</div>
+    <nav class="tabs" role="tablist" aria-label="검사 도구 보기">
+      <button id="tab-live" role="tab" aria-selected="true" aria-controls="panel-live" tabindex="0">직접 검사</button>
+      <button id="tab-history" role="tab" aria-selected="false" aria-controls="panel-history" tabindex="-1">과거 측정 결과</button>
+    </nav>
+    <main id="main">
+      <div id="status" class="status-line" role="status" aria-live="polite" aria-atomic="true">도구를 준비하고 있습니다. 아직 모델을 호출하지 않았습니다.</div>
+      <div id="error" class="error-box" role="alert" hidden></div>
+      <button id="bootstrap-retry" class="secondary" hidden>연결 정보 다시 불러오기</button>
+      <section id="panel-live" role="tabpanel" aria-labelledby="tab-live">
+        <div class="workbench">
+          <aside class="examples" aria-labelledby="examples-heading">
+            <h2 id="examples-heading">합성 예제로 시작</h2>
+            <p class="help">예제를 고르면 입력만 바뀝니다. 검사는 실행 버튼을 눌러 시작합니다.</p>
+            <div id="example-list" class="example-list"></div>
+            <p class="sidebar-note">예시의 예상 결과는 설명용입니다. 실제 모델의 검출 결과와 다를 수 있습니다.</p>
+          </aside>
+          <div class="workspace">
+            <form id="analyze-form" autocomplete="off">
+              <div class="section-heading"><h2>검사할 텍스트</h2><span id="character-count" class="minor">0 / 16,000자</span></div>
+              <div id="example-expectation" class="expectation" hidden></div>
+              <details id="context-details" class="context-details">
+                <summary>이전 대화 맥락 <span class="minor">선택 사항</span></summary>
+                <p class="help">위에서 아래로 대화 순서입니다. 이전 메시지도 현재 메시지와 함께 검사합니다.</p>
+                <div id="context-list"></div>
+                <button id="add-context" class="secondary small" type="button">이전 메시지 추가</button>
+              </details>
+              <div class="input-label"><label for="input-text">현재 메시지</label><label class="role-label" for="input-role">역할 <select id="input-role"><option value="user">사용자</option><option value="assistant">어시스턴트</option><option value="system">시스템</option></select></label></div>
+              <textarea id="input-text" rows="8" spellcheck="false" aria-describedby="input-help" placeholder="예제를 선택하거나 검사할 텍스트를 입력하세요."></textarea>
+              <p id="input-help" class="help">최대 12개 메시지 · 전체 16,000자. 입력만으로는 모델을 호출하지 않습니다.</p>
+              <div class="actions"><button id="run" class="primary" type="submit" disabled>검사 실행</button><button id="repeat" class="secondary" type="button" disabled>같은 입력 다시 실행</button><button id="reset" class="quiet" type="button" disabled>입력·캐시 초기화</button></div>
+              <p class="help cache-help">첫 실행은 의도 분석 후 공개·비공개 정보 항목을 추출합니다. 같은 입력을 다시 실행하면 메모리에만 보관한 의도를 보내 실제 추출 캐시를 확인합니다. 서버 캐시에는 해시·위치·판정 메타데이터만 남고 원문·의도·근거 문장은 저장하지 않습니다. 이전 설명은 입력·의도·판정이 같을 때만 이 브라우저 메모리에서 다시 표시하며, 입력 수정·초기화·오류 시 지웁니다.</p>
+            </form>
+            <section id="loading" class="loading" hidden aria-label="검사 실행 상태"><strong id="loading-title"></strong><p id="loading-detail" class="help"></p><ol id="progress-stages" class="progress-stages" aria-label="실제 처리 단계"></ol></section>
+            <section id="empty-state" class="empty-state" aria-labelledby="empty-heading"><h2 id="empty-heading">검사 결과가 여기에 표시됩니다</h2><p>예제를 선택하거나 텍스트를 입력한 뒤 <strong>검사 실행</strong>을 누르세요. 실제 처리 단계, 분석된 의도, 각 정보 항목의 기밀성·필수성과 근거, 권장 행동, 마스킹 결과를 확인할 수 있습니다.</p><p class="help">검사 상태와 권장 행동은 별개입니다. 근거가 부족하면 행동 권고를 보류하며 외부 전달은 차단합니다.</p></section>
+            <section id="results" class="results" aria-label="실제 검사 결과" hidden>
+              <div id="run-metadata" class="run-metadata"></div>
+              <section class="result-section intent-section" aria-labelledby="intent-heading"><div class="section-heading"><h2 id="intent-heading">분석된 작업 의도</h2><span id="intent-origin" class="minor"></span></div><p class="help">원문에 연결된 어노테이션을 추출의 근거로 사용합니다. 의도나 작업에 값이 필요하다는 판단은 공개·전송 허가가 아닙니다.</p><dl id="intent-fields" class="intent-fields"></dl></section>
+              <section class="outcome" aria-labelledby="outcome-heading"><div class="section-heading"><h2 id="outcome-heading">이번 검사의 권장 행동</h2><span class="minor">기밀성·필수성·전체 마스킹 영향 기준</span></div><div id="outcome-current"></div><details id="action-guide" class="action-guide"><summary>가능한 권장 행동 3가지 설명</summary><p class="help">아래는 선택 가능한 행동의 설명입니다. 이번 검사 결과는 위에 표시됩니다.</p><ul id="recommended-actions" class="recommended-actions"></ul></details></section>
+              <section class="result-section"><div class="section-heading"><h2>원문과 정보 항목</h2><span id="record-count" class="minor"></span></div><p class="help">공개 정보도 포함한 전체 세션의 정보 항목입니다. 기밀성과 작업 필수성은 별도 판단이며, 판단할 수 없으면 해당 축만 미판정으로 표시합니다. 공개 정보는 마스킹하지 않고 비공개·기밀성 미판정 정보는 보호합니다. 겹치는 위치에서는 비공개 보호가 우선합니다.</p><ul class="highlight-legend" aria-label="원문 강조 범례"><li><mark class="information-public">공개 · 점선 밑줄</mark></li><li><mark class="information-private">비공개 · 이중 밑줄</mark></li><li><mark class="information-unassessed">기밀성 미판정 · 파선 밑줄</mark></li></ul><p class="help">비공개·기밀성 미판정 값은 마스킹과 동일하게 반복 위치까지 강조합니다. 공개 값은 반환된 위치만 강조합니다. 반복 강조는 새 판정이 아니며, 아래 항목에는 추출기가 반환한 위치와 판단 근거를 표시합니다. 위치는 Unicode 코드 포인트 기준 [시작, 끝)입니다.</p><pre id="source-text" class="text-view source-text" tabindex="0" aria-label="정보 항목의 기밀성과 반복 보호 위치가 강조된 전체 원문"></pre><div id="records"></div></section>
+              <section class="result-section"><h2>Masker 출력</h2><pre id="masked-text" class="text-view" tabindex="0"></pre><details id="restoration"><summary>원문 복원 확인 <span id="round-trip" class="minor"></span></summary><p class="help">실제 Masker.hydrate 결과입니다. 복원된 민감정보가 포함될 수 있습니다.</p><pre id="restored-text" class="text-view" tabindex="0"></pre></details></section>
+              <section class="result-section sharing-section"><div class="section-heading"><h2>공유 전 검토용 텍스트</h2><button id="copy" class="secondary small" type="button" disabled>미리보기 복사</button></div><p id="sharing-reason" class="help"></p><pre id="sharing-text" class="text-view" tabindex="0" hidden></pre><p class="help">원문 전달 또는 마스킹 후 전달을 권장한 경우에만 표시합니다. 자동 검출에는 누락 가능성이 있으며, 이 화면은 외부로 전송하지 않습니다.</p></section>
+            </section>
+          </div>
+        </div>
+      </section>
+      <section id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+        <div class="history-intro"><h2>과거에 측정한 범위와 놓친 항목</h2><p>의도 분석을 도입하기 전, 추출만 실행한 합성 예제 실험입니다. 현재 입력의 결과나 의도 분석 → 추출 2단계 파이프라인의 성능을 보여 주지 않습니다.</p></div>
+        <div id="benchmark-loading" class="help">저장된 측정값을 불러오고 있습니다.</div>
+        <div id="benchmark" hidden><p id="benchmark-provenance" class="help"></p><div id="benchmark-summary" class="benchmark-summary"></div><div id="benchmark-caveat" class="benchmark-caveat"></div><h3>예제별 측정</h3><p class="help">각 행을 열어 합성 원문과 기대 구간을 확인하세요. 집계 수치로 실제 검출 구간을 만들어 표시하지 않습니다.</p><div id="benchmark-cases" class="benchmark-cases"></div></div>
+      </section>
+    </main>
+    <footer>PrivacyRouter · 의도 분석 → 캐시 → 추출 → 행동 권고 → 마스킹 <span>실제 실행 상태 전파 · 세션 단위 메타데이터 캐시</span></footer>
+  </div>
+</body>
+</html>

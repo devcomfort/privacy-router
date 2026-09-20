@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "demo": {
+      "type": "service",
+      "port": 8875,
+      "command": "uv run --frozen python demo/server.py --host 127.0.0.1 --host 100.69.181.62 --allow-network --port \"$PASEO_PORT\""
+    }
+  }
+}

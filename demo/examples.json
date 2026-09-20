@@ -1,0 +1,96 @@
+[
+  {
+    "id": "ko-contact",
+    "title": "연락 요청 · 채널 미정",
+    "description": "연락 수단을 정하지 않아도 모든 연락처를 가리면 실제 전달할 수 없는 요청입니다.",
+    "group": "personal",
+    "messages": [{"role": "user", "content": "김민수(010-1234-5678, minsu.kim@example.invalid)에게 회의 일정을 보내줘."}],
+    "expected_action": "keep_local",
+    "expected_spans": ["김민수", "010-1234-5678", "minsu.kim@example.invalid"],
+    "note": "합성 연락처입니다. 문자와 이메일 중 어느 값을 사용할지는 미정일 수 있지만, 모든 연락처를 가리면 일정 전달은 불가능하므로 로컬 처리를 기대합니다. 실제 판단을 강제하지 않습니다."
+  },
+  {
+    "id": "ko-contact-draft",
+    "title": "발송 없이 초안만 작성",
+    "description": "연락처가 있어도 실제 주소를 쓰거나 발송할 필요가 없는 작업입니다.",
+    "group": "personal",
+    "messages": [{"role": "user", "content": "김민수의 연락처는 010-1234-5678, minsu.kim@example.invalid입니다. 회의 일정을 안내하는 일반적인 메시지 초안만 작성해 주세요. 이름과 연락처는 자리표시자로 바꾸고, 실제 발송은 하지 마세요."}],
+    "expected_action": "mask_then_share",
+    "expected_spans": ["김민수", "010-1234-5678", "minsu.kim@example.invalid"],
+    "note": "합성 예시입니다. 초안에는 이름과 연락처의 실제 값이 필요하지 않아 마스킹 후 공개 가능을 기대합니다. 이 데모는 초안도 생성하지 않고 의도와 정보 항목의 기밀성·필수성을 검사합니다. 실제 판단은 모델 결과에 따릅니다."
+  },
+  {
+    "id": "ko-contact-email",
+    "title": "이메일로 명시적 발송",
+    "description": "이메일 주소가 발송 완료에 필요한 요청을 초안 작성과 비교합니다.",
+    "group": "essential",
+    "messages": [{"role": "user", "content": "김민수의 연락처는 010-1234-5678, minsu.kim@example.invalid입니다. 회의 일정을 minsu.kim@example.invalid로 이메일 발송해 주세요. 초안 작성이 아니라 해당 이메일 주소로 발송 완료하는 것이 목표이며, SMS는 보내지 마세요."}],
+    "expected_action": "keep_local",
+    "expected_spans": ["김민수", "010-1234-5678", "minsu.kim@example.invalid"],
+    "note": "합성 연락처입니다. 이메일 발송에는 실제 수신 주소가 필요하므로 값을 가리면 목표를 완료할 수 없다고 기대합니다. 전화번호까지 필요한 것은 아닙니다. 필수성은 공유 허가가 아니며, 이 데모는 이메일을 보내지 않습니다."
+  },
+  {
+    "id": "ko-contact-sms",
+    "title": "SMS로 명시적 발송",
+    "description": "전화번호가 필요한 SMS 요청에서 이메일과의 차이를 확인합니다.",
+    "group": "essential",
+    "messages": [{"role": "user", "content": "김민수의 연락처는 010-1234-5678, minsu.kim@example.invalid입니다. 회의 일정을 010-1234-5678로 SMS 발송해 주세요. 초안 작성이 아니라 해당 전화번호로 문자 발송 완료하는 것이 목표이며, 이메일은 보내지 마세요."}],
+    "expected_action": "keep_local",
+    "expected_spans": ["김민수", "010-1234-5678", "minsu.kim@example.invalid"],
+    "note": "합성 연락처입니다. SMS 발송에는 실제 전화번호가 필요하므로 값을 가리면 목표를 완료할 수 없다고 기대합니다. 이메일 주소까지 필요한 것은 아닙니다. 필수성은 공유 허가가 아니며, 이 데모는 문자를 보내지 않습니다."
+  },
+  {
+    "id": "ko-business",
+    "title": "내부 사업 결정",
+    "description": "번호 패턴이 아닌 내부 결정이라는 문맥에서 민감 정보를 찾습니다.",
+    "group": "contextual",
+    "messages": [{"role": "user", "content": "삼성전자 차세대 AP 개발 건으로, TSMC 3nm 공정을 채택하기로 내부적으로 결정했다."}],
+    "expected_action": null,
+    "expected_spans": ["삼성전자 차세대 AP 개발", "TSMC 3nm 공정을 채택하기로", "내부적으로 결정"],
+    "note": "과거 합성 평가 문장으로 실제 기업의 사실을 주장하지 않습니다. 수행할 작업이 명확하지 않아 권장 행동 보류를 기대합니다. 기대 span은 설명용이며 모델의 경계를 강제하지 않습니다."
+  },
+  {
+    "id": "essential-private-price",
+    "title": "값을 가리면 풀 수 없는 계산",
+    "description": "기밀 가격 자체가 계산에 필요한 경우를 확인합니다.",
+    "group": "essential",
+    "messages": [{"role": "user", "content": "아직 공개하지 않은 우리 회사의 인수 제안 가격은 42억원입니다. 이 기밀 가격에 15% 프리미엄을 더한 정확한 금액을 계산해 주세요."}],
+    "expected_action": "keep_local",
+    "expected_spans": ["42억원"],
+    "note": "합성 예시입니다. 계산은 실행하지 않고 정보 항목의 기밀성과 작업 필수성을 각각 검사합니다. 공개된 계산 조건은 비공개 가격과 구분해 표시합니다. 기대 정책은 모델 출력에 영향을 주지 않습니다."
+  },
+  {
+    "id": "public-request",
+    "title": "일반적인 공개 요청",
+    "description": "공개 정보도 항목별로 기밀성과 필수성을 검사하고, 원문 전달 여부를 표시합니다.",
+    "group": "public",
+    "messages": [{"role": "user", "content": "Summarize the plot of a classic novel about a detective in London."}],
+    "expected_action": "share_original",
+    "expected_spans": [],
+    "note": "과거 합성 평가 문장입니다. 공개 정보 항목이 반환되어도 마스킹 대상이라는 뜻은 아닙니다. 공개 정보가 작업에 필수일 수도 있습니다. 답변을 생성하지 않으며 기대 결과를 실제 결과로 사용하지 않습니다."
+  },
+  {
+    "id": "multi-message-confidential",
+    "title": "이전 대화의 기밀 문맥",
+    "description": "직전 메시지만이 아니라 이전 메시지의 비공개 정보까지 하나의 세션으로 검사합니다.",
+    "group": "contextual",
+    "messages": [
+      {"role": "user", "content": "다음은 외부에 공개되지 않은 합성 프로젝트 정보입니다. 내부 프로젝트명은 노을새이고, 출시 예정일은 2027년 3월 17일입니다."},
+      {"role": "assistant", "content": "비공개 프로젝트 정보로 이해했습니다."},
+      {"role": "user", "content": "앞서 말한 고유 이름과 날짜를 드러내지 않는 일반적인 진행 상황 문구로 바꿔 주세요."}
+    ],
+    "expected_action": "mask_then_share",
+    "expected_spans": ["노을새", "2027년 3월 17일"],
+    "note": "모든 내용은 합성입니다. 전체 대화가 검사되며 이전 문맥이 바뀌면 캐시를 재사용하지 않습니다. 기대 정책과 span은 설명일 뿐입니다."
+  },
+  {
+    "id": "repeated-unicode-contact",
+    "title": "반복 값 · 한글 경계",
+    "description": "유니코드 오프셋과 같은 값의 반복 출현을 마스킹·복원 화면에서 확인합니다.",
+    "group": "personal",
+    "messages": [{"role": "user", "content": "연락처 요약: 김민수의 이메일은 minsu.kim@example.invalid입니다. 회신 주소도 minsu.kim@example.invalid입니다. 이 값을 숨기고 문장 구조를 유지해 주세요."}],
+    "expected_action": "mask_then_share",
+    "expected_spans": ["김민수", "minsu.kim@example.invalid"],
+    "note": "합성 연락처입니다. 화면의 정보 항목은 실제 모델 결과이며, 비공개·기밀성 미판정 값을 마스킹합니다. 공개로 판단된 정보는 보존합니다. 기대 결과는 강제되지 않습니다."
+  }
+]
