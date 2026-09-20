@@ -1,0 +1,62 @@
+{
+  "runtime": {
+    "python": "3.13.1 unless noted",
+    "isolation": "uv run --no-project --isolated --with ...",
+    "fixture": "fixtures/three-turn.json"
+  },
+  "schema_probes": {
+    "openai": {
+      "versions": ["1.0.0", "1.54.0", "2.54.0"],
+      "observed": "The API type is a combined TypedDict with content/function_call/name/role in 1.0.0 and a six-member role-specific union in 2.54.0. 1.54.0 and 2.54.0 expose the same tested user/assistant/tool fields. The simple fixture was accepted as a dict-shaped wire request; fixture_shape in probe output is locally constructed, not an SDK-created object."
+    },
+    "anthropic": {
+      "versions": ["0.25.0", "0.49.0", "1.4.0"],
+      "observed": "MessageParam is a TypedDict with content/role fields in all tested versions. Request fields grew: thinking/tool_choice/tools appear by 0.49.0; cache_control/container/inference_geo/output_config/service_tier/user_profile_id/workspace_id appear by 1.4.0."
+    },
+    "langchain_core": {
+      "versions": ["0.2.0", "0.3.0", "1.6.2"],
+      "observed": "BaseMessage common fields remain content/additional_kwargs/response_metadata/type/name/id. Serialized envelope remains type/data; example is present in 0.x output and absent in 1.6.2, while AI data gains usage_metadata. Public messages_to_dict/messages_from_dict or the base-module compatibility location roundtrips the messages."
+    },
+    "litellm": {
+      "versions": ["1.54.0", "1.60.0", "1.85.0", "1.99.0"],
+      "observed": "OpenAI-compatible request messages remain dicts. Message model fields are audio/content/function_call/role/tool_calls in 1.54.0; provider_specific_fields appears by 1.60.0; reasoning/annotation/image fields appear in later tested versions."
+    }
+  },
+  "runtime_compatibility": {
+    "litellm_1.60.0_python_3.13": "Import failed because cgi was removed from Python 3.13.",
+    "litellm_1.60.0_python_3.12": "Imported and probe completed; Message fields were audio/content/function_call/provider_specific_fields/role/tool_calls."
+  },
+  "wire_probes": {
+    "openai": "POST /v1/chat/completions with JSON {model, messages}; same simple fixture shape observed at 1.0.0, 1.54.0, 2.54.0.",
+    "anthropic": "POST /v1/messages with JSON {model, max_tokens, system, messages}; anthropic-version 2023-06-01 observed at 0.25.0, 0.49.0, 1.4.0.",
+    "litellm": "Current 1.99.0 sent the full three-turn fixture to an OpenAI target and translated system/user/assistant strings to Anthropic text blocks for an Anthropic target. The Anthropic target path was captured as /v1/messages using a root api_base."
+  },
+  "langchain_probe": {
+    "version": "1.6.2",
+    "storage": "type/data envelope",
+    "openai_conversion": "BaseMessage values become role/content dicts; tool calls become OpenAI tool_calls."
+  },
+  "model_templates": {
+    "library": "transformers 5.17.0",
+    "models": {
+      "HuggingFaceTB/SmolLM2-135M-Instruct": {
+        "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+        "rendered": "<|im_start|>role\\ncontent<|im_end|> ... <|im_start|>assistant\\n"
+      },
+      "Qwen/Qwen2.5-0.5B-Instruct": {
+        "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+        "rendered": "<|im_start|>role\\ncontent<|im_end|> ... <|im_start|>assistant\\n"
+      },
+      "mistralai/Mistral-7B-Instruct-v0.2": {
+        "revision": "63a8b081895390a26e140280378bc85ec8bce07a",
+        "rendered": "<s> [INST] system\\n\\nuser [/INST] assistant</s>"
+      }
+    }
+  },
+  "compatibility_notes": [
+    "litellm 1.40.0 and 1.50.0 are not PyPI stable releases.",
+    "The wire probes use fake HTTP transports/localhost and never call a real provider.",
+    "The model template probe downloads tokenizer metadata only; no model weights or inference were used.",
+    "All schema, wire, LangChain, LiteLLM, and template probes now load the shared three-turn fixture; LangChain and tool probes add only the tool-specific messages required by their contract."
+  ]
+}

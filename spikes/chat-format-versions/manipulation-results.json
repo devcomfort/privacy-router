@@ -1,0 +1,4766 @@
+{
+  "generated_at_utc": "2026-09-12T06:01:42.145574+00:00",
+  "environment": {
+    "python": "3.13.1",
+    "os": "Linux",
+    "architecture": "aarch64",
+    "packages": {
+      "openai": "2.54.0",
+      "anthropic": "1.4.0",
+      "litellm": "1.99.0",
+      "langchain-core": "1.6.2",
+      "pydantic": "2.13.5",
+      "glom": "25.12.0",
+      "lenses": "1.2.0",
+      "packaging": "26.3"
+    }
+  },
+  "scope": {
+    "goal": "Extract native leaves and reinsert selected replacements without serializing or rebuilding SDK payloads.",
+    "preservation": "All observed unedited values, concrete types, dictionary order/keys, tuple/bytes, model extras, original field presence, private state and opaque identity. An edited originally-unset field becomes explicitly set. Source unchanged during apply, not a detached mutable clone. Immutable tuple identity is not a contract; mutable aliases/cycles are refused.",
+    "not_claimed": [
+      "All past/future SDK versions",
+      "OCR/audio/PDF inspection",
+      "Fetching URL/file-ID attachment contents",
+      "Decoding escaped JSON tool-argument substrings",
+      "Changing signed blocks while retaining valid signatures",
+      "Tool execution hooks or side effects",
+      "Remote provider acceptance",
+      "Arbitrary custom object internals or alias/cycle editing",
+      "Full provider schema validation after replacement"
+    ]
+  },
+  "common_protocol": {
+    "extract": "extract(payload) -> tuple[Slot, ...]",
+    "apply": "apply(payload, list[Patch]) -> native payload",
+    "caller_example": [
+      "def replace_selected(provider, payload, replacements):",
+      "    adapter = select_adapter(provider, make_editor('lenses'))",
+      "    slots = adapter.extract(payload)",
+      "    patches = [Patch(s, replacements[s.path]) for s in slots if s.path in replacements]",
+      "    return adapter.apply(payload, patches)"
+    ],
+    "production_files_modified": [],
+    "maintenance": "Add or change a provider semantic rule and its native fixtures/version registration; the extract/apply caller and path editor stay unchanged. Opaque new object types need a separate traversal rule."
+  },
+  "version_ranges": {
+    "openai": [
+      "==2.54.0"
+    ],
+    "anthropic": [
+      "==1.4.0"
+    ],
+    "litellm": [
+      "==1.99.0"
+    ],
+    "langchain-core": [
+      "==1.6.2"
+    ]
+  },
+  "copy_policies": {
+    "glom-copy": "deepcopy(root) for every set, then native glom Assign on that candidate. Copies unrelated branches and may change opaque-object identity or fail on file handles; custom deepcopy hooks can defeat isolation. Aliases within the copy remain aliases, so one mutation can affect another path. Native Assign cannot replace tuple items or an empty/root path. Replacement values are literal, not copied or evaluated as glom specs.",
+    "lenses": "Native functional set reconstructs changed ancestors through lenses hooks, normally copy.copy plus setitem/setattr; untouched branches and replacement values remain shared. This is not a fully detached clone. Custom copy/setter hooks and SDK metadata need preservation checks. Tuple item reconstruction uses plain tuple (subclass identity can be lost); dataclass attribute reconstruction uses dataclasses.replace. No global hooks are registered or patched."
+  },
+  "source_files": {
+    "probes/probe_manipulation.py": {
+      "sha256": "74f8e6cb74dbd2e9644dab6372d50e8fbd6908565e45014bba2960470b238277",
+      "nonblank_noncomment_lines": 352
+    },
+    "probes/manipulation/core.py": {
+      "sha256": "087dc40c260005b340c8a5617f5bde51169b94cec20aab42df78e47c953f5842",
+      "nonblank_noncomment_lines": 35
+    },
+    "probes/manipulation/engines.py": {
+      "sha256": "8547bd6e7e61ca77b37d3f2d66e4cee26b4d9678b50da38b2911a89ef306c309",
+      "nonblank_noncomment_lines": 83
+    },
+    "probes/manipulation/evidence.py": {
+      "sha256": "e4492a617bed1143d843d43473d9b4a3112c3a4e4d5de7d6398a3bde676058eb",
+      "nonblank_noncomment_lines": 64
+    },
+    "probes/manipulation/fixtures.py": {
+      "sha256": "6e7ea734f442c64f444623304db180c3bbbb2b2017296c4053f5e950f65bf46c",
+      "nonblank_noncomment_lines": 508
+    },
+    "probes/manipulation/native.py": {
+      "sha256": "c9db18f8ccdf56e5b430fcdb7c547d294cccd4c36007336a6388529d812e21b4",
+      "nonblank_noncomment_lines": 125
+    },
+    "probes/manipulation/semantics.py": {
+      "sha256": "f6b3d7c6e65e4a3dc943faf6eccec37c2e27871ab8f4862f16d1a63ea908f110",
+      "nonblank_noncomment_lines": 397
+    }
+  },
+  "sources": {
+    "editors": {
+      "glom-copy": [
+        "https://glom.readthedocs.io/en/latest/api.html#glom.T",
+        "https://glom.readthedocs.io/en/latest/api.html#glom.Val",
+        "https://glom.readthedocs.io/en/latest/mutation.html#glom.Assign",
+        "https://docs.python.org/3/library/copy.html"
+      ],
+      "lenses": [
+        "https://python-lenses.readthedocs.io/en/latest/api.html",
+        "https://github.com/ingolemo/python-lenses/blob/master/lenses/ui/base.py",
+        "https://github.com/ingolemo/python-lenses/blob/master/lenses/hooks/hook_funcs.py"
+      ]
+    },
+    "sdks": {
+      "openai": [
+        "https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion.py",
+        "https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py",
+        "https://github.com/openai/openai-python/blob/main/src/openai/types/responses/response.py",
+        "https://github.com/openai/openai-python/blob/main/src/openai/types/responses/response_function_tool_call.py",
+        "https://github.com/openai/openai-python/blob/main/src/openai/types/responses/response_input_item_param.py"
+      ],
+      "anthropic": [
+        "https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/message.py",
+        "https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/thinking_block.py",
+        "https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/tool_result_block_param.py"
+      ],
+      "litellm": [
+        "https://github.com/BerriAI/litellm/blob/main/litellm/types/utils.py",
+        "https://docs.litellm.ai/docs/completion/input"
+      ],
+      "langchain-core": [
+        "https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/messages/base.py",
+        "https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/messages/ai.py",
+        "https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/messages/tool.py"
+      ]
+    }
+  },
+  "native_sdk_cases": [
+    {
+      "case": "openai_request",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 42,
+      "categories": {
+        "control": 15,
+        "text": 3,
+        "attachment": 4,
+        "tool_request": 1,
+        "tool_result": 1,
+        "tool_definition": 8,
+        "metadata": 8,
+        "unknown": 2
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['stream']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['detail']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['file']['file_id']",
+          "editable": false,
+          "note": "file reference; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['content']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['messages'][3]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][3]['tool_call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['required'][0]",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['strict']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['unknown_extension']['text']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['unknown_extension']['null']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: {'messages': [{'content': 'Keep the original formatting.... (len=6)\n - Spec: Assign(T['metadata']['upload'][1], Val(b'\\x00[REDACTED]\\x80'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 2.259
+    },
+    {
+      "case": "openai_chat_completion",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 41,
+      "categories": {
+        "control": 16,
+        "unknown": 22,
+        "text": 2,
+        "tool_request": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.content",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.choices[0].message.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.annotations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.audio",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].function.arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].function.name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].message.annotations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.audio",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.tool_calls",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.created",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.system_fingerprint",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.choices[1].message.content",
+        "$.choices[0].message.tool_calls[0].function.arguments",
+        "$.__pydantic_extra__['extra_payload']['a.b']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 3.457
+    },
+    {
+      "case": "openai_responses_native_output",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 59,
+      "categories": {
+        "control": 23,
+        "unknown": 31,
+        "text": 2,
+        "metadata": 1,
+        "tool_request": 1,
+        "tool_definition": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.created_at",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.error",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.incomplete_details",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.instructions",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.metadata",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].content[0].annotations",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$.output[0].content[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].content[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[0].role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].phase",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.output[1].call_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].caller",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].namespace",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.parallel_tool_calls",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.temperature",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_choice",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tools",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$.top_p",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.background",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.completed_at",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.conversation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.max_output_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.max_tool_calls",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.previous_response_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.prompt",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_key",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_options",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_retention",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.reasoning",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.safety_identifier",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.text",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.top_logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.truncation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.user",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.output[0].content[0].text",
+        "$.output[1].arguments"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.246
+    },
+    {
+      "case": "openai_responses_function_output_request",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 14,
+      "categories": {
+        "control": 9,
+        "tool_request": 1,
+        "tool_result": 1,
+        "attachment": 1,
+        "text": 1,
+        "metadata": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['input'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][1]['call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['file_data']",
+          "editable": true,
+          "note": "encoded attachment; bytes are not decoded or inspected"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['filename']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['input'][0]['arguments']",
+        "$['input'][1]['output']",
+        "$['instructions']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.456
+    },
+    {
+      "case": "openai_chunk_transport_not_tested",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 20,
+      "categories": {
+        "control": 14,
+        "text": 1,
+        "unknown": 4,
+        "tool_request": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].delta.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].delta.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].function.arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].function.name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.created",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.system_fingerprint",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.choices[0].delta.content",
+        "$.choices[0].delta.tool_calls[0].function.arguments"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.951
+    },
+    {
+      "case": "openai_request",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 42,
+      "categories": {
+        "control": 15,
+        "text": 3,
+        "attachment": 4,
+        "tool_request": 1,
+        "tool_result": 1,
+        "tool_definition": 8,
+        "metadata": 8,
+        "unknown": 2
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['stream']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['detail']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['file']['file_id']",
+          "editable": false,
+          "note": "file reference; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['content']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['messages'][3]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][3]['tool_call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['required'][0]",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['strict']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['unknown_extension']['text']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['unknown_extension']['null']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['messages'][1]['content'][0]['text']",
+        "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+        "$['messages'][3]['content']",
+        "$['tools'][0]['function']['description']",
+        "$['metadata']['upload'][1]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.488
+    },
+    {
+      "case": "openai_chat_completion",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 41,
+      "categories": {
+        "control": 16,
+        "unknown": 22,
+        "text": 2,
+        "tool_request": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.content",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.choices[0].message.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.annotations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.audio",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].function.arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].function.name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].message.tool_calls[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[1].message.annotations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.audio",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[1].message.tool_calls",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.created",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.system_fingerprint",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.choices[1].message.content",
+        "$.choices[0].message.tool_calls[0].function.arguments",
+        "$.__pydantic_extra__['extra_payload']['a.b']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.883
+    },
+    {
+      "case": "openai_responses_native_output",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 59,
+      "categories": {
+        "control": 23,
+        "unknown": 31,
+        "text": 2,
+        "metadata": 1,
+        "tool_request": 1,
+        "tool_definition": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.created_at",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.error",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.incomplete_details",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.instructions",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.metadata",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].content[0].annotations",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$.output[0].content[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].content[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[0].role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[0].phase",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.output[1].call_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.output[1].caller",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].namespace",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.output[1].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.parallel_tool_calls",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.temperature",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_choice",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tools",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$.top_p",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.background",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.completed_at",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.conversation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.max_output_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.max_tool_calls",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.previous_response_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.prompt",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_key",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_options",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.prompt_cache_retention",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.reasoning",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.safety_identifier",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.text",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.top_logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.truncation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.user",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.output[0].content[0].text",
+        "$.output[1].arguments"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.225
+    },
+    {
+      "case": "openai_responses_function_output_request",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 14,
+      "categories": {
+        "control": 9,
+        "tool_request": 1,
+        "tool_result": 1,
+        "attachment": 1,
+        "text": 1,
+        "metadata": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][0]['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['input'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][1]['call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['file_data']",
+          "editable": true,
+          "note": "encoded attachment; bytes are not decoded or inspected"
+        },
+        {
+          "path": "$['input'][2]['content'][0]['filename']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['input'][0]['arguments']",
+        "$['input'][1]['output']",
+        "$['instructions']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.432
+    },
+    {
+      "case": "openai_chunk_transport_not_tested",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 20,
+      "categories": {
+        "control": 14,
+        "text": 1,
+        "unknown": 4,
+        "tool_request": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].delta.refusal",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.choices[0].delta.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].function.arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].function.name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].delta.tool_calls[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].finish_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].index",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.choices[0].logprobs",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.created",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.object",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.moderation",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.system_fingerprint",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.choices[0].delta.content",
+        "$.choices[0].delta.tool_calls[0].function.arguments"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.033
+    },
+    {
+      "case": "anthropic_message_signed_thinking",
+      "provider": "anthropic",
+      "editor": "glom-copy",
+      "slots": 41,
+      "categories": {
+        "control": 21,
+        "unknown": 15,
+        "text": 2,
+        "tool_request": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.container",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[0].signature",
+          "editable": false,
+          "note": "signed or redacted thinking; preserve the entire block"
+        },
+        {
+          "path": "$.content[0].thinking",
+          "editable": false,
+          "note": "signed thinking; preserve the entire block and signature"
+        },
+        {
+          "path": "$.content[0].type",
+          "editable": false,
+          "note": "signed or redacted thinking; preserve the entire block"
+        },
+        {
+          "path": "$.content[1].citations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].caller",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[2].input['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$.content[2].input['scale']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$.content[2].input['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.content[2].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].toolset_name",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.stop_details",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.stop_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.stop_sequence",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_creation",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_creation_input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_read_input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.inference_geo",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.output_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.output_tokens_details",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.server_tool_use",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.content[1].text",
+        "$.content[2].input['city']",
+        "$.__pydantic_extra__['extra_payload'][7]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.213
+    },
+    {
+      "case": "anthropic_native_tool_result_request",
+      "provider": "anthropic",
+      "editor": "glom-copy",
+      "slots": 38,
+      "categories": {
+        "control": 18,
+        "text": 1,
+        "tool_request": 1,
+        "tool_result": 1,
+        "attachment": 2,
+        "tool_definition": 5,
+        "metadata": 1,
+        "unknown": 9
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['max_tokens']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['system'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['system'][0]['cache_control']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['input']['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['tool_use_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['is_error']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['media_type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['data']",
+          "editable": true,
+          "note": "encoded attachment; bytes are not decoded or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['source']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['source']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['tools'][0]['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['system'][0]['text']",
+        "$['messages'][0]['content'][0]['input']['city']",
+        "$['messages'][1]['content'][0]['content'][0]['text']",
+        "$['tools'][0]['description']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.631
+    },
+    {
+      "case": "anthropic_message_signed_thinking",
+      "provider": "anthropic",
+      "editor": "lenses",
+      "slots": 41,
+      "categories": {
+        "control": 21,
+        "unknown": 15,
+        "text": 2,
+        "tool_request": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.container",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[0].signature",
+          "editable": false,
+          "note": "signed or redacted thinking; preserve the entire block"
+        },
+        {
+          "path": "$.content[0].thinking",
+          "editable": false,
+          "note": "signed thinking; preserve the entire block and signature"
+        },
+        {
+          "path": "$.content[0].type",
+          "editable": false,
+          "note": "signed or redacted thinking; preserve the entire block"
+        },
+        {
+          "path": "$.content[1].citations",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].caller",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.content[2].input['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$.content[2].input['scale']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$.content[2].input['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.content[2].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.content[2].toolset_name",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.model",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.stop_details",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.stop_reason",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.stop_sequence",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_creation",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_creation_input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.cache_read_input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.inference_geo",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.input_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.output_tokens",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.output_tokens_details",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.server_tool_use",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.usage.service_tier",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.content[1].text",
+        "$.content[2].input['city']",
+        "$.__pydantic_extra__['extra_payload'][7]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.226
+    },
+    {
+      "case": "anthropic_native_tool_result_request",
+      "provider": "anthropic",
+      "editor": "lenses",
+      "slots": 38,
+      "categories": {
+        "control": 18,
+        "text": 1,
+        "tool_request": 1,
+        "tool_result": 1,
+        "attachment": 2,
+        "tool_definition": 5,
+        "metadata": 1,
+        "unknown": 9
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['max_tokens']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['system'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['system'][0]['cache_control']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['content'][0]['input']['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['tool_use_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['is_error']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['media_type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['content'][1]['source']['data']",
+          "editable": true,
+          "note": "encoded attachment; bytes are not decoded or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['source']['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['source']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['tools'][0]['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['input_schema']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['extra_payload']['pair'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['pair'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload'][7]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['a.b']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['nullable']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['enabled']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][1]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['extra_payload']['upload'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['system'][0]['text']",
+        "$['messages'][0]['content'][0]['input']['city']",
+        "$['messages'][1]['content'][0]['content'][0]['text']",
+        "$['tools'][0]['description']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.315
+    },
+    {
+      "case": "litellm_request",
+      "provider": "litellm",
+      "editor": "glom-copy",
+      "slots": 42,
+      "categories": {
+        "control": 15,
+        "text": 3,
+        "attachment": 4,
+        "tool_request": 1,
+        "tool_result": 1,
+        "tool_definition": 8,
+        "metadata": 8,
+        "unknown": 2
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['stream']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['detail']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['file']['file_id']",
+          "editable": false,
+          "note": "file reference; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['content']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['messages'][3]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][3]['tool_call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['required'][0]",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['strict']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['unknown_extension']['text']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['unknown_extension']['null']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: {'messages': [{'content': 'Keep the original formatting.... (len=6)\n - Spec: Assign(T['metadata']['upload'][1], Val(b'\\x00[REDACTED]\\x80'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 2.052
+    },
+    {
+      "case": "litellm_native_message",
+      "provider": "litellm",
+      "editor": "glom-copy",
+      "slots": 18,
+      "categories": {
+        "text": 2,
+        "control": 4,
+        "tool_request": 1,
+        "unknown": 2,
+        "metadata": 8,
+        "attachment": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['function'].arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['function'].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.reasoning_content",
+          "editable": true,
+          "note": "unsigned reasoning text; provider-specific semantics may vary"
+        },
+        {
+          "path": "$.provider_specific_fields['pair'][0]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['pair'][1]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields[7]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['a.b']",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.provider_specific_fields['enabled']",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][0]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][2]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: Message(content='[EMAIL]; café', role='assistant', tool_calls=[...\n - Spec: Assign(T.provider_specific_fields['upload'][1], Val(b'[REDACTED]'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 1.059
+    },
+    {
+      "case": "litellm_request",
+      "provider": "litellm",
+      "editor": "lenses",
+      "slots": 42,
+      "categories": {
+        "control": 15,
+        "text": 3,
+        "attachment": 4,
+        "tool_request": 1,
+        "tool_result": 1,
+        "tool_definition": 8,
+        "metadata": 8,
+        "unknown": 2
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['model']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['stream']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][1]['image_url']['detail']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][2]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][1]['content'][3]['file']['file_id']",
+          "editable": false,
+          "note": "file reference; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$['messages'][2]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['content']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$['messages'][3]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][3]['tool_call_id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['description']",
+          "editable": true,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['required'][0]",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['strict']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['unknown_extension']['text']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['unknown_extension']['null']",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['messages'][1]['content'][0]['text']",
+        "$['messages'][2]['tool_calls'][0]['function']['arguments']",
+        "$['messages'][3]['content']",
+        "$['tools'][0]['function']['description']",
+        "$['metadata']['upload'][1]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.556
+    },
+    {
+      "case": "litellm_native_message",
+      "provider": "litellm",
+      "editor": "lenses",
+      "slots": 18,
+      "categories": {
+        "text": 2,
+        "control": 4,
+        "tool_request": 1,
+        "unknown": 2,
+        "metadata": 8,
+        "attachment": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.role",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['function'].arguments",
+          "editable": true,
+          "note": "json_text"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['function'].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.tool_calls[0].__pydantic_extra__['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$.function_call",
+          "editable": false,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.reasoning_content",
+          "editable": true,
+          "note": "unsigned reasoning text; provider-specific semantics may vary"
+        },
+        {
+          "path": "$.provider_specific_fields['pair'][0]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['pair'][1]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields[7]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['a.b']",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$.provider_specific_fields['enabled']",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][0]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$.provider_specific_fields['upload'][2]",
+          "editable": true,
+          "note": "provider metadata; no provider-specific interpretation"
+        },
+        {
+          "path": "$.__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.content",
+        "$.tool_calls[0].__pydantic_extra__['function'].arguments",
+        "$.provider_specific_fields['a.b']",
+        "$.provider_specific_fields['upload'][1]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.772
+    },
+    {
+      "case": "langchain_native_message_list",
+      "provider": "langchain-core",
+      "editor": "glom-copy",
+      "slots": 54,
+      "categories": {
+        "text": 3,
+        "metadata": 14,
+        "control": 21,
+        "attachment": 3,
+        "unknown": 2,
+        "tool_request": 2,
+        "tool_result": 9
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$[0].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[0].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[0].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$[1].additional_kwargs['pair'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['pair'][1]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs[7]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['a.b']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[1].additional_kwargs['enabled']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][2]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$[2].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[2].response_metadata['cache_hit']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['args']['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$[2].tool_calls[0]['args']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[2].tool_calls[0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].invalid_tool_calls",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[2].usage_metadata",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[3].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[3].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].tool_call_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].artifact['pair'][0]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['pair'][1]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact[7]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['a.b']",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[3].artifact['enabled']",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['upload'][0]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$[3].artifact['upload'][2]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: [SystemMessage(content='System for Alice', additional_kw... (len=4)\n - Spec: Assign(T[3].artifact['upload'][1], Val(b'[REDACTED]'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 2.176
+    },
+    {
+      "case": "langchain_runnable_input_dict",
+      "provider": "langchain-core",
+      "editor": "glom-copy",
+      "slots": 20,
+      "categories": {
+        "text": 1,
+        "metadata": 10,
+        "control": 3,
+        "tool_definition": 5,
+        "attachment": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$['messages'][0].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$['messages'][0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['metadata']['pair'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['pair'][1]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata'][7]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['a.b']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['enabled']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['upload'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['metadata']['upload'][2]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: {'messages': [HumanMessage(content='[EMAIL]; café', add... (len=3)\n - Spec: Assign(T['metadata']['upload'][1], Val(b'[REDACTED]'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 0.988
+    },
+    {
+      "case": "langchain_native_message_list",
+      "provider": "langchain-core",
+      "editor": "lenses",
+      "slots": 54,
+      "categories": {
+        "text": 3,
+        "metadata": 14,
+        "control": 21,
+        "attachment": 3,
+        "unknown": 2,
+        "tool_request": 2,
+        "tool_result": 9
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$[0].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[0].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[0].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[1]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].content[1]['image_url']['url']",
+          "editable": true,
+          "note": "URL/reference only; bytes are not fetched or inspected"
+        },
+        {
+          "path": "$[1].additional_kwargs['pair'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['pair'][1]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs[7]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['a.b']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[1].additional_kwargs['enabled']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$[1].additional_kwargs['upload'][2]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$[1].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[1].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[1].__pydantic_extra__['unknown_extension']['future']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$[2].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[2].response_metadata['cache_hit']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['name']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['args']['city']",
+          "editable": true,
+          "note": "native argument value"
+        },
+        {
+          "path": "$[2].tool_calls[0]['args']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[2].tool_calls[0]['id']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].tool_calls[0]['type']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[2].invalid_tool_calls",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[2].usage_metadata",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[3].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$[3].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].tool_call_id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$[3].artifact['pair'][0]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['pair'][1]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact[7]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['a.b']",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$[3].artifact['enabled']",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['upload'][0]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].artifact['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$[3].artifact['upload'][2]",
+          "editable": true,
+          "note": "local artifact; not necessarily sent to model"
+        },
+        {
+          "path": "$[3].status",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$[1].content[0]['text']",
+        "$[2].tool_calls[0]['args']['city']",
+        "$[3].content",
+        "$[3].artifact['upload'][1]",
+        "$[1].additional_kwargs['a.b']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 1.719
+    },
+    {
+      "case": "langchain_runnable_input_dict",
+      "provider": "langchain-core",
+      "editor": "lenses",
+      "slots": 20,
+      "categories": {
+        "text": 1,
+        "metadata": 10,
+        "control": 3,
+        "tool_definition": 5,
+        "attachment": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0].additional_kwargs",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$['messages'][0].response_metadata",
+          "editable": false,
+          "note": "empty_container"
+        },
+        {
+          "path": "$['messages'][0].type",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0].name",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['messages'][0].id",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['tools'][0]['type']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['name']",
+          "editable": false,
+          "note": "tool name or invocation/schema control"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['tools'][0]['function']['parameters']['properties']['city']['type']",
+          "editable": false,
+          "note": "tool schema; structural fields protected"
+        },
+        {
+          "path": "$['metadata']['pair'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['pair'][1]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata'][7]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['a.b']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['nullable']",
+          "editable": false,
+          "note": "explicit null or absent-field default; not textual content"
+        },
+        {
+          "path": "$['metadata']['enabled']",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['upload'][0]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        },
+        {
+          "path": "$['metadata']['upload'][1]",
+          "editable": true,
+          "note": "opaque bytes; whole-value replacement only; no OCR or content inspection"
+        },
+        {
+          "path": "$['metadata']['upload'][2]",
+          "editable": true,
+          "note": "native metadata; not normalized"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['messages'][0].content",
+        "$['tools'][0]['function']['description']",
+        "$['metadata']['upload'][1]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.584
+    }
+  ],
+  "boundary_cases": [
+    {
+      "case": "tuple_item_and_literal_keys",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 5,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "metadata": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(TypeError)",
+      "error": "error raised while processing, details below.\n Target-spec trace (most recent last):\n - Target: {'messages': [{'content': 'synthetic original', 'role': ... (len=2)\n - Spec: Assign(T['metadata']['pair'][0], Val('changed'))\nTypeError: 'tuple' object does not support item assignment",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 0.593,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "opaque_identity_unedited",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 3,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "unknown": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['extra_payload']",
+          "editable": false,
+          "note": "opaque native value; not inspected or editable"
+        }
+      ],
+      "status": "changed_unselected_data",
+      "changed_paths": [
+        "$['messages'][0]['content']"
+      ],
+      "unexpected_output_changes": [
+        "$['extra_payload']"
+      ],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.145,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "open_file_identity_and_position",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 5,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['attachment'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['attachment'][1]",
+          "editable": false,
+          "note": "opaque native value; not inspected or editable"
+        },
+        {
+          "path": "$['attachment'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "TypeError",
+      "error": "cannot pickle 'BufferedRandom' instances",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 0.119,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "private_state_and_omitted_field",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 3,
+      "categories": {
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['model_dump']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_private__",
+          "editable": false,
+          "note": "private_state"
+        }
+      ],
+      "status": "changed_unselected_data",
+      "changed_paths": [
+        "$.content"
+      ],
+      "unexpected_output_changes": [
+        "$.__pydantic_private__['_runtime']"
+      ],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.124,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "extra_field_colliding_with_method",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 3,
+      "categories": {
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['model_dump']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_private__",
+          "editable": false,
+          "note": "private_state"
+        }
+      ],
+      "status": "changed_unselected_data",
+      "changed_paths": [
+        "$.__pydantic_extra__['model_dump']"
+      ],
+      "unexpected_output_changes": [
+        "$.__pydantic_private__['_runtime']"
+      ],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.116,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "frozen_model",
+      "provider": "openai",
+      "editor": "glom-copy",
+      "slots": 1,
+      "categories": {
+        "unknown": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "GlomError.wrap(ValidationError)",
+      "error": "1 validation error for FrozenData\ncontent\n  Instance is frozen [type=frozen_instance, input_value='changed', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/frozen_instance",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 2.668,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "tuple_item_and_literal_keys",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 5,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "metadata": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['metadata']['pair'][0]",
+        "$['metadata']['a.b'][9]"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.284,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "opaque_identity_unedited",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 3,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "unknown": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['extra_payload']",
+          "editable": false,
+          "note": "opaque native value; not inspected or editable"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['messages'][0]['content']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.132,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "open_file_identity_and_position",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 5,
+      "categories": {
+        "control": 1,
+        "text": 1,
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$['messages'][0]['role']",
+          "editable": false,
+          "note": "protocol or linkage field"
+        },
+        {
+          "path": "$['attachment'][0]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$['attachment'][1]",
+          "editable": false,
+          "note": "opaque native value; not inspected or editable"
+        },
+        {
+          "path": "$['attachment'][2]",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$['messages'][0]['content']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.146,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "private_state_and_omitted_field",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 3,
+      "categories": {
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['model_dump']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_private__",
+          "editable": false,
+          "note": "private_state"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.content"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.13,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "extra_field_colliding_with_method",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 3,
+      "categories": {
+        "unknown": 3
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_extra__['model_dump']",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        },
+        {
+          "path": "$.__pydantic_private__",
+          "editable": false,
+          "note": "private_state"
+        }
+      ],
+      "status": "preserved",
+      "changed_paths": [
+        "$.__pydantic_extra__['model_dump']"
+      ],
+      "unexpected_output_changes": [],
+      "unexpected_source_changes": [],
+      "no_op_identity": true,
+      "elapsed_ms": 0.114,
+      "file_position_unchanged": true
+    },
+    {
+      "case": "frozen_model",
+      "provider": "openai",
+      "editor": "lenses",
+      "slots": 1,
+      "categories": {
+        "unknown": 1
+      },
+      "restricted_or_uninterpreted": [
+        {
+          "path": "$.content",
+          "editable": true,
+          "note": "unrecognized field; not semantically examined"
+        }
+      ],
+      "status": "unsupported",
+      "error_type": "ValidationError",
+      "error": "1 validation error for FrozenData\ncontent\n  Instance is frozen [type=frozen_instance, input_value='changed', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/frozen_instance",
+      "unexpected_source_changes": [],
+      "elapsed_ms": 0.094,
+      "file_position_unchanged": true
+    }
+  ],
+  "guard_scenarios": [
+    {
+      "case": "invalid_second_edit_is_atomic",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "native_type_change_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "stale_value_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "duplicate_edit_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "role_control_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "invalid_json_argument_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "shared_mutable_graph_explicitly_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "cyclic_graph_explicitly_rejected",
+      "editor": "glom-copy",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "invalid_second_edit_is_atomic",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "native_type_change_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "stale_value_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "duplicate_edit_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "role_control_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "invalid_json_argument_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "shared_mutable_graph_explicitly_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    },
+    {
+      "case": "cyclic_graph_explicitly_rejected",
+      "editor": "lenses",
+      "rejected": true,
+      "source_unchanged": true
+    }
+  ],
+  "unsupported_version_scenarios": [
+    {
+      "provider": "openai",
+      "version": "0.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "openai",
+      "version": "999.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "anthropic",
+      "version": "0.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "anthropic",
+      "version": "999.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "litellm",
+      "version": "0.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "litellm",
+      "version": "999.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "langchain-core",
+      "version": "0.0.0",
+      "rejected": true
+    },
+    {
+      "provider": "langchain-core",
+      "version": "999.0.0",
+      "rejected": true
+    }
+  ],
+  "timings": {
+    "caveat": "Offline synthetic fixtures; includes extraction/preflight for each apply, warm process, no statistical performance claim.",
+    "runs": [
+      {
+        "provider": "openai",
+        "editor": "lenses",
+        "case": "openai_request",
+        "iterations": 30,
+        "mean_ms": 0.4718,
+        "source_unchanged": true
+      },
+      {
+        "provider": "anthropic",
+        "editor": "glom-copy",
+        "case": "anthropic_message_signed_thinking",
+        "iterations": 30,
+        "mean_ms": 0.378,
+        "source_unchanged": true
+      },
+      {
+        "provider": "anthropic",
+        "editor": "lenses",
+        "case": "anthropic_message_signed_thinking",
+        "iterations": 30,
+        "mean_ms": 0.3173,
+        "source_unchanged": true
+      },
+      {
+        "provider": "litellm",
+        "editor": "lenses",
+        "case": "litellm_request",
+        "iterations": 30,
+        "mean_ms": 0.5635,
+        "source_unchanged": true
+      },
+      {
+        "provider": "langchain-core",
+        "editor": "lenses",
+        "case": "langchain_native_message_list",
+        "iterations": 30,
+        "mean_ms": 0.5103,
+        "source_unchanged": true
+      }
+    ]
+  },
+  "summary": {
+    "glom-copy": {
+      "unsupported": 5,
+      "preserved": 6
+    },
+    "lenses": {
+      "preserved": 11
+    }
+  },
+  "findings_ko": [
+    "직렬화 없이 원본 객체의 경로를 추출하고 선택한 값만 교체했다. JSON은 결과 기록과 도구 인자 문법 검사에만 사용했다.",
+    "lenses는 변경된 경로의 상위 객체만 복사하므로 수정하지 않은 파일 핸들과 private 객체의 동일성을 보존했다. 반환값은 완전히 독립된 복사본이 아니다.",
+    "glom Assign 자체는 제자리 변경이다. 비교용 deepcopy 래퍼는 튜플 항목 교체에 실패하고, 파일 핸들을 복사하지 못하며, 일부 수정하지 않은 객체의 동일성을 바꿨다.",
+    "LiteLLM 도구 호출의 function/id/type이 Pydantic extras에 저장되어 있었다. 물리적 저장 경로와 의미 분류를 분리해야 SDK별 차이를 국소적으로 처리할 수 있다.",
+    "첨부 데이터는 보존하거나 전체 bytes를 교체할 수 있지만 내부 개인정보 탐지까지 구현한 것은 아니다. 서명된 내용, 분할 스트림, 순환/공유 가변 객체는 별도 처리가 필요하다."
+  ]
+}

@@ -1,0 +1,9 @@
+# SDK versions match the prior native-shape spike; no production dependency changes.
+openai==2.54.0
+anthropic==1.4.0
+litellm==1.99.0
+langchain-core==1.6.2
+pydantic==2.13.5
+glom
+lenses
+packaging

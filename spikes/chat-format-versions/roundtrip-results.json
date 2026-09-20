@@ -1,0 +1,630 @@
+{
+  "generated_at_utc": "2026-09-11T05:51:29.765331+00:00",
+  "probe": "probes/probe_roundtrip.py",
+  "probe_sha256": "f2fdd371c6c8fc7551a70297a4e4c9644eb97487163759736543c61b5298fafd",
+  "scope": {
+    "libraries": "Four previously investigated library versions, restored under the same installed version and Python runtime.",
+    "data": "Synthetic chat histories / request dictionaries and SDK response-message objects. Text, image URL content blocks, tool calls/results, metadata, unknown fields, explicit null, omitted fields, and nested concrete types.",
+    "transport": "Actual json.dumps -> UTF-8 bytes -> json.loads. No HTTP requests or cross-provider conversion.",
+    "lossless_definition": "Public field values and Python types are equal; strict equality additionally requires identical model_fields_set recursively. Dictionary key order and private/client/runtime state are excluded.",
+    "request_dictionary_caveat": "Constructed JSON-compatible dict fixtures; equality establishes JSON roundtrip only, not provider API acceptance of extra fields.",
+    "not_tested": [
+      "Cross-version restoration",
+      "Arbitrary custom message subclasses",
+      "Streaming event/chunk reconstruction",
+      "Private SDK state",
+      "Cross-language JSON consumers"
+    ]
+  },
+  "conclusions": {
+    "summary_ko": "시험한 JSON 호환 메시지는 네 라이브러리 모두 값·타입·필드 지정 여부까지 보존하는 복원 경로가 확인됐다. 임의의 Python 자료 전체를 기본 JSON 경로로 무손실 복원할 수 있다는 뜻은 아니다.",
+    "openai": "Request dict roundtrip preserves JSON-compatible data. ChatCompletion.model_dump(mode=\"json\", exclude_unset=True) -> JSON -> ChatCompletion.model_validate preserves tested public fields, nested models, extras and field presence. Default export changes field presence only.",
+    "anthropic": "Request dict including top-level system roundtrips. Message.model_dump(mode=\"json\", exclude_unset=True) -> JSON -> Message.model_validate preserves tested public fields, content-block models, extras and field presence. Default export changes field presence only.",
+    "litellm": "Request dict and tested Message model roundtrip without loss through model_dump(mode=\"json\") or to_dict(), followed by JSON and Message.model_validate. Preserving-unset export also passes.",
+    "langchain-core": "messages_to_dict -> JSON -> messages_from_dict preserves tested values and message subclasses, but not original field presence. An explicit type/data envelope using model_dump(mode=\"json\", exclude_unset=True), then messages_from_dict, preserves both in the tested six message subclasses.",
+    "boundaries": "Untyped tuple metadata becomes list and integer dictionary keys become strings in all four probes. LangChain bytes artifact is not JSON serializable through the official helper path. These are observed loss/unsupported cases, not suppressed failures."
+  },
+  "runs": {
+    "openai": {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--isolated",
+        "--with",
+        "openai==2.54.0",
+        "python",
+        "spikes/chat-format-versions/probes/probe_roundtrip.py",
+        "openai"
+      ],
+      "report": {
+        "library": "openai",
+        "version": "2.54.0",
+        "python": "3.13.1",
+        "pydantic": "2.13.5",
+        "scope": "Same-version Python message/history data roundtrip via actual JSON UTF-8 bytes; not cross-provider conversion or HTTP API acceptance.",
+        "comparison": "Public values, nested concrete types, unknown fields, array order, and separately model_fields_set. JSON object key order and private/runtime/client state excluded.",
+        "cases": [
+          {
+            "case": "request_dict",
+            "route": "JSON-compatible request dict -> JSON UTF-8 -> dict",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 955
+          },
+          {
+            "case": "response_default_export",
+            "route": "model_dump(mode='json') -> JSON UTF-8 -> model_validate",
+            "status": "lossy",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.fields.choices.items[0].fields.message.fields_set",
+                "before": [
+                  "content",
+                  "role",
+                  "tool_calls"
+                ],
+                "after": [
+                  "annotations",
+                  "audio",
+                  "content",
+                  "function_call",
+                  "refusal",
+                  "role",
+                  "tool_calls"
+                ]
+              },
+              {
+                "path": "$.fields.choices.items[0].fields_set",
+                "before": [
+                  "finish_reason",
+                  "index",
+                  "message"
+                ],
+                "after": [
+                  "finish_reason",
+                  "index",
+                  "logprobs",
+                  "message"
+                ]
+              },
+              {
+                "path": "$.fields.choices.items[1].fields.message.fields_set",
+                "before": [
+                  "annotations",
+                  "content",
+                  "role"
+                ],
+                "after": [
+                  "annotations",
+                  "audio",
+                  "content",
+                  "function_call",
+                  "refusal",
+                  "role",
+                  "tool_calls"
+                ]
+              },
+              {
+                "path": "$.fields.choices.items[1].fields_set",
+                "before": [
+                  "finish_reason",
+                  "index",
+                  "message"
+                ],
+                "after": [
+                  "finish_reason",
+                  "index",
+                  "logprobs",
+                  "message"
+                ]
+              },
+              {
+                "path": "$.fields.usage.fields_set",
+                "before": [
+                  "completion_tokens",
+                  "prompt_tokens",
+                  "total_tokens"
+                ],
+                "after": [
+                  "completion_tokens",
+                  "completion_tokens_details",
+                  "prompt_tokens",
+                  "prompt_tokens_details",
+                  "total_tokens"
+                ]
+              },
+              {
+                "path": "$.fields_set",
+                "before": [
+                  "choices",
+                  "created",
+                  "extra_payload",
+                  "id",
+                  "model",
+                  "object",
+                  "usage"
+                ],
+                "after": [
+                  "choices",
+                  "created",
+                  "extra_payload",
+                  "id",
+                  "model",
+                  "moderation",
+                  "object",
+                  "service_tier",
+                  "system_fingerprint",
+                  "usage"
+                ]
+              }
+            ],
+            "utf8_bytes": 991
+          },
+          {
+            "case": "response_preserving_unset",
+            "route": "model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 668
+          },
+          {
+            "case": "non_json_python_metadata",
+            "route": "tuple / integer dict key in extra -> model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossy",
+            "values_and_types_equal": false,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.fields.extra_payload.items[0][1].items[0][0].type",
+                "before": "builtins.int",
+                "after": "builtins.str"
+              },
+              {
+                "path": "$.fields.extra_payload.items[0][1].items[0][0].value",
+                "before": 7,
+                "after": "7"
+              },
+              {
+                "path": "$.fields.extra_payload.items[1][1].type",
+                "before": "builtins.tuple",
+                "after": "builtins.list"
+              }
+            ],
+            "utf8_bytes": 586
+          }
+        ]
+      },
+      "stderr": ""
+    },
+    "anthropic": {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--isolated",
+        "--with",
+        "anthropic==1.4.0",
+        "python",
+        "spikes/chat-format-versions/probes/probe_roundtrip.py",
+        "anthropic"
+      ],
+      "report": {
+        "library": "anthropic",
+        "version": "1.4.0",
+        "python": "3.13.1",
+        "pydantic": "2.13.5",
+        "scope": "Same-version Python message/history data roundtrip via actual JSON UTF-8 bytes; not cross-provider conversion or HTTP API acceptance.",
+        "comparison": "Public values, nested concrete types, unknown fields, array order, and separately model_fields_set. JSON object key order and private/runtime/client state excluded.",
+        "cases": [
+          {
+            "case": "request_dict",
+            "route": "JSON-compatible request dict (including top-level system) -> JSON UTF-8 -> dict",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 956
+          },
+          {
+            "case": "response_default_export",
+            "route": "model_dump(mode='json') -> JSON UTF-8 -> model_validate",
+            "status": "lossy",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.fields.content.items[2].fields_set",
+                "before": [
+                  "id",
+                  "input",
+                  "name",
+                  "type"
+                ],
+                "after": [
+                  "caller",
+                  "id",
+                  "input",
+                  "name",
+                  "toolset_name",
+                  "type"
+                ]
+              },
+              {
+                "path": "$.fields.usage.fields_set",
+                "before": [
+                  "input_tokens",
+                  "output_tokens"
+                ],
+                "after": [
+                  "cache_creation",
+                  "cache_creation_input_tokens",
+                  "cache_read_input_tokens",
+                  "inference_geo",
+                  "input_tokens",
+                  "output_tokens",
+                  "output_tokens_details",
+                  "server_tool_use",
+                  "service_tier"
+                ]
+              },
+              {
+                "path": "$.fields_set",
+                "before": [
+                  "content",
+                  "extra_payload",
+                  "id",
+                  "model",
+                  "role",
+                  "stop_reason",
+                  "stop_sequence",
+                  "type",
+                  "usage"
+                ],
+                "after": [
+                  "container",
+                  "content",
+                  "extra_payload",
+                  "id",
+                  "model",
+                  "role",
+                  "stop_details",
+                  "stop_reason",
+                  "stop_sequence",
+                  "type",
+                  "usage"
+                ]
+              }
+            ],
+            "utf8_bytes": 860
+          },
+          {
+            "case": "response_preserving_unset",
+            "route": "model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 586
+          },
+          {
+            "case": "non_json_python_metadata",
+            "route": "tuple / integer dict key in extra -> model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossy",
+            "values_and_types_equal": false,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.fields.extra_payload.items[0][1].items[0][0].type",
+                "before": "builtins.int",
+                "after": "builtins.str"
+              },
+              {
+                "path": "$.fields.extra_payload.items[0][1].items[0][0].value",
+                "before": 7,
+                "after": "7"
+              },
+              {
+                "path": "$.fields.extra_payload.items[1][1].type",
+                "before": "builtins.tuple",
+                "after": "builtins.list"
+              }
+            ],
+            "utf8_bytes": 504
+          }
+        ]
+      },
+      "stderr": ""
+    },
+    "litellm": {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--isolated",
+        "--with",
+        "litellm==1.99.0",
+        "python",
+        "spikes/chat-format-versions/probes/probe_roundtrip.py",
+        "litellm"
+      ],
+      "report": {
+        "library": "litellm",
+        "version": "1.99.0",
+        "python": "3.13.1",
+        "pydantic": "2.13.5",
+        "scope": "Same-version Python message/history data roundtrip via actual JSON UTF-8 bytes; not cross-provider conversion or HTTP API acceptance.",
+        "comparison": "Public values, nested concrete types, unknown fields, array order, and separately model_fields_set. JSON object key order and private/runtime/client state excluded.",
+        "cases": [
+          {
+            "case": "request_dict",
+            "route": "JSON-compatible completion request dict -> JSON UTF-8 -> dict",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 955
+          },
+          {
+            "case": "response_default_export",
+            "route": "model_dump(mode='json') -> JSON UTF-8 -> model_validate",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 441
+          },
+          {
+            "case": "response_preserving_unset",
+            "route": "model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 441
+          },
+          {
+            "case": "response_to_dict",
+            "route": "to_dict() -> JSON UTF-8 -> model_validate",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 441
+          },
+          {
+            "case": "non_json_python_metadata",
+            "route": "tuple / integer dict key in provider_specific_fields -> model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> model_validate",
+            "status": "lossy",
+            "values_and_types_equal": false,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.fields.provider_specific_fields.items[0][1].items[0][0].type",
+                "before": "builtins.int",
+                "after": "builtins.str"
+              },
+              {
+                "path": "$.fields.provider_specific_fields.items[0][1].items[0][0].value",
+                "before": 7,
+                "after": "7"
+              },
+              {
+                "path": "$.fields.provider_specific_fields.items[1][1].type",
+                "before": "builtins.tuple",
+                "after": "builtins.list"
+              }
+            ],
+            "utf8_bytes": 160
+          }
+        ]
+      },
+      "stderr": "Downloading botocore (15.1MiB)\n Downloaded botocore\nInstalled 55 packages in 41ms\n"
+    },
+    "langchain-core": {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--isolated",
+        "--with",
+        "langchain-core==1.6.2",
+        "python",
+        "spikes/chat-format-versions/probes/probe_roundtrip.py",
+        "langchain-core"
+      ],
+      "report": {
+        "library": "langchain-core",
+        "version": "1.6.2",
+        "python": "3.13.1",
+        "pydantic": "2.13.5",
+        "scope": "Same-version Python message/history data roundtrip via actual JSON UTF-8 bytes; not cross-provider conversion or HTTP API acceptance.",
+        "comparison": "Public values, nested concrete types, unknown fields, array order, and separately model_fields_set. JSON object key order and private/runtime/client state excluded.",
+        "cases": [
+          {
+            "case": "messages_official_helpers",
+            "route": "messages_to_dict -> JSON UTF-8 -> messages_from_dict",
+            "status": "lossy",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.items[0].fields_set",
+                "before": [
+                  "content",
+                  "id"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "content",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "type"
+                ]
+              },
+              {
+                "path": "$.items[1].fields_set",
+                "before": [
+                  "additional_kwargs",
+                  "content",
+                  "extra_payload",
+                  "id",
+                  "name"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "content",
+                  "extra_payload",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "type"
+                ]
+              },
+              {
+                "path": "$.items[2].fields_set",
+                "before": [
+                  "content",
+                  "response_metadata",
+                  "tool_calls",
+                  "usage_metadata"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "content",
+                  "id",
+                  "invalid_tool_calls",
+                  "name",
+                  "response_metadata",
+                  "tool_calls",
+                  "type",
+                  "usage_metadata"
+                ]
+              },
+              {
+                "path": "$.items[3].fields_set",
+                "before": [
+                  "artifact",
+                  "content",
+                  "status",
+                  "tool_call_id"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "artifact",
+                  "content",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "status",
+                  "tool_call_id",
+                  "type"
+                ]
+              },
+              {
+                "path": "$.items[4].fields_set",
+                "before": [
+                  "content",
+                  "name"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "content",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "type"
+                ]
+              },
+              {
+                "path": "$.items[5].fields_set",
+                "before": [
+                  "content",
+                  "role"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "content",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "role",
+                  "type"
+                ]
+              }
+            ],
+            "utf8_bytes": 1675
+          },
+          {
+            "case": "messages_preserving_unset",
+            "route": "explicit type/data envelope using model_dump(mode='json', exclude_unset=True) -> JSON UTF-8 -> messages_from_dict",
+            "status": "lossless",
+            "values_and_types_equal": true,
+            "including_field_presence_equal": true,
+            "differences": [],
+            "utf8_bytes": 1194
+          },
+          {
+            "case": "non_json_python_metadata",
+            "route": "tuple / integer dict key in artifact -> messages_to_dict -> JSON UTF-8 -> messages_from_dict",
+            "status": "lossy",
+            "values_and_types_equal": false,
+            "including_field_presence_equal": false,
+            "differences": [
+              {
+                "path": "$.items[0].fields.artifact.items[0][1].items[0][0].type",
+                "before": "builtins.int",
+                "after": "builtins.str"
+              },
+              {
+                "path": "$.items[0].fields.artifact.items[0][1].items[0][0].value",
+                "before": 7,
+                "after": "7"
+              },
+              {
+                "path": "$.items[0].fields.artifact.items[1][1].type",
+                "before": "builtins.tuple",
+                "after": "builtins.list"
+              },
+              {
+                "path": "$.items[0].fields_set",
+                "before": [
+                  "artifact",
+                  "content",
+                  "tool_call_id"
+                ],
+                "after": [
+                  "additional_kwargs",
+                  "artifact",
+                  "content",
+                  "id",
+                  "name",
+                  "response_metadata",
+                  "status",
+                  "tool_call_id",
+                  "type"
+                ]
+              }
+            ],
+            "utf8_bytes": 247
+          },
+          {
+            "case": "binary_artifact",
+            "route": "bytes artifact -> messages_to_dict -> JSON UTF-8 -> messages_from_dict",
+            "status": "unsupported",
+            "stage": "JSON encoding",
+            "error": "TypeError: Object of type bytes is not JSON serializable"
+          }
+        ]
+      },
+      "stderr": ""
+    }
+  }
+}

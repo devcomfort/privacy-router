@@ -1,0 +1,14 @@
+[
+  {
+    "role": "system",
+    "content": "You are a concise assistant."
+  },
+  {
+    "role": "user",
+    "content": "Summarize the weather report."
+  },
+  {
+    "role": "assistant",
+    "content": "I need the report first."
+  }
+]
