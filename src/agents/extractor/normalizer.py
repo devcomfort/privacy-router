@@ -71,13 +71,13 @@ class EntityNormalizer:
                     uid=uid,
                     span=candidate.span,
                     offsets=offsets,
-                    reason=candidate.reason,
+                    confidentiality=candidate.confidentiality,
                     confidence=candidate.confidence,
                     native_label=candidate.native_label,
                     native_metadata=candidate.native_metadata,
                     detection_method=candidate.detection_method,
                     run_id=run.run_id,
-                    is_required=candidate.is_required,
+                    necessity=candidate.necessity,
                 )
             )
 

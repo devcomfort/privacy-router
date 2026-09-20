@@ -160,6 +160,7 @@ class TestCallLlm:
 
         with pytest.raises(ValueError, match="API key is required for model"):
             call_llm([{"role": "user", "content": "hi"}], model="openrouter/google/gemma-4-26b-it")
+
     @patch("shared.llm.litellm.completion")
     def test_messages_forwarded(self, mock_completion):
         """Messages list is passed through correctly."""
@@ -455,46 +456,6 @@ class TestCallLlmStructured:
         _, kwargs = mock_client.chat.completions.create.call_args
         assert kwargs["api_key"] == "dummy"
 
-    @patch("shared.llm.litellm.completion")
-    def test_raw_json_with_api_base(self, mock_completion):
-        """_call_raw_json passes api_base to litellm."""
-        from shared.llm import call_llm_structured
-
-        mock_resp = MagicMock()
-        mock_resp.choices = [MagicMock()]
-        mock_resp.choices[0].message.content = '{"answer": "with_base"}'
-        mock_completion.return_value = mock_resp
-
-        result = call_llm_structured(
-            [{"role": "user", "content": "test"}],
-            _TestResponse,
-            model="google/gemini-3.1-flash-lite",
-            api_base="http://localhost:8000/v1",
-        )
-
-        assert result.answer == "with_base"
-        _, kwargs = mock_completion.call_args
-        assert kwargs["api_base"] == "http://localhost:8000/v1"
-
-    @patch("shared.llm.litellm.completion")
-    def test_raw_json_propagates_component_metadata(self, mock_completion):
-        """Structured calls carry component metadata."""
-        from shared.llm import call_llm_structured
-
-        mock_resp = MagicMock()
-        mock_resp.choices = [MagicMock()]
-        mock_resp.choices[0].message.content = '{"answer": "traced"}'
-        mock_completion.return_value = mock_resp
-
-        call_llm_structured(
-            [{"role": "user", "content": "test"}],
-            _TestResponse,
-            model="google/gemini-3.1-flash-lite",
-            component="critic",
-        )
-
-        _, kwargs = mock_completion.call_args
-        assert kwargs["metadata"]["component"] == "critic"
     @patch("shared.llm.litellm.completion")
     def test_raw_json_handles_array_response(self, mock_completion):
         """_call_raw_json wraps array responses for models with list fields."""

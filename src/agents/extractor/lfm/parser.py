@@ -15,7 +15,7 @@ from ..parser import (
     required_string,
     valid_offsets,
 )
-from ..schemas import Requiredness
+from ..schemas import ConfidentialityJudgment, NecessityJudgment
 
 
 class LFMParser:
@@ -72,11 +72,15 @@ class LFMParser:
                     native_label=label,
                     span=span,
                     offsets=(start, end),
-                    reason=None,
+                    confidentiality=ConfidentialityJudgment(
+                        value="private", reason=f"LFM PII detector identified this span as {label}."
+                    ),
                     confidence=confidence(data.get("confidence", data.get("score"))),
                     detection_method="token_classifier",
                     native_metadata=metadata,
-                    is_required=Requiredness(value=None, reason="not assessed"),
+                    necessity=NecessityJudgment(
+                        value=None, reason="LFM detects PII but does not assess task necessity."
+                    ),
                 )
             )
         return parsed

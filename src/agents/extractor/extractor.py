@@ -1,38 +1,11 @@
-"""Extractor — Facade for the extraction pipeline.
-
-Composes ExtractorCore (Socratic extraction) + optional Critic (review)
-into a single interface. Judge is injected externally by the Router.
-
-Design
-------
-```
-Extractor (facade)
-  ├── ExtractorCore  — Socratic extraction (always)
-  └── Critic         — post-review (precision="high" only)
-```
-
-Both components are independently injectable for testing.
-
-Examples:
---------
->>> extractor = Extractor()                        # default
->>> extractor = Extractor(precision="high")        # with Critic review
->>> extractor = Extractor(critic=my_critic)        # inject custom Critic
->>> result = extractor.extract("주민등록번호 901212-1234567")
-"""
+"""Single-pass extraction facade and module-level convenience entry point."""
 
 from __future__ import annotations
 
-from typing import Literal
+from contracts.annotation import IntentAnnotation
 
-from .critic import Critic
-from .extractor_core import ExtractorCore, normalize_category
-from .schemas import (
-    ExtractionRecord,
-    ExtractionResult,
-    Sensitivity,
-    _CriticItem,
-)
+from .extractor_core import ExtractorCore
+from .schemas import ExtractionResult
 
 _DEFAULT_EXTRACTOR: Extractor | None = None
 """Module-level singleton, populated on first call to :func:`extract`."""
@@ -46,8 +19,6 @@ class Extractor:
 
     Parameters
     ----------
-    precision : "default" | "high"
-        Extraction precision. "high" enables Critic post-review.
     model : str or None
         Override the model for extraction.
     api_base : str or None
@@ -56,155 +27,62 @@ class Extractor:
         Override the configured completion-token budget.
     core : ExtractorCore or None
         Inject a custom ExtractorCore (for testing).
-    critic : Critic or None
-        Inject a custom Critic (for testing). Auto-created if precision="high".
     """
 
     def __init__(
         self,
-        precision: Literal["default", "high"] = "default",
         model: str | None = None,
         api_base: str | None = None,
         prompt_path: str | None = None,
         core: ExtractorCore | None = None,
-        critic: Critic | None = None,
         max_tokens: int | None = None,
     ) -> None:
-        """Configure the extraction facade and optional critic.
+        """Configure single-pass extraction.
 
         Args:
-            precision: ``"default"`` for one pass or ``"high"`` for critic
-                review.
             model: Optional extraction model override.
             api_base: Optional model endpoint override.
             prompt_path: Optional ExtractorCore prompt path.
             core: Optional injected ExtractorCore.
-            critic: Optional injected Critic.
             max_tokens: Optional completion-token limit.
         """
-        self._precision = precision
         self._core = core or ExtractorCore(
             model=model,
             api_base=api_base,
             prompt_path=prompt_path,
             max_tokens=max_tokens,
         )
-        self._critic = (
-            critic
-            if critic is not None
-            else (Critic(model=model, api_base=api_base, max_tokens=max_tokens) if precision == "high" else None)
-        )
 
-    @property
-    def precision(self) -> str:
-        """Return the configured extraction precision."""
-        return self._precision
-
-    def extract(self, text: str) -> ExtractionResult:
-        """Extract sensitive information from text.
+    def extract(self, text: str, *, intent: IntentAnnotation | None = None) -> ExtractionResult:
+        """Extract public and private information with independent task judgments.
 
         Parameters
         ----------
         text : str
             The raw text to analyse.
+        intent : IntentAnnotation or None
+            Source-bound task evidence; absent intent leaves necessity unassessed.
 
         Returns:
         -------
         ExtractionResult
             Sensitivity assessment and validated records.
         """
-        # Phase 1: Socratic extraction
-        result = self._core.extract(text)
-
-        # Phase 2: Critic review (high precision only)
-        # Runs on any non-empty text, regardless of Phase 1 results.
-        # Critic's job: catch what Phase 1 missed, including when it missed EVERYTHING.
-        if self._critic and text and text.strip():
-            review = self._critic.review(text, result.records)
-            if review.found_missed:
-                validated = _validate_critic_records(review.missed_records, text, result.records)
-                if validated:
-                    result = ExtractionResult(
-                        sensitivity=Sensitivity(
-                            is_sensitive=True,
-                            rationale=result.sensitivity.rationale or "Critic에서 민감 정보 발견.",
-                        ),
-                        records=result.records + validated,
-                    )
-                # If Critic found records but all failed validation,
-                # keep the original result (don't set is_sensitive=True
-                # with empty records).
-
-        return result
-
-
-# ── Validation ────────────────────────────────────────────────────────────────
-
-
-def _validate_critic_records(
-    missed: list[_CriticItem],
-    original_text: str,
-    existing: list[ExtractionRecord],
-) -> list[ExtractionRecord]:
-    """Convert and validate critic-found records.
-
-    Applies the same bar as ExtractorCore:
-    - SCREAMING_SNAKE_CASE category check
-    - Span exists in original text
-    - Confidence >= 0.5
-    - Deduplication against existing records
-    - Computes start/end positions
-    """
-    seen_spans = {r.span for r in existing}
-    validated = []
-
-    for item in missed:
-        # Dedup
-        if item.span in seen_spans:
-            continue
-
-        span = item.span.strip()
-        if not span:
-            continue
-
-        cat = normalize_category(item.category, span)
-        if cat is None:
-            continue
-        if span not in original_text:
-            continue
-        if item.confidence < 0.5:
-            continue
-
-        start = original_text.find(span)
-        validated.append(
-            ExtractionRecord(
-                category=cat,
-                span=span,
-                confidence=item.confidence,
-                detection_type=item.detection_type,
-                reasoning=item.reasoning or "",
-                is_required=item.is_required,
-                start=start,
-                end=start + len(span),
-            )
-        )
-        seen_spans.add(span)
-
-    return validated
+        return self._core.extract(text, intent=intent)
 
 
 # ── Module-level convenience ─────────────────────────────────────────────────
 
 
-def extract(text: str, precision: Literal["default", "high"] = "default") -> ExtractionResult:
+def extract(text: str, *, intent: IntentAnnotation | None = None) -> ExtractionResult:
     """One-shot extraction using a shared :class:`Extractor` instance.
 
     Parameters
     ----------
     text : str
         The raw text to analyse.
-    precision : "default" | "high"
-        Extraction precision.
+    intent : IntentAnnotation or None
+        Source-bound task evidence; absent intent leaves necessity unassessed.
 
     Returns:
     -------
@@ -212,6 +90,6 @@ def extract(text: str, precision: Literal["default", "high"] = "default") -> Ext
         Sensitivity assessment and validated records.
     """
     global _DEFAULT_EXTRACTOR
-    if _DEFAULT_EXTRACTOR is None or _DEFAULT_EXTRACTOR.precision != precision:
-        _DEFAULT_EXTRACTOR = Extractor(precision=precision)
-    return _DEFAULT_EXTRACTOR.extract(text)
+    if _DEFAULT_EXTRACTOR is None:
+        _DEFAULT_EXTRACTOR = Extractor()
+    return _DEFAULT_EXTRACTOR.extract(text, intent=intent)

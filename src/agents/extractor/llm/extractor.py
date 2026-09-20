@@ -5,19 +5,20 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from config import is_trusted_local_api_base, load_config
 from shared.llm import call_llm_structured, load_prompt, render_prompt
 
 from ..normalizer import EntityNormalizer
-from ..schemas import DetectionResult, DetectorRunProvenance, LLMDetectorRun, Requiredness
+from ..parser import confidentiality_judgment, necessity_judgment
+from ..schemas import ConfidentialityJudgment, DetectionResult, DetectorRunProvenance, LLMDetectorRun, NecessityJudgment
 from .parser import DetectorParseError, LLMParser
 
 _PROMPT_PATH = Path(__file__).with_name("llm_extract.prompt")
-_DETECTOR_ID = "privacy-router-llm-extractor-v1-0-0"
-_ADAPTER_VERSION = "privacy-router-llm-adapter-v1-0-0"
-_PROMPT_VERSION = "privacy-router-llm-prompt-v1-0-0"
+_DETECTOR_ID = "privacy-router-llm-extractor-v2-0-0"
+_ADAPTER_VERSION = "privacy-router-llm-adapter-v2-0-0"
+_PROMPT_VERSION = "privacy-router-llm-prompt-v2-0-0"
 
 
 class LLMRecord(BaseModel):
@@ -27,17 +28,25 @@ class LLMRecord(BaseModel):
     kind: str
     span: str = Field(min_length=1)
     offsets: tuple[int, int] | None = None
-    reason: str | None = None
+    confidentiality: ConfidentialityJudgment
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-    )
+    necessity: NecessityJudgment
+
+    @field_validator("confidentiality", mode="before")
+    @classmethod
+    def require_confidentiality_reason(cls, value: object) -> ConfidentialityJudgment:
+        return confidentiality_judgment(value)
+
+    @field_validator("necessity", mode="before")
+    @classmethod
+    def require_necessity_reason(cls, value: object) -> NecessityJudgment:
+        return necessity_judgment(value)
 
 
 class LLMExtractionOutput(BaseModel):
     """Complete structured response requested from the LLM backend."""
 
-    records: list[LLMRecord] = Field(default_factory=list)
+    records: list[LLMRecord] = Field(...)
 
 
 StructuredCall = Callable[..., object]

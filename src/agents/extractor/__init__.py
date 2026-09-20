@@ -1,16 +1,14 @@
 """Privacy Router extractor package.
 
-The package contains the current pipeline compatibility surface and the new
-backend-independent detector contract. ``LLMExtractor``, ``PresidioExtractor``,
-``OPFExtractor``, and ``LFMExtractor`` all return ``DetectionResult`` objects
-with normalized ``PrivacyEntity`` values. The current ``Extractor`` facade,
-``ExtractorCore``, and ``Critic`` remain available until the planned Judge and
-Router cutover.
+The package contains the extraction facade and backend-independent detector
+contract. ``LLMExtractor``, ``PresidioExtractor``, ``OPFExtractor``, and
+``LFMExtractor`` all return ``DetectionResult`` objects with normalized
+``PrivacyEntity`` values. ``Extractor`` uses ``ExtractorCore`` for single-pass
+extraction.
 
 No detector performs masking, unmasking, policy decisions, or persistence.
 """
 
-from .critic import Critic
 from .extractor import Extractor, extract
 from .extractor_core import ExtractorCore, PrivacyAnalysisUnavailable, normalize_category
 from .lfm import LFMExtractor, LFMParser
@@ -21,6 +19,7 @@ from .parser import DetectorParseError, DetectorParser, ParsedEntity
 from .presidio import PresidioExtractor, PresidioParser
 from .registry import DetectorRegistry, PrivacyExtractor
 from .schemas import (
+    ConfidentialityJudgment,
     DetectionResult,
     DetectorRunBase,
     DetectorRunProvenance,
@@ -28,17 +27,16 @@ from .schemas import (
     ExtractionResult,
     LFMDetectorRun,
     LLMDetectorRun,
+    NecessityJudgment,
     OPFDetectorRun,
     PresidioDetectorRun,
     PrivacyEntity,
     RecognizerDescriptor,
-    Requiredness,
     Sensitivity,
     redact_extraction_records,
 )
 
 __all__ = [
-    "Critic",
     "ExtractorCore",
     "PrivacyAnalysisUnavailable",
     "Extractor",
@@ -49,7 +47,8 @@ __all__ = [
     "redact_extraction_records",
     "extract",
     # detector contract
-    "Requiredness",
+    "ConfidentialityJudgment",
+    "NecessityJudgment",
     "PrivacyEntity",
     "DetectionResult",
     "DetectorRunBase",

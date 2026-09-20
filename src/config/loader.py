@@ -199,32 +199,6 @@ def resolve_local_api_base(
     return api_base
 
 
-def resolve_generation_binding(
-    config: PrivacyRouterConfig,
-    policy_action: str,
-    requested: str | None = None,
-) -> tuple[str, dict[str, Any], str | None]:
-    """Bind generation to a registry model without crossing location boundaries."""
-    if policy_action == "block":
-        model_id = config.local.model
-        return (
-            model_id,
-            config.local.config.model_dump(),
-            resolve_local_api_base(config, model_id, config.local.api_base),
-        )
-
-    model_id = requested or config.external.model
-    spec = resolve_model(config, model_id)
-    if spec.location != "external":
-        raise ValueError(f"External generation requires an external model: {model_id}")
-    configured_api_base = config.external.api_base if model_id == config.external.model else None
-    return (
-        model_id,
-        config.external.config.model_dump(),
-        resolve_api_base(config, model_id, configured_api_base),
-    )
-
-
 # ── Internal helpers ─────────────────────────────────────────────────────────
 
 

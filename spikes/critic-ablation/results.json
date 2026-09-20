@@ -1,0 +1,427 @@
+{
+  "model": "ollama/qwen3:1.7b",
+  "api_base": "http://127.0.0.1:11434",
+  "python": "3.13.1",
+  "dataset": "docs/experiments/detector-bench/20260904-000126.results.json",
+  "dataset_sha256": "00513f1e3f66abeebf85f1d07748fc9bc49630a056487ed7719cff3dcaf0b32e",
+  "repeats": 2,
+  "cases_per_repeat": 10,
+  "method": "One actual ExtractorCore call supplies the identical baseline for the Critic arm. Critic.review and production _validate_critic_records merge additional valid spans. No second independently sampled baseline.",
+  "caveats": [
+    "Different model and legacy extractor prompt from the historical Gemma normalized LLMExtractor report; results are not interchangeable.",
+    "Small expected-span checklist, not exhaustive span annotation or statistical significance evidence.",
+    "Current shared.llm uses provider generation defaults; this probe does not claim temperature=0.",
+    "First call includes any model warmup. Structured-output retries are part of measured wall time."
+  ],
+  "rows": [
+    {
+      "repeat": 0,
+      "case_id": "ko-rrn",
+      "expected": 1,
+      "base_ms": 1918.89,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 1158.47,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-contact",
+      "expected": 3,
+      "base_ms": 1823.54,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "status": "failed",
+      "error_type": "PrivacyAnalysisUnavailable",
+      "elapsed_ms": 590.28
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-card",
+      "expected": 1,
+      "base_ms": 56466.38,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 27472.94,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-business",
+      "expected": 3,
+      "base_ms": 6093.16,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 1
+      },
+      "critic_ms": 19017.09,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-research",
+      "expected": 3,
+      "base_ms": 37651.9,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 23608.63,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-pii",
+      "expected": 4,
+      "base_ms": 34663.6,
+      "base": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 4
+      },
+      "critic_ms": 3505.54,
+      "with_critic": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 5
+      },
+      "critic_added": 1,
+      "critic_added_unassessed_requiredness": 1,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-secret",
+      "expected": 2,
+      "base_ms": 24064.32,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 4685.46,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-safe",
+      "expected": 0,
+      "base_ms": 5002.81,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 23305.33,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-safe",
+      "expected": 0,
+      "base_ms": 4379.99,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 24154.66,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-address",
+      "expected": 2,
+      "base_ms": 6003.18,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 1
+      },
+      "critic_ms": 24609.47,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-rrn",
+      "expected": 1,
+      "base_ms": 6787.03,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 5041.63,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-contact",
+      "expected": 3,
+      "base_ms": 27241.59,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_ms": 21338.76,
+      "with_critic": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-card",
+      "expected": 1,
+      "base_ms": 7722.94,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 20971.98,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-business",
+      "expected": 3,
+      "base_ms": 5944.45,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 1
+      },
+      "critic_ms": 28345.76,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 3,
+        "entities": 2
+      },
+      "critic_added": 1,
+      "critic_added_unassessed_requiredness": 1,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-research",
+      "expected": 3,
+      "base_ms": 93464.59,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 3456.29,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-pii",
+      "expected": 4,
+      "base_ms": 3319.43,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 25558.86,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-secret",
+      "expected": 2,
+      "base_ms": 2941.85,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 4402.35,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-safe",
+      "expected": 0,
+      "base_ms": 23648.88,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 4034.66,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-safe",
+      "expected": 0,
+      "base_ms": 2960.55,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 23179.79,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-address",
+      "expected": 2,
+      "base_ms": 3050.82,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 4199.72,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    }
+  ],
+  "completed_at_utc": "2026-09-15T09:26:31.963303+00:00",
+  "summary": {
+    "completed_pairs": 19,
+    "failed_pairs": 1,
+    "expected_spans_in_completed_pairs": 35,
+    "base_exact_hits": 16,
+    "critic_exact_hits": 16,
+    "base_contained_hits": 16,
+    "critic_contained_hits": 19,
+    "base_mean_ms": 18596.124210526315,
+    "with_critic_mean_ms": 33967.03947368421,
+    "safe_case_base_entities": 0,
+    "safe_case_critic_entities": 0,
+    "added_unassessed_requiredness": 2
+  }
+}

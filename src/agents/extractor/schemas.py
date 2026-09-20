@@ -18,16 +18,15 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, model_validator
 
 from contracts.extraction import (  # noqa: F401
+    ConfidentialityJudgment,
     ExtractionRecord,
     ExtractionResult,
-    Requiredness,
+    NecessityJudgment,
     Sensitivity,
     redact_extraction_records,
 )
 
 # ── Public schemas ───────────────────────────────────────────────────────────
-
-
 
 
 # ── Internal schemas (SLM output contracts) ──────────────────────────────────
@@ -41,9 +40,8 @@ class _ExtractedItem(BaseModel):
     Offsets are computed in post-processing via ``text.find(span)``
     — the SLM is NOT asked to produce character offsets.
 
-    Examples:
-    --------
-    >>> item = _ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98)
+    Every item carries independent confidentiality and necessity judgments.
+    Their reasons are required on fresh model output, including unassessed values.
     """
 
     category: str = Field(
@@ -68,59 +66,40 @@ class _ExtractedItem(BaseModel):
         description="How this was detected: 'pattern' for fixed formats (RRN, phone), 'contextual' for context-dependent sensitivity.",
         examples=["pattern", "contextual"],
     )
-    reasoning: str = Field(
-        default="",
-        description="One sentence explaining WHY this span is sensitive.",
-        examples=["주민등록번호는 개인 식별 정보이므로", "미공개 연구 방법론이므로 경쟁사에게 이점이 됨"],
+    confidentiality: ConfidentialityJudgment = Field(
+        ..., description="public/private or null, with an independent explanation."
     )
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-        description="Whether masking this record would preserve the query meaning.",
-    )
+    necessity: NecessityJudgment = Field(..., description="required/optional or null, with an independent explanation.")
+
+    @model_validator(mode="after")
+    def require_judgment_reasons(self) -> _ExtractedItem:
+        """Reject successful model output that omits either explanation."""
+        if self.confidentiality.reason is None or self.necessity.reason is None:
+            raise ValueError("Both confidentiality.reason and necessity.reason are required")
+        return self
 
 
 class _ExtractedOutput(BaseModel):
-    """Shape the SLM produces for the complete extraction call.
+    """Single-call model output; overall sensitivity is derived from raw item judgments."""
 
-    Examples:
-    --------
-    >>> s = Sensitivity(is_sensitive=True, rationale="탐지됨")
-    >>> o = _ExtractedOutput(sensitivity=s)
-    >>> o.records
-    []
-    """
-
-    sensitivity: Sensitivity = Field(
-        ...,
-        description="Sensitivity assessment from the SLM.",
-        examples=[Sensitivity(is_sensitive=True, rationale="주민등록번호 탐지")],
+    intent_consistent: bool | None = Field(
+        default=None,
+        strict=True,
+        description="True only when supplied intent agrees with the original source; False for conflict; None if absent or unconfirmed. Never authorizes disclosure.",
+    )
+    masking_preserves_task: bool | None = Field(
+        default=None,
+        strict=True,
+        description="Whether jointly masking all sensitive values preserves the supplied task. Independent of which alternative value is individually required; None if not established.",
+    )
+    masking_reason: str | None = Field(
+        default=None,
+        description="Why whole-source masking preserves or prevents completion, or what evidence is missing.",
     )
     records: list[_ExtractedItem] = Field(
-        default_factory=list,
+        ...,
         description="Raw extracted items from the SLM.",
-        examples=[[_ExtractedItem(category="RESIDENT_REGISTRATION_NUMBER", span="901212-1234567", confidence=0.98)]],
     )
-
-
-class _CriticItem(BaseModel):
-    """A single missed record from the critic pass."""
-
-    category: str = Field(..., description="SCREAMING_SNAKE_CASE category.")
-    span: str = Field(..., description="Exact substring the first pass missed.")
-    confidence: float = Field(default=0.9, ge=0.0, le=1.0)
-    detection_type: str = Field(default="contextual")
-    reasoning: str = Field(default="", description="Why this was missed and why it's sensitive.")
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-        description="Whether masking this record would preserve the query meaning.",
-    )
-
-
-class CriticOutput(BaseModel):
-    """Second-pass critic output — finds what the Extractor missed."""
-
-    found_missed: bool = Field(..., description="True if any sensitive spans were missed.")
-    missed_records: list[_CriticItem] = Field(default_factory=list)
 
 
 class PrivacyEntity(BaseModel):
@@ -144,12 +123,11 @@ class PrivacyEntity(BaseModel):
         pattern=r"^[0-9a-f]{32}$",
         description="Occurrence-specific opaque token.",
     )
-    span: str = Field(..., min_length=1, description="Exact sensitive substring from the input.")
+    span: str = Field(..., min_length=1, description="Exact information substring from the input.")
     offsets: tuple[int, int] = Field(
         ...,
         description="Zero-based, end-exclusive Unicode code-point offsets as (start, end).",
     )
-    reason: str | None = Field(default=None, description="Why the detector classified the span as sensitive.")
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     native_label: str | None = Field(default=None, description="Original backend label before normalization.")
     native_metadata: dict[str, Any] = Field(
@@ -161,9 +139,10 @@ class PrivacyEntity(BaseModel):
         description="Mechanism that produced the detection.",
     )
     run_id: UUID = Field(..., description="Detector run that produced this entity.")
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-        description="Whether this entity is required for the query's response or processing.",
+    confidentiality: ConfidentialityJudgment = Field(..., description="Per-item confidentiality and its reason.")
+    necessity: NecessityJudgment = Field(
+        default_factory=lambda: NecessityJudgment(value=None, reason="Task necessity was not assessed."),
+        description="Per-item task necessity, independent of confidentiality.",
     )
 
     @model_validator(mode="after")
@@ -261,6 +240,12 @@ class DetectionResult(BaseModel):
     entities: list[PrivacyEntity] = Field(default_factory=list)
     detector_runs: list[DetectorRunProvenance] = Field(default_factory=list)
     diagnostics: dict[str, list[str]] = Field(default_factory=dict)
+    masking_preserves_task: bool | None = Field(
+        default=None,
+        strict=True,
+        description="Whole-source task preservation under joint masking; None when this detector does not assess it.",
+    )
+    masking_reason: str | None = Field(default=None, description="Explanation of the whole-source masking assessment.")
 
     @model_validator(mode="after")
     def validate_entity_references(self) -> DetectionResult:

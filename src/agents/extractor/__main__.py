@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import os
-
+from agents.annotator import IntentAnalyzer
 from agents.extractor import Extractor
 
 SAMPLE_INPUTS = [
@@ -18,17 +17,13 @@ SAMPLE_INPUTS = [
 
 
 def main():
-    """Run the legacy command-line extraction demonstration."""
+    """Analyze intent, then demonstrate single-pass privacy extraction."""
     print("=" * 70)
     print("Privacy Router - Extractor Demo")
     print("=" * 70)
     print()
 
-    api_key = os.getenv("OPENROUTER_API_KEY", "")
-    if not api_key:
-        print("ERROR: OPENROUTER_API_KEY not set.")
-        print("Set the environment variable or add it to .env file.")
-        return
+    annotator = IntentAnalyzer()
 
     extractor = Extractor()
 
@@ -43,19 +38,27 @@ def main():
         print()
 
         try:
-            records = extractor.extract(sample["text"])
+            intent = annotator.annotate(sample["text"])
+            result = extractor.extract(sample["text"], intent=intent)
         except Exception as e:
             print(f"ERROR: {e}")
             print()
             continue
 
+        print(f"[의도] {intent.action} · 채널: {intent.channel or '미정'}")
         print("[추출된 정보]")
-        if not records:
+        if not result.records:
             print("  (없음)")
         else:
-            for j, record in enumerate(records, 1):
+            for j, record in enumerate(result.records, 1):
                 print(f'  [{j}] {record.category}: "{record.span}"')
                 print(f"      confidence: {record.confidence:.2f}")
+                for label, judgment in (
+                    ("confidentiality", record.confidentiality),
+                    ("necessity", record.necessity),
+                ):
+                    print(f"      {label}: {judgment.value or 'unassessed'} ({judgment.status})")
+                    print(f"        reason: {judgment.reason or '(not retained)'}")
         print()
 
     print("=" * 70)

@@ -6,11 +6,12 @@ import pytest
 from pydantic import ValidationError
 
 from agents.extractor.schemas import (
+    ConfidentialityJudgment,
     DetectionResult,
     LLMDetectorRun,
+    NecessityJudgment,
     PresidioDetectorRun,
     PrivacyEntity,
-    Requiredness,
 )
 
 
@@ -78,7 +79,8 @@ def test_entity_run_id_must_reference_a_recorded_detector_run():
         offsets=(0, 25),
         detection_method="regex",
         run_id=uuid4(),
-        is_required=Requiredness(value=None, reason="not assessed"),
+        confidentiality=ConfidentialityJudgment(value="private", reason="Email recognizer match."),
+        necessity=NecessityJudgment(value=None, reason="No task assessment."),
     )
 
     with pytest.raises(ValidationError, match="run_id"):
@@ -96,7 +98,8 @@ def test_entity_run_id_is_a_uuid_reference():
         offsets=(0, 25),
         detection_method="regex",
         run_id=run_id,
-        is_required=Requiredness(value=None, reason="not assessed"),
+        confidentiality=ConfidentialityJudgment(value="private", reason="Email recognizer match."),
+        necessity=NecessityJudgment(value=None, reason="No task assessment."),
     )
 
     assert isinstance(entity.run_id, UUID)

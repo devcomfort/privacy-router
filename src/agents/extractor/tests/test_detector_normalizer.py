@@ -6,7 +6,7 @@ import pytest
 
 from agents.extractor.normalizer import EntityNormalizer, SpanReconciliationError
 from agents.extractor.parser import ParsedEntity
-from agents.extractor.schemas import LLMDetectorRun, Requiredness
+from agents.extractor.schemas import ConfidentialityJudgment, LLMDetectorRun, NecessityJudgment
 
 TEXT = "send synthetic@example.invalid then synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"
@@ -31,11 +31,11 @@ def candidate(span: str = SPAN, offsets: tuple[int, int] | None = None) -> Parse
         native_label="EMAIL_ADDRESS",
         span=span,
         offsets=offsets,
-        reason=None,
+        confidentiality=ConfidentialityJudgment(value="private", reason="Email recognizer match."),
         confidence=0.9,
         detection_method="regex",
         native_metadata={},
-        is_required=Requiredness(value=None, reason="not assessed"),
+        necessity=NecessityJudgment(value=None, reason="No task assessment."),
     )
 
 

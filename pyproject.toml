@@ -43,10 +43,10 @@ dev = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agents", "src/masker", "src/shared", "src/contracts", "src/config"]
+packages = ["src/agents", "src/masker", "src/cachier", "src/policy", "src/shared", "src/contracts", "src/config"]
 
 [tool.pytest.ini_options]
-testpaths = ["src/agents/tests", "src/agents/extractor/tests", "src/masker/tests"]
+testpaths = ["src/agents/tests", "src/agents/extractor/tests", "src/masker/tests", "src/cachier/tests", "src/policy/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

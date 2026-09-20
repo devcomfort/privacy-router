@@ -14,7 +14,7 @@ from ..parser import (
     required_string,
     valid_offsets,
 )
-from ..schemas import Requiredness
+from ..schemas import ConfidentialityJudgment, NecessityJudgment
 
 
 class OPFParser:
@@ -54,11 +54,15 @@ class OPFParser:
                     native_label=label,
                     span=span,
                     offsets=(start, end),
-                    reason=None,
+                    confidentiality=ConfidentialityJudgment(
+                        value="private", reason=f"OpenAI Privacy Filter identified this span as {label}."
+                    ),
                     confidence=None,
                     detection_method="token_classifier",
                     native_metadata=metadata,
-                    is_required=Requiredness(value=None, reason="not assessed"),
+                    necessity=NecessityJudgment(
+                        value=None, reason="OpenAI Privacy Filter detects PII but does not assess task necessity."
+                    ),
                 )
             )
         return parsed

@@ -82,6 +82,8 @@ class Masker:
         repeated values use one token. A new registry per request prevents
         cross-request linkage, and prompt-derived categories never cross the
         trust boundary.
+        Records with an explicit public confidentiality judgment are preserved;
+        private, unassessed, and caller-supplied bare masking spans are protected.
         """
         if len(records) <= 1:
             sorted_records = records
@@ -100,6 +102,8 @@ class Masker:
         masked = text
 
         for record in sorted_records:
+            if record.get("confidentiality", {}).get("value") == "public":
+                continue
             span = record.get("span", "")
             start = record.get("start", 0)
             end = record.get("end", 0)

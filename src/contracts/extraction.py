@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 
 class Sensitivity(BaseModel):
@@ -15,25 +15,53 @@ class Sensitivity(BaseModel):
     rationale: str = Field(..., description="Human-readable explanation of the assessment.")
 
 
-class Requiredness(BaseModel):
-    """Tri-state assessment of whether a detected entity is required."""
+class ConfidentialityJudgment(BaseModel):
+    """Disclosure sensitivity of one information item, independent of task necessity."""
 
-    value: bool | None = Field(
-        default=None,
-        description="Whether this entity is required for the user's query response or processing.",
+    model_config = ConfigDict(frozen=True)
+
+    value: Literal["public", "private"] | None = Field(
+        default=None, description="None means unassessed, not a third confidentiality label."
     )
-    reason: str | None = Field(default=None, description="Why the entity is or is not required.")
+    reason: str | None = Field(
+        default=None,
+        min_length=1,
+        pattern=r"\S",
+        description="Assessment explanation; omitted only when not retained in metadata-only replay.",
+    )
 
-    @model_validator(mode="after")
-    def require_reason(self) -> Requiredness:
-        """Require an explanation for every state."""
-        if not self.reason or not self.reason.strip():
-            raise ValueError("is_required.reason is required for every value state")
-        return self
+    @computed_field
+    @property
+    def status(self) -> Literal["assessed", "unassessed"]:
+        """Expose missing evidence separately from the binary labels."""
+        return "unassessed" if self.value is None else "assessed"
+
+
+class NecessityJudgment(BaseModel):
+    """Whether one original value is required or optional for the assessed task."""
+
+    model_config = ConfigDict(frozen=True)
+
+    value: Literal["required", "optional"] | None = Field(
+        default=None,
+        description="None means unassessed; individual optionality does not establish joint masking safety.",
+    )
+    reason: str | None = Field(
+        default=None,
+        min_length=1,
+        pattern=r"\S",
+        description="Assessment explanation; omitted only when not retained in metadata-only replay.",
+    )
+
+    @computed_field
+    @property
+    def status(self) -> Literal["assessed", "unassessed"]:
+        """Expose missing evidence separately from the binary labels."""
+        return "unassessed" if self.value is None else "assessed"
 
 
 class ExtractionRecord(BaseModel):
-    """One validated sensitive span returned by an extractor."""
+    """One validated information span, whether public, private, or unassessed."""
 
     category: str = Field(..., description="Value-independent SCREAMING_SNAKE_CASE semantic type.")
     span: str = Field(..., description="Exact substring matched in the original text.")
@@ -41,23 +69,33 @@ class ExtractionRecord(BaseModel):
     start: int = Field(..., ge=0, description="Start character index, 0-indexed.")
     end: int = Field(..., ge=0, description="End character index, exclusive.")
     detection_type: str = Field(default="contextual", description="Pattern or contextual detection.")
-    reasoning: str = Field(default="", description="Why this span is sensitive.")
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-        description="Whether masking this record preserves query meaning.",
-    )
+    confidentiality: ConfidentialityJudgment = Field(..., description="Per-item confidentiality and its reason.")
+    necessity: NecessityJudgment = Field(..., description="Per-item task necessity and its independent reason.")
 
 
 class ExtractionResult(BaseModel):
     """Validated sensitivity assessment and extracted records."""
 
+    status: Literal["complete", "partial"] = Field(
+        default="complete",
+        description="Partial when any model item fails source validation; never sufficient for disclosure.",
+    )
     sensitivity: Sensitivity = Field(..., description="Sensitivity assessment including rationale.")
     records: list[ExtractionRecord] = Field(default_factory=list, description="Validated extraction records.")
+    masking_preserves_task: bool | None = Field(
+        default=None,
+        strict=True,
+        description="Whether jointly masking all sensitive values in the assessed source preserves task completion. False means completion is prevented; None means not established.",
+    )
+    masking_reason: str | None = Field(default=None, description="Explanation of the whole-source masking assessment.")
 
     @model_validator(mode="after")
-    def records_imply_sensitivity(self) -> ExtractionResult:
-        """Treat validated sensitive spans as authoritative evidence."""
-        if self.records and not self.sensitivity.is_sensitive:
+    def protected_records_imply_sensitivity(self) -> ExtractionResult:
+        """Protect private and unassessed spans without treating public records as private."""
+        if (
+            any(record.confidentiality.value != "public" for record in self.records)
+            and not self.sensitivity.is_sensitive
+        ):
             self.sensitivity = self.sensitivity.model_copy(update={"is_sensitive": True})
         return self
 
@@ -70,7 +108,8 @@ def redact_extraction_records(records: Iterable[ExtractionRecord]) -> list[dict[
             "category": record.category,
             "span": "<redacted>",
             "confidence": record.confidence,
-            "is_required": {"value": record.is_required.value},
+            "confidentiality": {"value": record.confidentiality.value, "status": record.confidentiality.status},
+            "necessity": {"value": record.necessity.value, "status": record.necessity.status},
         }
         for index, record in enumerate(records)
     ]

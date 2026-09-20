@@ -1,6 +1,6 @@
 """LiteLLM과 instructor-py를 연결하는 공용 LLM 호출 클라이언트.
 
-Extractor와 Critic은 이 모듈을 통해 모델을 호출합니다. LiteLLM이
+Extractor는 이 모듈을 통해 모델을 호출합니다. LiteLLM이
 프로바이더 전송을 담당하고, instructor-py가 구조화된 Pydantic 응답을
 검증합니다. 일부 모델의 호환성 문제를 위한 JSON 폴백도 이 경계 안에서
 처리합니다.

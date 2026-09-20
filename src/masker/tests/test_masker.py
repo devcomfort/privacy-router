@@ -48,6 +48,24 @@ class TestMaskingContract:
 
 
 class TestMasker:
+    def test_public_values_remain_while_private_and_unassessed_values_are_masked(self):
+        text = "public private undecided"
+        records = [
+            {
+                "span": span,
+                "start": text.index(span),
+                "end": text.index(span) + len(span),
+                "confidentiality": {"value": label},
+            }
+            for span, label in [("public", "public"), ("private", "private"), ("undecided", None)]
+        ]
+        masker = Masker()
+        result = masker.mask(text, records)
+        assert result.masked_text.startswith("public ")
+        assert "private" not in result.masked_text
+        assert "undecided" not in result.masked_text
+        assert masker.hydrate(result.masked_text, result.contract).hydrated_text == text
+
     def test_mask_single_span(self):
         masker = Masker()
         text = "주민등록번호 901212-1234567 기재"

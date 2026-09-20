@@ -75,20 +75,12 @@ def test_presidio_result_maps_entity_and_recognizer_metadata():
     assert entity.tag == "EMAIL"
     assert entity.native_label == "EMAIL_ADDRESS"
     assert entity.native_metadata["recognizer_name"] == "EmailRecognizer"
-    assert entity.is_required.value is None
+    assert entity.confidentiality.value == "private"
+    assert entity.necessity.value is None
     assert result.detector_runs[0].configured_recognizers[0].name == "EmailRecognizer"
     assert analyzer.calls[0]["language"] == "ko"
     assert analyzer.calls[0]["return_decision_process"] is True
     assert analyzer.registry.calls[0] == {"language": "ko", "entities": None, "all_fields": True}
-
-
-def test_presidio_does_not_invent_requiredness():
-    analyzer = FakeAnalyzer([FakePresidioResult("PERSON", 0, 2, 0.8)])
-
-    result = PresidioExtractor(analyzer=analyzer).extract("홍길동")
-
-    assert result.entities[0].is_required.value is None
-    assert result.entities[0].is_required.reason == "not assessed"
 
 
 def test_presidio_failure_is_a_failed_run():

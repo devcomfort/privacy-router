@@ -5,7 +5,13 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from agents.extractor.schemas import DetectionResult, LLMDetectorRun, PrivacyEntity, Requiredness
+from agents.extractor.schemas import (
+    ConfidentialityJudgment,
+    DetectionResult,
+    LLMDetectorRun,
+    NecessityJudgment,
+    PrivacyEntity,
+)
 
 RUN_ID = uuid4()
 
@@ -30,13 +36,13 @@ def make_entity(**overrides: object) -> PrivacyEntity:
         "uid": "a" * 32,
         "span": "synthetic@example.invalid",
         "offsets": (0, 25),
-        "reason": None,
+        "confidentiality": ConfidentialityJudgment(value="private", reason="Email recognizer match."),
         "confidence": 0.9,
         "native_label": None,
         "native_metadata": {},
         "detection_method": "regex",
         "run_id": RUN_ID,
-        "is_required": Requiredness(value=None, reason="not assessed"),
+        "necessity": NecessityJudgment(value=None, reason="No task assessment."),
     }
     values.update(overrides)
     return PrivacyEntity.model_validate(values)
@@ -49,10 +55,16 @@ def test_identifier_is_computed_from_tag_and_uid():
     assert "identifier" not in entity.model_dump()
 
 
-def test_requiredness_is_nested_and_confidence_is_nullable():
-    entity = make_entity(confidence=None, is_required=Requiredness(value=None, reason="not assessed"))
+def test_independent_judgments_and_nullable_confidence():
+    entity = make_entity(
+        confidence=None,
+        confidentiality=ConfidentialityJudgment(value="public", reason="Published contact."),
+        necessity=NecessityJudgment(value="required", reason="Task sends to this destination."),
+    )
 
-    assert entity.is_required.value is None
+    assert entity.confidentiality.value == "public"
+    assert entity.necessity.value == "required"
+    assert entity.confidentiality.status == entity.necessity.status == "assessed"
     assert entity.confidence is None
 
 
@@ -77,7 +89,9 @@ def test_duplicate_uid_is_rejected_by_result():
         DetectionResult(entities=[make_entity(), make_entity(id=uuid4())], detector_runs=[make_run()])
 
 
-@pytest.mark.parametrize("value", [True, False, None])
-def test_requiredness_requires_a_reason_for_every_state(value: bool | None):
-    with pytest.raises(ValidationError, match="reason"):
-        Requiredness(value=value)
+@pytest.mark.parametrize("judgment", [ConfidentialityJudgment, NecessityJudgment])
+def test_judgment_unknown_status_is_distinct_from_binary_values(judgment):
+    result = judgment(value=None, reason="Insufficient evidence.")
+
+    assert result.value is None
+    assert result.status == "unassessed"

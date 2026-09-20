@@ -10,7 +10,6 @@ from .loader import (
 )
 from .loader import (
     resolve_api_base,
-    resolve_generation_binding,
     resolve_local_api_base,
     resolve_model,
 )
@@ -53,7 +52,6 @@ __all__ = [
     "resolve_model",
     "resolve_model_api_key",
     "resolve_api_base",
-    "resolve_generation_binding",
     "resolve_local_api_base",
     "validate_local_api_base",
 ]

@@ -10,12 +10,13 @@ from ..parser import (
     as_mapping,
     canonical_tag,
     confidence,
+    confidentiality_judgment,
     mapping,
+    necessity_judgment,
     normalize_kind,
     offsets,
     optional_string,
     required_string,
-    requiredness,
 )
 
 
@@ -36,7 +37,7 @@ class LLMParser:
             DetectorParseError: If the payload shape is invalid.
         """
         payload = as_mapping(raw)
-        records = payload.get("records", payload.get("entities", []))
+        records = payload.get("records", payload.get("entities"))
         if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
             raise DetectorParseError("LLM output records must be an array")
 
@@ -52,11 +53,11 @@ class LLMParser:
                     native_label=optional_string(data.get("native_label")) or tag,
                     span=span,
                     offsets=offsets(data, index),
-                    reason=optional_string(data.get("reason") or data.get("reasoning")),
+                    confidentiality=confidentiality_judgment(data.get("confidentiality")),
                     confidence=confidence(data.get("confidence")),
                     detection_method="llm",
                     native_metadata=mapping(data.get("native_metadata")),
-                    is_required=requiredness(data.get("is_required")),
+                    necessity=necessity_judgment(data.get("necessity")),
                 )
             )
         return parsed

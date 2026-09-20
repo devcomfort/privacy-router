@@ -1,0 +1,794 @@
+{
+  "model": "openai/google/gemma-4-26b-local",
+  "api_base": "http://10.42.0.2:8090/v1",
+  "python": "3.13.1",
+  "dataset": "docs/experiments/detector-bench/20260904-000126.results.json",
+  "dataset_sha256": "00513f1e3f66abeebf85f1d07748fc9bc49630a056487ed7719cff3dcaf0b32e",
+  "repeats": 2,
+  "cases_per_repeat": 10,
+  "method": "One actual ExtractorCore call supplies the identical baseline for the Critic arm. Critic.review and production _validate_critic_records merge additional valid spans. No second independently sampled baseline.",
+  "caveats": [
+    "10 synthetic cases repeated twice, not independent statistical evidence or exhaustive span annotations.",
+    "Exact-hit and containing-span coverage are distinct; a broad span can cover several expected spans.",
+    "Legacy ExtractorCore/Critic prompts differ from the historical normalized LLMExtractor benchmark.",
+    "Existing shared peer service, vLLM 0.28.0; not the historical vLLM 0.25.1 MTP configuration.",
+    "End-to-end latency includes network, parsing and any structured-output retries; no service restart or exclusive GPU reservation."
+  ],
+  "rows": [
+    {
+      "repeat": 0,
+      "case_id": "ko-rrn",
+      "expected": 1,
+      "base_ms": 3957.34,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 1134.52,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-contact",
+      "expected": 3,
+      "base_ms": 9470.1,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 1180.16,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-card",
+      "expected": 1,
+      "base_ms": 4206.58,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 1147.97,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-business",
+      "expected": 3,
+      "base_ms": 6564.54,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 2
+      },
+      "critic_ms": 1152.72,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-research",
+      "expected": 3,
+      "base_ms": 8150.56,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 1150.51,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-pii",
+      "expected": 4,
+      "base_ms": 11433.85,
+      "base": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 4
+      },
+      "critic_ms": 1175.16,
+      "with_critic": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 4
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-secret",
+      "expected": 2,
+      "base_ms": 6343.31,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_ms": 1156.59,
+      "with_critic": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "en-safe",
+      "expected": 0,
+      "base_ms": 1164.25,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 1134.06,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-safe",
+      "expected": 0,
+      "base_ms": 1187.96,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 1136.12,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 0,
+      "case_id": "ko-address",
+      "expected": 2,
+      "base_ms": 6246.97,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_ms": 1154.02,
+      "with_critic": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-rrn",
+      "expected": 1,
+      "base_ms": 3741.97,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 1052.55,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-contact",
+      "expected": 3,
+      "base_ms": 9443.48,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 1050.52,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-card",
+      "expected": 1,
+      "base_ms": 4179.5,
+      "base": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_ms": 1063.68,
+      "with_critic": {
+        "exact_hits": 1,
+        "contained_hits": 1,
+        "entities": 1
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-business",
+      "expected": 3,
+      "base_ms": 6341.06,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 1,
+        "entities": 2
+      },
+      "critic_ms": 1108.19,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 1,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-research",
+      "expected": 3,
+      "base_ms": 8116.18,
+      "base": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_ms": 1078.18,
+      "with_critic": {
+        "exact_hits": 3,
+        "contained_hits": 3,
+        "entities": 3
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-pii",
+      "expected": 4,
+      "base_ms": 11327.15,
+      "base": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 4
+      },
+      "critic_ms": 1090.83,
+      "with_critic": {
+        "exact_hits": 4,
+        "contained_hits": 4,
+        "entities": 4
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-secret",
+      "expected": 2,
+      "base_ms": 6353.82,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_ms": 1057.97,
+      "with_critic": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "en-safe",
+      "expected": 0,
+      "base_ms": 1119.13,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 1047.37,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-safe",
+      "expected": 0,
+      "base_ms": 1120.01,
+      "base": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_ms": 1047.63,
+      "with_critic": {
+        "exact_hits": 0,
+        "contained_hits": 0,
+        "entities": 0
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    },
+    {
+      "repeat": 1,
+      "case_id": "ko-address",
+      "expected": 2,
+      "base_ms": 6212.78,
+      "base": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_ms": 1055.63,
+      "with_critic": {
+        "exact_hits": 2,
+        "contained_hits": 2,
+        "entities": 2
+      },
+      "critic_added": 0,
+      "critic_added_unassessed_requiredness": 0,
+      "status": "complete"
+    }
+  ],
+  "completed_at_utc": "2026-09-15T11:29:41.180449+00:00",
+  "summary": {
+    "completed_pairs": 20,
+    "failed_pairs": 0,
+    "expected_spans_in_completed_pairs": 38,
+    "base_exact_hits": 33,
+    "critic_exact_hits": 33,
+    "base_contained_hits": 34,
+    "critic_contained_hits": 34,
+    "base_mean_ms": 5834.027,
+    "with_critic_mean_ms": 6942.746000000001,
+    "safe_case_base_entities": 0,
+    "safe_case_critic_entities": 0,
+    "added_unassessed_requiredness": 0
+  },
+  "started_at_utc": "2026-09-15T11:27:22.307968+00:00",
+  "peer_model": {
+    "id": "openkb-compiler",
+    "object": "model",
+    "created": 1789471642,
+    "owned_by": "vllm",
+    "root": "google/gemma-4-26B-A4B-it",
+    "parent": null,
+    "max_model_len": 131072,
+    "permission": [
+      {
+        "id": "modelperm-a51319ba50b174a1",
+        "object": "model_permission",
+        "created": 1789471642,
+        "allow_create_engine": false,
+        "allow_sampling": true,
+        "allow_logprobs": true,
+        "allow_search_indices": false,
+        "allow_view": true,
+        "allow_fine_tuning": false,
+        "organization": "*",
+        "group": null,
+        "is_blocking": false
+      }
+    ]
+  },
+  "sampling": {
+    "temperature": 0.0,
+    "seed": 42,
+    "max_tokens": 2048
+  },
+  "transport_adapter": "Bearer authentication and verified served-model alias; real LiteLLM HTTP calls, no mocks",
+  "warmup": "One real Extractor/Critic pair on a non-benchmark public sentence, excluded from results",
+  "environment_file": "spikes/critic-ablation/gemma4-peer-environment.json",
+  "prompt_sha256": {
+    "extract.prompt": "ac0f76445e8a0412e14710b5a53788e1fd82316a85afe9ec29061cdbb5b8a151",
+    "critic.prompt": "d887282a376554c4a0d1ceff2263f7c8c75b5f703f8d3f675cd674625ae35f72"
+  },
+  "calls": [
+    {
+      "component": "extractor",
+      "prompt_tokens": 6102,
+      "completion_tokens": 84,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 3921.49
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1672,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1132.93
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6108,
+      "completion_tokens": 215,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 9468.2
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1703,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1178.61
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6101,
+      "completion_tokens": 94,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 4204.79
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1675,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1145.64
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6098,
+      "completion_tokens": 148,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6562.61
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1678,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1151.21
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6096,
+      "completion_tokens": 185,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 8148.67
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1680,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1148.97
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6113,
+      "completion_tokens": 260,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 11431.83
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1722,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1172.22
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6099,
+      "completion_tokens": 143,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6335.22
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1671,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1153.74
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6087,
+      "completion_tokens": 24,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1160.95
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1635,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1131.28
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6090,
+      "completion_tokens": 24,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1184.79
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1638,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1134.54
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6097,
+      "completion_tokens": 141,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6245.18
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1672,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1151.87
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6102,
+      "completion_tokens": 84,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 3740.16
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1672,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1050.99
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6108,
+      "completion_tokens": 215,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 9441.62
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1703,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1048.92
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6101,
+      "completion_tokens": 94,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 4176.12
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1675,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1060.83
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6098,
+      "completion_tokens": 144,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6336.7
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1679,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1105.42
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6096,
+      "completion_tokens": 185,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 8114.33
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1680,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1076.68
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6113,
+      "completion_tokens": 260,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 11325.35
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1722,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1089.26
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6099,
+      "completion_tokens": 144,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6352.02
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1671,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1055.84
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6087,
+      "completion_tokens": 24,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1117.2
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1635,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1044.44
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6090,
+      "completion_tokens": 24,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1116.5
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1638,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1044.71
+    },
+    {
+      "component": "extractor",
+      "prompt_tokens": 6097,
+      "completion_tokens": 141,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 6209.28
+    },
+    {
+      "component": "critic",
+      "prompt_tokens": 1672,
+      "completion_tokens": 23,
+      "finish_reason": "stop",
+      "status": "complete",
+      "latency_ms": 1052.83
+    }
+  ]
+}

@@ -9,13 +9,13 @@ from agents.extractor.llm import LLMParser
 from agents.extractor.opf import OPFParser
 from agents.extractor.parser import DetectorParseError, ParsedEntity
 from agents.extractor.presidio import PresidioParser
-from agents.extractor.schemas import Requiredness
+from agents.extractor.schemas import ConfidentialityJudgment, NecessityJudgment
 
 TEXT = "문의: synthetic@example.invalid"
 SPAN = "synthetic@example.invalid"
 
 
-def test_llm_parser_preserves_reason_and_requiredness():
+def test_llm_parser_preserves_independent_judgments():
     raw = {
         "records": [
             {
@@ -23,9 +23,9 @@ def test_llm_parser_preserves_reason_and_requiredness():
                 "kind": "structural",
                 "span": SPAN,
                 "offsets": [4, 29],
-                "reason": "개인 연락처 정보",
+                "confidentiality": {"value": "private", "reason": "개인 연락처 정보"},
                 "confidence": 0.97,
-                "is_required": {"value": True, "reason": "응답에 실제 주소가 필요함"},
+                "necessity": {"value": "required", "reason": "응답에 실제 주소가 필요함"},
             }
         ]
     }
@@ -35,8 +35,8 @@ def test_llm_parser_preserves_reason_and_requiredness():
     assert isinstance(entity, ParsedEntity)
     assert entity.tag == "EMAIL"
     assert entity.offsets == (4, 29)
-    assert entity.reason == "개인 연락처 정보"
-    assert entity.is_required == Requiredness(value=True, reason="응답에 실제 주소가 필요함")
+    assert entity.confidentiality == ConfidentialityJudgment(value="private", reason="개인 연락처 정보")
+    assert entity.necessity == NecessityJudgment(value="required", reason="응답에 실제 주소가 필요함")
 
 
 def test_llm_parser_rejects_unknown_kind():
@@ -96,7 +96,7 @@ def test_presidio_parser_maps_native_label_and_recognizer_metadata():
     assert entity.native_label == "EMAIL_ADDRESS"
     assert entity.span == SPAN
     assert entity.confidence == 0.85
-    assert entity.reason == "Email recognizer match"
+    assert entity.confidentiality == ConfidentialityJudgment(value="private", reason="Email recognizer match")
     assert entity.native_metadata["recognizer_name"] == "EmailRecognizer"
 
 
@@ -173,3 +173,36 @@ def test_backend_labels_map_to_shared_tags(label: str, expected: str):
     [entity] = LFMParser().parse([{"label": label, "start": 0, "end": len(SPAN)}], SPAN)
 
     assert entity.tag == expected
+
+
+@pytest.mark.parametrize(
+    ("parser", "payload"),
+    [
+        (PresidioParser(), [{"entity_type": "EMAIL_ADDRESS", "start": 4, "end": 29}]),
+        (OPFParser(), {"detected_spans": [{"label": "private_email", "start": 4, "end": 29}]}),
+        (LFMParser(), [{"label": "contact.email", "start": 4, "end": 29}]),
+    ],
+)
+def test_pii_detectors_protect_findings_without_inventing_task_evidence(parser, payload):
+    [entity] = parser.parse(payload, TEXT)
+
+    assert entity.confidentiality.value == "private"
+    assert entity.confidentiality.reason
+    assert entity.necessity.value is None
+    assert entity.necessity.status == "unassessed"
+    assert entity.necessity.reason
+
+
+@pytest.mark.parametrize("judgment", ["confidentiality", "necessity"])
+@pytest.mark.parametrize("reason", [None, "", "   "])
+def test_llm_parser_rejects_missing_or_blank_judgment_reasons(judgment, reason):
+    record = {
+        "tag": "EMAIL",
+        "span": SPAN,
+        "confidentiality": {"value": None, "reason": "Context does not establish disclosure status."},
+        "necessity": {"value": None, "reason": "No task was supplied."},
+    }
+    record[judgment]["reason"] = reason
+
+    with pytest.raises(ValueError, match="reason"):
+        LLMParser().parse({"records": [record]}, TEXT)

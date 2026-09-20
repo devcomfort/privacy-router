@@ -43,14 +43,15 @@ def test_registry_lists_registered_names():
 
 def test_new_detector_contract_is_publicly_exported():
     from agents.extractor import (
+        ConfidentialityJudgment,
         DetectionResult,
         DetectorRegistry,
         LFMExtractor,
         LLMExtractor,
+        NecessityJudgment,
         OPFExtractor,
         PresidioExtractor,
         PrivacyEntity,
-        Requiredness,
     )
 
     assert all(
@@ -63,7 +64,8 @@ def test_new_detector_contract_is_publicly_exported():
             OPFExtractor,
             PresidioExtractor,
             PrivacyEntity,
-            Requiredness,
+            ConfidentialityJudgment,
+            NecessityJudgment,
         )
     )
 

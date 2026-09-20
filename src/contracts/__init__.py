@@ -1,36 +1,25 @@
 """Privacy Router shared data contracts."""
 
-from .extraction import ExtractionRecord, ExtractionResult, Requiredness, Sensitivity, redact_extraction_records
-from .judgment import Judgment, MeaningfulnessAssessment
-from .masking import HydrationResult, MaskingContract, MaskingResult
-from .routing import (
-    ChatChoice,
-    ChatMessage,
-    ChatRequest,
-    ChatResponse,
-    ChatUsage,
-    PipelineResult,
-    PlaceholderRepairDecision,
-    RouteResult,
+from .annotation import IntentAnnotation
+from .extraction import (
+    ConfidentialityJudgment,
+    ExtractionRecord,
+    ExtractionResult,
+    NecessityJudgment,
+    Sensitivity,
+    redact_extraction_records,
 )
+from .masking import HydrationResult, MaskingContract, MaskingResult
 
 __all__ = [
-    "ChatChoice",
-    "ChatMessage",
-    "ChatRequest",
-    "ChatResponse",
-    "ChatUsage",
     "ExtractionRecord",
     "ExtractionResult",
     "HydrationResult",
-    "Judgment",
-    "MeaningfulnessAssessment",
+    "IntentAnnotation",
     "MaskingContract",
     "MaskingResult",
-    "PipelineResult",
-    "PlaceholderRepairDecision",
-    "Requiredness",
-    "RouteResult",
+    "ConfidentialityJudgment",
+    "NecessityJudgment",
     "Sensitivity",
     "redact_extraction_records",
 ]

@@ -1,8 +1,7 @@
 """Tests for agents.extractor package."""
 
-from .test_extractor import TestExtractionRecord, TestValidateRecord
+from .test_extractor import TestValidateRecord
 
 __all__ = [
     "TestValidateRecord",
-    "TestExtractionRecord",
 ]

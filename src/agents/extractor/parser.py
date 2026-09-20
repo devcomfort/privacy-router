@@ -9,7 +9,7 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
-from .schemas import Requiredness
+from .schemas import ConfidentialityJudgment, NecessityJudgment
 
 
 class ParsedEntity(BaseModel):
@@ -20,13 +20,11 @@ class ParsedEntity(BaseModel):
     native_label: str | None = None
     span: str = Field(..., min_length=1)
     offsets: tuple[int, int] | None = None
-    reason: str | None = None
+    confidentiality: ConfidentialityJudgment
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     detection_method: Literal["regex", "ner", "token_classifier", "llm", "hybrid"]
     native_metadata: dict[str, Any] = Field(default_factory=dict)
-    is_required: Requiredness = Field(
-        default_factory=lambda: Requiredness(value=None, reason="not assessed"),
-    )
+    necessity: NecessityJudgment
 
 
 class DetectorParser(Protocol):
@@ -222,13 +220,20 @@ def confidence(value: object) -> float | None:
         raise DetectorParseError("confidence must be numeric") from exc
 
 
-def requiredness(value: object) -> Requiredness:
-    """Convert a native requiredness object or use an explicit unknown state."""
-    if isinstance(value, Requiredness):
-        return value
-    if isinstance(value, Mapping):
-        return Requiredness.model_validate(value)
-    return Requiredness(value=None, reason="not assessed")
+def confidentiality_judgment(value: object) -> ConfidentialityJudgment:
+    """Read an explicit fresh confidentiality judgment, including its reason."""
+    judgment = ConfidentialityJudgment.model_validate(value)
+    if judgment.reason is None:
+        raise DetectorParseError("confidentiality.reason is required for fresh detector output")
+    return judgment
+
+
+def necessity_judgment(value: object) -> NecessityJudgment:
+    """Read an explicit fresh task-necessity judgment, including its reason."""
+    judgment = NecessityJudgment.model_validate(value)
+    if judgment.reason is None:
+        raise DetectorParseError("necessity.reason is required for fresh detector output")
+    return judgment
 
 
 def normalize_kind(
@@ -249,12 +254,12 @@ def explanation(value: object) -> str | None:
     if isinstance(value, Mapping):
         for key in ("textual_explanation", "explanation", "text"):
             candidate = value.get(key)
-            if isinstance(candidate, str) and candidate:
+            if isinstance(candidate, str) and candidate.strip():
                 return candidate
         return None
     for key in ("textual_explanation", "explanation", "text"):
         candidate = getattr(value, key, None)
-        if isinstance(candidate, str) and candidate:
+        if isinstance(candidate, str) and candidate.strip():
             return candidate
     return None
 

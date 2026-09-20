@@ -1,0 +1,104 @@
+{
+  "before": {
+    "hostname": "aitopatom-c182",
+    "python": "3.12.3",
+    "vllm": "0.28.0",
+    "torch": "2.13.0",
+    "memory": {
+      "MemTotal": "127535336 kB",
+      "MemAvailable": "27195712 kB",
+      "SwapTotal": "16777212 kB",
+      "SwapFree": "14399880 kB"
+    },
+    "servers": [
+      {
+        "pid": 4059001,
+        "model": "google/gemma-4-26B-A4B-it",
+        "flags": {
+          "--host": "10.42.0.2",
+          "--port": "8090",
+          "--served-model-name": "openkb-compiler",
+          "--max-model-len": "131072",
+          "--max-num-seqs": "1",
+          "--max-num-batched-tokens": "8192",
+          "--gpu-memory-utilization": "0.70",
+          "--generation-config": "vllm",
+          "--moe-backend": "triton"
+        }
+      }
+    ],
+    "gpu": "NVIDIA GB10, 580.173.02, 0 %",
+    "gpu_processes": "4059221, VLLM::EngineCore, 87414 MiB",
+    "model_registry_response": {
+      "object": "list",
+      "data": [
+        {
+          "id": "openkb-compiler",
+          "object": "model",
+          "created": 1789471446,
+          "owned_by": "vllm",
+          "root": "google/gemma-4-26B-A4B-it",
+          "parent": null,
+          "max_model_len": 131072,
+          "permission": [
+            {
+              "id": "modelperm-94efe6323ead6670",
+              "object": "model_permission",
+              "created": 1789471446,
+              "allow_create_engine": false,
+              "allow_sampling": true,
+              "allow_logprobs": true,
+              "allow_search_indices": false,
+              "allow_view": true,
+              "allow_fine_tuning": false,
+              "organization": "*",
+              "group": null,
+              "is_blocking": false
+            }
+          ]
+        }
+      ]
+    },
+    "service_reused": true,
+    "warmup_pair_seconds": 3.899670441984199
+  },
+  "during": {
+    "gpu_sm_utilization_percent": [
+      96,
+      96,
+      96
+    ],
+    "source": "nvidia-smi dmon -c 3 -s pucm during measured requests"
+  },
+  "after": {
+    "hostname": "aitopatom-c182",
+    "python": "3.12.3",
+    "vllm": "0.28.0",
+    "torch": "2.13.0",
+    "memory": {
+      "MemTotal": "127535336 kB",
+      "MemAvailable": "27214236 kB",
+      "SwapTotal": "16777212 kB",
+      "SwapFree": "14399880 kB"
+    },
+    "servers": [
+      {
+        "pid": 4059001,
+        "model": "google/gemma-4-26B-A4B-it",
+        "flags": {
+          "--host": "10.42.0.2",
+          "--port": "8090",
+          "--served-model-name": "openkb-compiler",
+          "--max-model-len": "131072",
+          "--max-num-seqs": "1",
+          "--max-num-batched-tokens": "8192",
+          "--gpu-memory-utilization": "0.70",
+          "--generation-config": "vllm",
+          "--moe-backend": "triton"
+        }
+      }
+    ],
+    "gpu": "NVIDIA GB10, 580.173.02, 0 %",
+    "gpu_processes": "4059221, VLLM::EngineCore, 87414 MiB"
+  }
+}

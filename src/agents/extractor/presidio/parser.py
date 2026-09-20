@@ -17,7 +17,7 @@ from ..parser import (
     required_string,
     valid_offsets,
 )
-from ..schemas import Requiredness
+from ..schemas import ConfidentialityJudgment, NecessityJudgment
 
 
 class PresidioParser:
@@ -53,11 +53,17 @@ class PresidioParser:
                     native_label=entity_type,
                     span=text[start:end],
                     offsets=(start, end),
-                    reason=explanation(field(item, "analysis_explanation")),
+                    confidentiality=ConfidentialityJudgment(
+                        value="private",
+                        reason=explanation(field(item, "analysis_explanation"))
+                        or f"Presidio identified this span as {entity_type}.",
+                    ),
                     confidence=confidence(field(item, "score")),
                     detection_method=presidio_method(metadata),
                     native_metadata=metadata,
-                    is_required=Requiredness(value=None, reason="not assessed"),
+                    necessity=NecessityJudgment(
+                        value=None, reason="Presidio detects PII but does not assess task necessity."
+                    ),
                 )
             )
         return parsed
